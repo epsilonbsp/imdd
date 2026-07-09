@@ -1,4 +1,4 @@
-package imdd
+package imdd3
 
 import gl "vendor:OpenGL"
 

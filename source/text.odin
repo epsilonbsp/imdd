@@ -1,4 +1,4 @@
-package imdd
+package imdd3
 
 import "core:image/png"
 import glm "core:math/linalg/glsl"
