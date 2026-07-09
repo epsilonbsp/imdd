@@ -21,27 +21,6 @@ Debug_System :: struct {
     framebuffer: Framebuffer,
     depth_texture: u32,
 
-    // point
-    point_data: [dynamic]Debug_Point,
-    point_len: i32,
-    point_vao: u32,
-    point_vbo: u32,
-    point_shader: Shader,
-
-    // line
-    line_data: [dynamic]Debug_Line,
-    line_len: i32,
-    line_vao: u32,
-    line_vbo: u32,
-    line_shader: Shader,
-
-    // grid plane
-    grid_data: [dynamic]Debug_Grid_Plane,
-    grid_len: i32,
-    grid_vao: u32,
-    grid_vbo: u32,
-    grid_shader: Shader,
-
     // shape
     shape_len: i32,
     shape_vao: u32,
@@ -70,26 +49,11 @@ Debug_System :: struct {
     sphere_len: i32,
     sphere_offset: Index_Offset,
 
-    // frustum
-    frustum_data: [dynamic]Debug_Frustum,
-    frustum_len: i32,
-    frustum_vao: u32,
-    frustum_vbo: u32,
-    frustum_shader: Shader,
-
     // mesh
     mesh_data: [dynamic]^Debug_Mesh,
     mesh_len: i32,
     mesh_shader: Shader,
     mesh_pp_shader: Shader,
-
-    // text
-    text_data: [dynamic]Debug_Char,
-    text_len: i32,
-    text_vao: u32,
-    text_vbo: u32,
-    text_tbo: u32,
-    text_shader: Shader,
 
     // uniforms
     camera_position: glm.vec3,
@@ -114,25 +78,15 @@ debug_init :: proc(width: i32, height: i32) {
 
     make_framebuffer(&system.framebuffer, width, height)
 
-    init_point_rdr()
-    init_line_rdr()
-    init_grid_rdr()
     init_shape_rdr()
-    init_frustum_rdr()
     init_mesh_rdr()
-    init_text_rdr()
 }
 
 debug_free :: proc() {
     delete_framebuffer(&system.framebuffer)
 
-    free_point_rdr()
-    free_line_rdr()
-    free_grid_rdr()
     free_shape_rdr()
-    free_frustum_rdr()
     free_mesh_rdr()
-    free_text_rdr()
 }
 
 debug_resize :: proc(width: i32, height: i32) {
@@ -163,12 +117,7 @@ debug_render :: proc() {
     gl.BindTexture(gl.TEXTURE_2D, system.depth_texture);
 
     render_mesh_rdr()
-    render_point_rdr()
-    render_line_rdr()
     render_shape_rdr()
-    render_frustum_rdr()
-    render_grid_rdr()
-    render_text_rdr()
 
     gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 }

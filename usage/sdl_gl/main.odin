@@ -3,7 +3,9 @@ package example
 import "core:fmt"
 import sdl "vendor:sdl3"
 import gl "vendor:OpenGL"
+
 import imdd3 "../../source"
+import imdd3_impl_gl "../../source/impl/gl"
 
 WINDOW_TITLE :: "IMDD3"
 WINDOW_WIDTH :: 960
@@ -101,8 +103,10 @@ main :: proc() {
     mesh: imdd3.Debug_Mesh;
     imdd3.debug_mesh_box3(&mesh, {-192, 96, 256}, {64, 128, 64}, 0xaa0000_ff)
     imdd3.debug_mesh_box3(&mesh, {-192, 0, 256}, {128, 64, 128}, 0x0000aa_ff)
-
     imdd3.build_debug_mesh(&mesh); defer imdd3.destroy_debug_mesh(&mesh)
+
+    imdd3.init(imdd3_impl_gl.interface())
+    defer imdd3.destroy()
 
     loop: for {
         time = sdl.GetTicks()
@@ -153,44 +157,50 @@ main :: proc() {
         compute_camera_projection(&camera, f32(viewport_x), f32(viewport_y))
         compute_camera_view(&camera)
 
-        imdd3.debug_grid_xz({0, -2, 0}, {16384, 16384}, {32, 32}, 1, 0xffffff_ff)
-
-        imdd3.debug_point({-64, 0, 128}, 4, 0x8a7be3_ff)
-        imdd3.debug_point({0, 0, 128}, 8, 0x7be3e1_ff)
-        imdd3.debug_point({64, 0, 128}, 12, 0xe3da7b_ff)
-
-        imdd3.debug_arrow({0, 0, 0}, {64, 0, 0}, 2, 0xcc0000_ff)
-        imdd3.debug_arrow({0, 0, 0}, {0, 64, 0}, 2, 0x00cc00_ff)
-        imdd3.debug_arrow({0, 0, 0}, {0, 0, -64}, 2, 0x0000cc_ff)
-
-        imdd3.debug_aabb({-192, 32, -128}, {64, 64, 64}, 0xebbe60_ff)
-        imdd3.debug_cylinder_aa({-64, 32, -128}, {32, 64}, 0x9fe685_ff)
-        imdd3.debug_cone_aa({64, 32, -128}, {32, 64}, 0x4963e6_ff)
-        imdd3.debug_sphere({192, 32, -128}, 32, 0xe68ac4_ff)
-
-        imdd3.debug_frustum(debug_camera.projection * debug_camera.view, 0xd1496b_ff)
-        imdd3.debug_mesh(&mesh)
-
-        imdd3.debug_text_world("Hello, World!", {0, 256, 1}, 64, 0xff0000_ff)
-        imdd3.debug_text_world("TEST", {0, 256 + 64, 1}, 64, 0x0000ff_ff)
-
-        imdd3.debug_prepare(
-            camera.position,
-            camera.forward,
-            camera.projection,
-            camera.view
-        )
-        imdd3.debug_render()
-
         gl.Viewport(0, 0, viewport_x, viewport_y)
-        gl.ClearColor(0, 0, 0, 1.0)
+        gl.ClearColor(0.5, 0.5, 0.5, 1)
         gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-        gl.ActiveTexture(gl.TEXTURE0)
-        gl.BindTexture(gl.TEXTURE_2D, imdd3.debug_get_framebuffer().color_tbo)
+        // imdd3.point({}, camera.forward, camera.right, 4, 0xffffffff)
 
-        imdd3.use_shader(&output_shader)
-        gl.DrawArrays(gl.TRIANGLE_STRIP, 0, 4)
+        imdd3.grid_xy({}, {128, 128}, 16, 1, 0xff0000ff)
+        // imdd3.grid_xz({}, {128, 128}, 16, 1, 0x00ff00ff)
+        // imdd3.grid_yz({}, {128, 128}, 16, 1, 0x000ffff)
+
+        // imdd3.line({}, {0, 128, 0}, camera.forward, camera.right, 8, 0x00ff00ff)
+        // imdd3.arrow({}, {0, 128, 0}, camera.forward, camera.right, 8, 16, 0x00ff00ff)
+
+        // imdd3.text({}, {0, 0, -1}, {1, 0, 0}, "Hello, World!", 16, 16, 0xff00ffff)
+
+        imdd3.frustum(debug_camera.projection * debug_camera.view, camera.forward, camera.right, 0.5, 0xd1496b_ff)
+
+        imdd3.render(camera.projection * camera.view)
+
+        // imdd3.debug_aabb({-192, 32, -128}, {64, 64, 64}, 0xebbe60_ff)
+        // imdd3.debug_cylinder_aa({-64, 32, -128}, {32, 64}, 0x9fe685_ff)
+        // imdd3.debug_cone_aa({64, 32, -128}, {32, 64}, 0x4963e6_ff)
+        // imdd3.debug_sphere({192, 32, -128}, 32, 0xe68ac4_ff)
+
+        // imdd3.debug_frustum(debug_camera.projection * debug_camera.view, 0xd1496b_ff)
+        // imdd3.debug_mesh(&mesh)
+
+        // imdd3.debug_prepare(
+        //     camera.position,
+        //     camera.forward,
+        //     camera.projection,
+        //     camera.view
+        // )
+        // imdd3.debug_render()
+
+        // gl.Viewport(0, 0, viewport_x, viewport_y)
+        // gl.ClearColor(0, 0, 0, 1.0)
+        // gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+        // gl.ActiveTexture(gl.TEXTURE0)
+        // gl.BindTexture(gl.TEXTURE_2D, imdd3.debug_get_framebuffer().color_tbo)
+
+        // imdd3.use_shader(&output_shader)
+        // gl.DrawArrays(gl.TRIANGLE_STRIP, 0, 4)
 
         sdl.GL_SwapWindow(window)
     }
