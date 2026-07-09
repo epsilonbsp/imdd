@@ -1,9 +1,9 @@
-package main
+package example
 
 import "core:fmt"
 import sdl "vendor:sdl3"
 import gl "vendor:OpenGL"
-import imdd "imdd/source"
+import imdd "../source"
 
 WINDOW_TITLE :: "Odin SDL3 Template"
 WINDOW_WIDTH :: 960
