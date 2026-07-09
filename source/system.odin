@@ -93,7 +93,6 @@ Debug_System :: struct {
     text_shader: Shader,
 
     // uniforms
-    camera_mode: i32,
     camera_position: glm.vec3,
     camera_forward: glm.vec3,
     projection: glm.mat4,
@@ -143,8 +142,7 @@ debug_resize :: proc(width: i32, height: i32) {
     resize_framebuffer(&system.framebuffer, width, height)
 }
 
-debug_prepare :: proc(camera_mode: i32, camera_position: glm.vec3, camera_forward: glm.vec3, projection: glm.mat4, view: glm.mat4) {
-    system.camera_mode = camera_mode
+debug_prepare :: proc(camera_position: glm.vec3, camera_forward: glm.vec3, projection: glm.mat4, view: glm.mat4) {
     system.camera_position = camera_position
     system.camera_forward = camera_forward
     system.projection = projection

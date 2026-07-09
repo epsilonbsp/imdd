@@ -73,7 +73,6 @@ out float v_depth;
 
 uniform mat4 u_projection;
 uniform mat4 u_view;
-uniform int u_camera_mode;
 uniform vec3 u_camera_position;
 uniform vec3 u_camera_forward;
 
@@ -106,7 +105,7 @@ void main() {
 
     vec3 line_dir = normalize(end_view - start_view);
     vec3 line_mid = (start_view + end_view) * 0.5;
-    vec3 cam_dir = u_camera_mode == 0 ? normalize(line_mid - (u_view * vec4(u_camera_position, 1.0)).xyz) : vec3(0, 0, -1);
+    vec3 cam_dir = normalize(line_mid - (u_view * vec4(u_camera_position, 1.0)).xyz);
     vec3 perp = normalize(cross(line_dir, cam_dir));
 
     float base_width = width * 0.5;
@@ -227,7 +226,6 @@ render_line_rdr :: proc() {
     gl.Uniform2f(uniforms["u_resolution"] - 1, f32(system.width), f32(system.height))
     gl.UniformMatrix4fv(uniforms["u_projection"] - 1, 1, false, &system.projection[0][0])
     gl.UniformMatrix4fv(uniforms["u_view"] - 1, 1, false, &system.view[0][0])
-    gl.Uniform1i(uniforms["u_camera_mode"] - 1, system.camera_mode)
     gl.Uniform3fv(uniforms["u_camera_position"] - 1, 1, &system.camera_position[0])
     gl.Uniform3fv(uniforms["u_camera_forward"] - 1, 1, &system.camera_forward[0])
 

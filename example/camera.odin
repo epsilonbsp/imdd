@@ -2,14 +2,7 @@ package example
 
 import glm "core:math/linalg/glsl"
 
-Camera_Mode :: enum {
-    PERSPECTIVE,
-    ORTHOGRAPHIC,
-}
-
 Camera :: struct {
-    mode: Camera_Mode,
-
     position: glm.vec3,
     forward: glm.vec3,
     right: glm.vec3,
@@ -24,25 +17,13 @@ Camera :: struct {
     view: glm.mat4,
 }
 
-init_perspective_camera :: proc(camera: ^Camera) {
-    camera.mode = .PERSPECTIVE
+init_camera :: proc(camera: ^Camera) {
     camera.forward = {0, 0, -1}
     camera.world_up = {0, 1, 0}
     camera.is_locked = true
     camera.near = 0.1
     camera.far = 8192
     camera.fov = 90
-    rotate_camera(camera, 0, 0, 0)
-}
-
-init_orthographic_camera :: proc(camera: ^Camera) {
-    camera.mode = .ORTHOGRAPHIC
-    camera.forward = {0, 0, -1}
-    camera.world_up = {0, 1, 0}
-    camera.is_locked = true
-    camera.near = -1024
-    camera.far = 1024
-    camera.fov = 1
     rotate_camera(camera, 0, 0, 0)
 }
 
@@ -107,18 +88,7 @@ unlock_camera :: proc(camera: ^Camera) {
 }
 
 compute_camera_projection :: proc(camera: ^Camera, width: f32, height: f32) {
-    if camera.mode == .PERSPECTIVE {
-        camera.projection = glm.mat4Perspective(glm.radians(camera.fov), width / height, camera.near, camera.far)
-    } else {
-        camera.projection = glm.mat4Ortho3d(
-            -width * 0.5 * camera.fov,
-            width * 0.5 * camera.fov,
-            -height * 0.5 * camera.fov,
-            height * 0.5 * camera.fov,
-            camera.near,
-            camera.far
-        )
-    }
+    camera.projection = glm.mat4Perspective(glm.radians(camera.fov), width / height, camera.near, camera.far)
 }
 
 compute_camera_view :: proc(camera: ^Camera) {
