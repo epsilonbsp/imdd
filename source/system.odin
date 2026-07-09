@@ -3,7 +3,6 @@ package imdd
 import glm "core:math/linalg/glsl"
 import gl "vendor:OpenGL"
 
-@(private)
 system: Debug_System
 
 // can change to whatever you want
