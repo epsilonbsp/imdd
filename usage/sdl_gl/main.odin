@@ -3,7 +3,7 @@ package example
 import "core:fmt"
 import sdl "vendor:sdl3"
 import gl "vendor:OpenGL"
-import imdd3 "../source"
+import imdd3 "../../source"
 
 WINDOW_TITLE :: "IMDD3"
 WINDOW_WIDTH :: 960
