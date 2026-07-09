@@ -1,8 +1,6 @@
 # IMDD
 This is my simple Immediate Mode Debug Draw implemented in Odin and OpenGL
-![Preview](preview.png)
-## Example
-You can take this [template](https://github.com/deltasampler/odin_sdl3_template) and replace `main.odin` with `main.odin` from **example** directory
+
 ## Primitives:
 
     // point
