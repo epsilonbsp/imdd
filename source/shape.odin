@@ -3,6 +3,13 @@ package imdd3
 import glm "core:math/linalg/glsl"
 import gl "vendor:OpenGL"
 
+Shape_Type :: enum {
+    Box,
+    Cylinder,
+    Cone,
+    Sphere,
+}
+
 Debug_Shape :: struct {
     translation: glm.vec3,
     rotation: glm.quat,
@@ -10,108 +17,96 @@ Debug_Shape :: struct {
     color: u32,
 }
 
+@(private)
+push_shape :: proc(type: Shape_Type) -> ^Debug_Shape {
+    shape := &system.shape_data[type][system.shape_data_len[type]]
+    system.shape_data_len[type] = (system.shape_data_len[type] + 1) % DEBUG_SHAPE_CAP
+    system.shape_len += 1
+    return shape
+}
+
 debug_aabb :: proc(position: glm.vec3, size: glm.vec3, color: u32) {
-    shape := &system.box_data[system.box_len]
+    shape := push_shape(.Box)
     shape.translation = position
     shape.rotation = {}
     shape.scale = size / 2
     shape.color = color
-    system.box_len = (system.box_len + 1) % DEBUG_SHAPE_CAP
-    system.shape_len += 1
 }
 
 debug_aabb_bounds :: proc(min: glm.vec3, max: glm.vec3, color: u32) {
-    shape := &system.box_data[system.box_len]
+    shape := push_shape(.Box)
     shape.translation = (min + max) / 2
     shape.rotation = {}
     shape.scale = glm.abs(max - min) / 2
     shape.color = color
-    system.box_len = (system.box_len + 1) % DEBUG_SHAPE_CAP
-    system.shape_len += 1
 }
 
 debug_obb :: proc(position: glm.vec3, size: glm.vec3, rotation: glm.vec3, color: u32) {
-    shape := &system.box_data[system.box_len]
+    shape := push_shape(.Box)
     shape.translation = position
     shape.rotation = quat_rotation_xyz(rotation)
     shape.scale = size / 2
     shape.color = color
-    system.box_len = (system.box_len + 1) % DEBUG_SHAPE_CAP
-    system.shape_len += 1
 }
 
 debug_cylinder_aa :: proc(position: glm.vec3, size: glm.vec2, color: u32) {
-    shape := &system.cylinder_data[system.cylinder_len]
+    shape := push_shape(.Cylinder)
     shape.translation = position
     shape.rotation = {}
     shape.scale = {size.x, size.y / 2, size.x}
     shape.color = color
-    system.cylinder_len = (system.cylinder_len + 1) % DEBUG_SHAPE_CAP
-    system.shape_len += 1
 }
 
 debug_cylinder_o :: proc(position: glm.vec3, size: glm.vec2, rotation: glm.vec3, color: u32) {
-    shape := &system.cylinder_data[system.cylinder_len]
+    shape := push_shape(.Cylinder)
     shape.translation = position
     shape.rotation = quat_rotation_xyz(rotation)
     shape.scale = {size.x, size.y / 2, size.x}
     shape.color = color
-    system.cylinder_len = (system.cylinder_len + 1) % DEBUG_SHAPE_CAP
-    system.shape_len += 1
 }
 
 debug_cylinder_ab :: proc(start: glm.vec3, end: glm.vec3, radius: f32, color: u32) {
     height := glm.distance(start, end) / 2
 
-    shape := &system.cylinder_data[system.cylinder_len]
+    shape := push_shape(.Cylinder)
     shape.translation = (start + end) / 2
     shape.rotation = quat_rotation_dir(glm.normalize(end - start))
     shape.scale = {radius, height, radius}
     shape.color = color
-    system.cylinder_len = (system.cylinder_len + 1) % DEBUG_SHAPE_CAP
-    system.shape_len += 1
 }
 
 debug_cone_aa :: proc(position: glm.vec3, size: glm.vec2, color: u32) {
-    shape := &system.cone_data[system.cone_len]
+    shape := push_shape(.Cone)
     shape.translation = position
     shape.rotation = {}
     shape.scale = {size.x, size.y / 2, size.x}
     shape.color = color
-    system.cone_len = (system.cone_len + 1) % DEBUG_SHAPE_CAP
-    system.shape_len += 1
 }
 
 debug_cone_o :: proc(position: glm.vec3, size: glm.vec2, rotation: glm.vec3, color: u32) {
-    shape := &system.cone_data[system.cone_len]
+    shape := push_shape(.Cone)
     shape.translation = position
     shape.rotation = quat_rotation_xyz(rotation)
     shape.scale = {size.x, size.y / 2, size.x}
     shape.color = color
-    system.cone_len = (system.cone_len + 1) % DEBUG_SHAPE_CAP
-    system.shape_len += 1
 }
 
 debug_cone_ab :: proc(start: glm.vec3, end: glm.vec3, radius: f32, color: u32) {
     height := glm.distance(start, end) / 2
 
-    shape := &system.cone_data[system.cone_len]
+    shape := push_shape(.Cone)
     shape.translation = (start + end) / 2
     shape.rotation = quat_rotation_dir(glm.normalize(start - end))
     shape.scale = {radius, height, radius}
     shape.color = color
-    system.cone_len = (system.cone_len + 1) % DEBUG_SHAPE_CAP
-    system.shape_len += 1
 }
 
 debug_sphere :: proc(position: glm.vec3, radius: f32, color: u32) {
-    shape := &system.sphere_data[system.sphere_len]
+    shape := push_shape(.Sphere)
     shape.translation = position
     shape.rotation = {}
     shape.scale = {radius, radius, radius}
     shape.color = color
-    system.sphere_len = (system.sphere_len + 1) % DEBUG_SHAPE_CAP
-    system.shape_len += 1
 }
 
 // rendering
@@ -264,10 +259,10 @@ init_shape_rdr :: proc() {
     vertices: [dynamic]glm.vec3; defer delete(vertices)
     indices: [dynamic]u32; defer delete(indices)
 
-    system.box_offset = geometry_lines_box(&vertices, &indices, {1, 1, 1})
-    system.cylinder_offset = geometry_lines_cylinder(&vertices, &indices, {1, 1}, 16)
-    system.cone_offset = geometry_lines_cone(&vertices, &indices, {1, 1}, 16)
-    system.sphere_offset = geometry_lines_sphere(&vertices, &indices, 1, 16)
+    system.shape_offset[.Box] = geometry_lines_box(&vertices, &indices, {1, 1, 1})
+    system.shape_offset[.Cylinder] = geometry_lines_cylinder(&vertices, &indices, {1, 1}, 16)
+    system.shape_offset[.Cone] = geometry_lines_cone(&vertices, &indices, {1, 1}, 16)
+    system.shape_offset[.Sphere] = geometry_lines_sphere(&vertices, &indices, 1, 16)
 
     // vao
     gl.GenVertexArrays(1, &system.shape_vao)
@@ -288,15 +283,14 @@ init_shape_rdr :: proc() {
     gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, size_of(u32) * len(indices), &indices[0], gl.DYNAMIC_DRAW)
 
     // data
-    system.box_data = make([dynamic]Debug_Shape, DEBUG_SHAPE_CAP, DEBUG_SHAPE_CAP)
-    system.cylinder_data = make([dynamic]Debug_Shape, DEBUG_SHAPE_CAP, DEBUG_SHAPE_CAP)
-    system.cone_data = make([dynamic]Debug_Shape, DEBUG_SHAPE_CAP, DEBUG_SHAPE_CAP)
-    system.sphere_data = make([dynamic]Debug_Shape, DEBUG_SHAPE_CAP, DEBUG_SHAPE_CAP)
+    for type in Shape_Type {
+        system.shape_data[type] = make([dynamic]Debug_Shape, DEBUG_SHAPE_CAP, DEBUG_SHAPE_CAP)
+    }
 
     // ubo (one region per shape type, indexed via baseInstance)
     gl.GenBuffers(1, &system.shape_ubo)
     gl.BindBuffer(gl.ARRAY_BUFFER, system.shape_ubo)
-    gl.BufferData(gl.ARRAY_BUFFER, size_of(Debug_Shape) * DEBUG_SHAPE_CAP * SHAPE_TYPE_COUNT, nil, gl.DYNAMIC_DRAW)
+    gl.BufferData(gl.ARRAY_BUFFER, size_of(Debug_Shape) * DEBUG_SHAPE_CAP * len(Shape_Type), nil, gl.DYNAMIC_DRAW)
 
     // attributes
     offset: uintptr = 0
@@ -328,10 +322,9 @@ init_shape_rdr :: proc() {
 }
 
 free_shape_rdr :: proc() {
-    delete(system.box_data)
-    delete(system.cylinder_data)
-    delete(system.cone_data)
-    delete(system.sphere_data)
+    for type in Shape_Type {
+        delete(system.shape_data[type])
+    }
     gl.DeleteVertexArrays(1, &system.shape_vao)
     gl.DeleteBuffers(1, &system.shape_vbo)
     gl.DeleteBuffers(1, &system.shape_ibo)
@@ -339,8 +332,6 @@ free_shape_rdr :: proc() {
     gl.DeleteBuffers(1, &system.shape_dibo)
     delete_shader(&system.shape_shader)
 }
-
-SHAPE_TYPE_COUNT :: 4
 
 render_shape_rdr :: proc() {
     if system.shape_len == 0 {
@@ -359,61 +350,32 @@ render_shape_rdr :: proc() {
 
     region_size :: size_of(Debug_Shape) * DEBUG_SHAPE_CAP
 
-    if system.box_len > 0 {
-        gl.BufferSubData(gl.ARRAY_BUFFER, 0 * region_size, size_of(Debug_Shape) * int(system.box_len), &system.box_data[0])
-    }
+    commands: [len(Shape_Type)]gl.DrawElementsIndirectCommand
 
-    if system.cylinder_len > 0 {
-        gl.BufferSubData(gl.ARRAY_BUFFER, 1 * region_size, size_of(Debug_Shape) * int(system.cylinder_len), &system.cylinder_data[0])
-    }
+    for type in Shape_Type {
+        i := int(type)
+        n := system.shape_data_len[type]
 
-    if system.cone_len > 0 {
-        gl.BufferSubData(gl.ARRAY_BUFFER, 2 * region_size, size_of(Debug_Shape) * int(system.cone_len), &system.cone_data[0])
-    }
+        if n > 0 {
+            gl.BufferSubData(gl.ARRAY_BUFFER, i * region_size, size_of(Debug_Shape) * int(n), &system.shape_data[type][0])
+        }
 
-    if system.sphere_len > 0 {
-        gl.BufferSubData(gl.ARRAY_BUFFER, 3 * region_size, size_of(Debug_Shape) * int(system.sphere_len), &system.sphere_data[0])
-    }
-
-    commands := [SHAPE_TYPE_COUNT]gl.DrawElementsIndirectCommand{
-        {
-            count = u32(system.box_offset.len),
-            instanceCount = u32(system.box_len),
-            firstIndex = u32(system.box_offset.pos),
+        commands[i] = {
+            count = u32(system.shape_offset[type].len),
+            instanceCount = u32(n),
+            firstIndex = u32(system.shape_offset[type].pos),
             baseVertex = 0,
-            baseInstance = 0 * DEBUG_SHAPE_CAP,
-        },
-        {
-            count = u32(system.cylinder_offset.len),
-            instanceCount = u32(system.cylinder_len),
-            firstIndex = u32(system.cylinder_offset.pos),
-            baseVertex = 0,
-            baseInstance = 1 * DEBUG_SHAPE_CAP,
-        },
-        {
-            count = u32(system.cone_offset.len),
-            instanceCount = u32(system.cone_len),
-            firstIndex = u32(system.cone_offset.pos),
-            baseVertex = 0,
-            baseInstance = 2 * DEBUG_SHAPE_CAP,
-        },
-        {
-            count = u32(system.sphere_offset.len),
-            instanceCount = u32(system.sphere_len),
-            firstIndex = u32(system.sphere_offset.pos),
-            baseVertex = 0,
-            baseInstance = 3 * DEBUG_SHAPE_CAP,
-        },
+            baseInstance = u32(i) * DEBUG_SHAPE_CAP,
+        }
     }
 
     gl.BindBuffer(gl.DRAW_INDIRECT_BUFFER, system.shape_dibo)
     gl.BufferData(gl.DRAW_INDIRECT_BUFFER, size_of(commands), &commands[0], gl.STREAM_DRAW)
 
-    gl.MultiDrawElementsIndirect(gl.LINES, gl.UNSIGNED_INT, nil, SHAPE_TYPE_COUNT, 0)
+    gl.MultiDrawElementsIndirect(gl.LINES, gl.UNSIGNED_INT, nil, i32(len(Shape_Type)), 0)
 
-    system.box_len = 0
-    system.cylinder_len = 0
-    system.cone_len = 0
-    system.sphere_len = 0
+    for type in Shape_Type {
+        system.shape_data_len[type] = 0
+    }
     system.shape_len = 0
 }

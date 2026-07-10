@@ -30,25 +30,10 @@ Debug_System :: struct {
     shape_dibo: u32,
     shape_shader: Shader,
 
-    // box
-    box_data: [dynamic]Debug_Shape,
-    box_len: i32,
-    box_offset: Index_Offset,
-
-    // cylinder
-    cylinder_data: [dynamic]Debug_Shape,
-    cylinder_len: i32,
-    cylinder_offset: Index_Offset,
-
-    // cone
-    cone_data: [dynamic]Debug_Shape,
-    cone_len: i32,
-    cone_offset: Index_Offset,
-
-    // sphere
-    sphere_data: [dynamic]Debug_Shape,
-    sphere_len: i32,
-    sphere_offset: Index_Offset,
+    // shapes (bucketed by type)
+    shape_data: [Shape_Type][dynamic]Debug_Shape,
+    shape_data_len: [Shape_Type]i32,
+    shape_offset: [Shape_Type]Index_Offset,
 
     // mesh
     mesh_data: [dynamic]^Debug_Mesh,
