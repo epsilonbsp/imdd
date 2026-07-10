@@ -1,4 +1,4 @@
-package imdd33_impl_gl
+package imdd3_impl_gl
 
 import glm "core:math/linalg/glsl"
 import gl "vendor:OpenGL"

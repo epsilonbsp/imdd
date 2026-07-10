@@ -1,4 +1,4 @@
-package imdd33_impl_gl
+package imdd3_impl_gl
 
 GLSL_VERSION :: "#version 460 core"
 
