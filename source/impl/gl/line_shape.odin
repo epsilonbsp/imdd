@@ -140,7 +140,7 @@ shape_render :: proc(data: [imdd3.Shape_Type][]imdd3.Debug_Shape, resolution: [2
         commands[i] = {
             count = u32(shape_renderer.offset[type].len),
             instanceCount = u32(len(instances)),
-            firstIndex = u32(shape_renderer.offset[type].pos),
+            firstIndex = shape_renderer.offset[type].pos,
             baseVertex = 0,
             baseInstance = u32(i) * imdd3.DEBUG_SHAPE_CAP,
         }

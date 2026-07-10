@@ -3,12 +3,12 @@ package imdd3
 import glm "core:math/linalg/glsl"
 
 Index_Offset :: struct {
-    pos: uintptr,
+    pos: u32,
     len: i32,
 }
 
 geometry_lines_box :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u32, size: glm.vec3) -> (offset: Index_Offset) {
-    offset.pos = cast(uintptr) len(indices)
+    offset.pos = cast(u32) len(indices)
 
     index := u32(len(vertices))
 
@@ -47,7 +47,7 @@ geometry_lines_box :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u32,
 }
 
 geometry_lines_cylinder :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u32, size: glm.vec2, segments: i32) -> (offset: Index_Offset) {
-    offset.pos = cast(uintptr) len(indices)
+    offset.pos = cast(u32) len(indices)
 
     angle := glm.PI * 2 / f32(segments)
     index := u32(len(vertices))
@@ -86,7 +86,7 @@ geometry_lines_cylinder :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic
 }
 
 geometry_lines_cone :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u32, size: glm.vec2, segments: i32) -> (offset: Index_Offset) {
-    offset.pos = cast(uintptr) len(indices)
+    offset.pos = cast(u32) len(indices)
 
     angle := glm.PI * 2 / f32(segments)
     index := u32(len(vertices))
@@ -116,7 +116,7 @@ geometry_lines_cone :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u32
 }
 
 geometry_lines_sphere :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u32, radius: f32, segments: i32) -> (offset: Index_Offset) {
-    offset.pos = cast(uintptr) len(indices)
+    offset.pos = cast(u32) len(indices)
 
     rings := segments / 2
     start_index := u32(len(vertices))
