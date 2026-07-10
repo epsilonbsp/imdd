@@ -27,6 +27,7 @@ Debug_System :: struct {
     shape_vbo: u32,
     shape_ibo: u32,
     shape_ubo: u32,
+    shape_dibo: u32,
     shape_shader: Shader,
 
     // box

@@ -163,7 +163,7 @@ main :: proc() {
 
         // imdd3.point({}, camera.forward, camera.right, 4, 0xffffffff)
 
-        imdd3.grid_xy({}, {128, 128}, 16, 1, 0xff0000ff)
+        // imdd3.grid_xy({}, {128, 128}, 16, 1, 0xff0000ff)
         // imdd3.grid_xz({}, {128, 128}, 16, 1, 0x00ff00ff)
         // imdd3.grid_yz({}, {128, 128}, 16, 1, 0x000ffff)
 
@@ -172,35 +172,34 @@ main :: proc() {
 
         // imdd3.text({}, {0, 0, -1}, {1, 0, 0}, "Hello, World!", 16, 16, 0xff00ffff)
 
-        imdd3.frustum(debug_camera.projection * debug_camera.view, camera.forward, camera.right, 0.5, 0xd1496b_ff)
+        // imdd3.frustum(debug_camera.projection * debug_camera.view, camera.forward, camera.right, 0.5, 0xd1496b_ff)
 
-        imdd3.render(camera.projection * camera.view)
+        // imdd3.render(camera.projection * camera.view)
 
-        // imdd3.debug_aabb({-192, 32, -128}, {64, 64, 64}, 0xebbe60_ff)
-        // imdd3.debug_cylinder_aa({-64, 32, -128}, {32, 64}, 0x9fe685_ff)
-        // imdd3.debug_cone_aa({64, 32, -128}, {32, 64}, 0x4963e6_ff)
-        // imdd3.debug_sphere({192, 32, -128}, 32, 0xe68ac4_ff)
+        imdd3.debug_aabb({-192, 32, -128}, {64, 64, 64}, 0xebbe60_ff)
+        imdd3.debug_cylinder_aa({-64, 32, -128}, {32, 64}, 0x9fe685_ff)
+        imdd3.debug_cone_aa({64, 32, -128}, {32, 64}, 0x4963e6_ff)
+        imdd3.debug_sphere({192, 32, -128}, 32, 0xe68ac4_ff)
 
-        // imdd3.debug_frustum(debug_camera.projection * debug_camera.view, 0xd1496b_ff)
-        // imdd3.debug_mesh(&mesh)
+        imdd3.debug_mesh(&mesh)
 
-        // imdd3.debug_prepare(
-        //     camera.position,
-        //     camera.forward,
-        //     camera.projection,
-        //     camera.view
-        // )
-        // imdd3.debug_render()
+        imdd3.debug_prepare(
+            camera.position,
+            camera.forward,
+            camera.projection,
+            camera.view
+        )
+        imdd3.debug_render()
 
-        // gl.Viewport(0, 0, viewport_x, viewport_y)
-        // gl.ClearColor(0, 0, 0, 1.0)
-        // gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+        gl.Viewport(0, 0, viewport_x, viewport_y)
+        gl.ClearColor(0, 0, 0, 1.0)
+        gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-        // gl.ActiveTexture(gl.TEXTURE0)
-        // gl.BindTexture(gl.TEXTURE_2D, imdd3.debug_get_framebuffer().color_tbo)
+        gl.ActiveTexture(gl.TEXTURE0)
+        gl.BindTexture(gl.TEXTURE_2D, imdd3.debug_get_framebuffer().color_tbo)
 
-        // imdd3.use_shader(&output_shader)
-        // gl.DrawArrays(gl.TRIANGLE_STRIP, 0, 4)
+        imdd3.use_shader(&output_shader)
+        gl.DrawArrays(gl.TRIANGLE_STRIP, 0, 4)
 
         sdl.GL_SwapWindow(window)
     }

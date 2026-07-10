@@ -293,10 +293,10 @@ init_shape_rdr :: proc() {
     system.cone_data = make([dynamic]Debug_Shape, DEBUG_SHAPE_CAP, DEBUG_SHAPE_CAP)
     system.sphere_data = make([dynamic]Debug_Shape, DEBUG_SHAPE_CAP, DEBUG_SHAPE_CAP)
 
-    // ubo
+    // ubo (one region per shape type, indexed via baseInstance)
     gl.GenBuffers(1, &system.shape_ubo)
     gl.BindBuffer(gl.ARRAY_BUFFER, system.shape_ubo)
-    gl.BufferData(gl.ARRAY_BUFFER, size_of(Debug_Shape) * DEBUG_SHAPE_CAP, nil, gl.DYNAMIC_DRAW)
+    gl.BufferData(gl.ARRAY_BUFFER, size_of(Debug_Shape) * DEBUG_SHAPE_CAP * SHAPE_TYPE_COUNT, nil, gl.DYNAMIC_DRAW)
 
     // attributes
     offset: uintptr = 0
@@ -320,6 +320,9 @@ init_shape_rdr :: proc() {
     gl.VertexAttribIPointer(4, 1, gl.UNSIGNED_INT, size_of(Debug_Shape), offset)
     gl.VertexAttribDivisor(4, 1)
 
+    // draw indirect buffer
+    gl.GenBuffers(1, &system.shape_dibo)
+
     // shaders
     make_shader(&system.shape_shader, load_shaders_source(SHAPE_VS, SHAPE_GS, SHAPE_FS))
 }
@@ -333,8 +336,11 @@ free_shape_rdr :: proc() {
     gl.DeleteBuffers(1, &system.shape_vbo)
     gl.DeleteBuffers(1, &system.shape_ibo)
     gl.DeleteBuffers(1, &system.shape_ubo)
+    gl.DeleteBuffers(1, &system.shape_dibo)
     delete_shader(&system.shape_shader)
 }
+
+SHAPE_TYPE_COUNT :: 4
 
 render_shape_rdr :: proc() {
     if system.shape_len == 0 {
@@ -351,29 +357,63 @@ render_shape_rdr :: proc() {
     gl.BindVertexArray(system.shape_vao)
     gl.BindBuffer(gl.ARRAY_BUFFER, system.shape_ubo)
 
+    region_size :: size_of(Debug_Shape) * DEBUG_SHAPE_CAP
+
     if system.box_len > 0 {
-        gl.BufferSubData(gl.ARRAY_BUFFER, 0, size_of(Debug_Shape) * DEBUG_SHAPE_CAP, &system.box_data[0])
-        gl.DrawElementsInstanced(gl.LINES, system.box_offset.len, gl.UNSIGNED_INT, cast(rawptr) (system.box_offset.pos * size_of(u32)), system.box_len)
-        system.box_len = 0
+        gl.BufferSubData(gl.ARRAY_BUFFER, 0 * region_size, size_of(Debug_Shape) * int(system.box_len), &system.box_data[0])
     }
 
     if system.cylinder_len > 0 {
-        gl.BufferSubData(gl.ARRAY_BUFFER, 0, size_of(Debug_Shape) * DEBUG_SHAPE_CAP, &system.cylinder_data[0])
-        gl.DrawElementsInstanced(gl.LINES, system.cylinder_offset.len, gl.UNSIGNED_INT, cast(rawptr) (system.cylinder_offset.pos * size_of(u32)), system.cylinder_len)
-        system.cylinder_len = 0
+        gl.BufferSubData(gl.ARRAY_BUFFER, 1 * region_size, size_of(Debug_Shape) * int(system.cylinder_len), &system.cylinder_data[0])
     }
 
     if system.cone_len > 0 {
-        gl.BufferSubData(gl.ARRAY_BUFFER, 0, size_of(Debug_Shape) * DEBUG_SHAPE_CAP, &system.cone_data[0])
-        gl.DrawElementsInstanced(gl.LINES, system.cone_offset.len, gl.UNSIGNED_INT, cast(rawptr) (system.cone_offset.pos * size_of(u32)), system.cone_len)
-        system.cone_len = 0
+        gl.BufferSubData(gl.ARRAY_BUFFER, 2 * region_size, size_of(Debug_Shape) * int(system.cone_len), &system.cone_data[0])
     }
 
     if system.sphere_len > 0 {
-        gl.BufferSubData(gl.ARRAY_BUFFER, 0, size_of(Debug_Shape) * DEBUG_SHAPE_CAP, &system.sphere_data[0])
-        gl.DrawElementsInstanced(gl.LINES, system.sphere_offset.len, gl.UNSIGNED_INT, cast(rawptr) (system.sphere_offset.pos * size_of(u32)), system.sphere_len)
-        system.sphere_len = 0
+        gl.BufferSubData(gl.ARRAY_BUFFER, 3 * region_size, size_of(Debug_Shape) * int(system.sphere_len), &system.sphere_data[0])
     }
 
+    commands := [SHAPE_TYPE_COUNT]gl.DrawElementsIndirectCommand{
+        {
+            count = u32(system.box_offset.len),
+            instanceCount = u32(system.box_len),
+            firstIndex = u32(system.box_offset.pos),
+            baseVertex = 0,
+            baseInstance = 0 * DEBUG_SHAPE_CAP,
+        },
+        {
+            count = u32(system.cylinder_offset.len),
+            instanceCount = u32(system.cylinder_len),
+            firstIndex = u32(system.cylinder_offset.pos),
+            baseVertex = 0,
+            baseInstance = 1 * DEBUG_SHAPE_CAP,
+        },
+        {
+            count = u32(system.cone_offset.len),
+            instanceCount = u32(system.cone_len),
+            firstIndex = u32(system.cone_offset.pos),
+            baseVertex = 0,
+            baseInstance = 2 * DEBUG_SHAPE_CAP,
+        },
+        {
+            count = u32(system.sphere_offset.len),
+            instanceCount = u32(system.sphere_len),
+            firstIndex = u32(system.sphere_offset.pos),
+            baseVertex = 0,
+            baseInstance = 3 * DEBUG_SHAPE_CAP,
+        },
+    }
+
+    gl.BindBuffer(gl.DRAW_INDIRECT_BUFFER, system.shape_dibo)
+    gl.BufferData(gl.DRAW_INDIRECT_BUFFER, size_of(commands), &commands[0], gl.STREAM_DRAW)
+
+    gl.MultiDrawElementsIndirect(gl.LINES, gl.UNSIGNED_INT, nil, SHAPE_TYPE_COUNT, 0)
+
+    system.box_len = 0
+    system.cylinder_len = 0
+    system.cone_len = 0
+    system.sphere_len = 0
     system.shape_len = 0
 }
