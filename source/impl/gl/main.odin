@@ -136,13 +136,17 @@ update_texture :: proc(handle: u32, x: i32, y: i32, w: i32, h: i32, data: []u8) 
 
 interface :: proc() -> imdd3.Renderer {
     return {
-        init,
-        destroy,
-        flush,
-        set_clip_rect,
-        clear_clip_rect,
-        add_texture,
-        remove_texture,
-        update_texture
+        init = init,
+        destroy = destroy,
+        flush = flush,
+        set_clip_rect = set_clip_rect,
+        clear_clip_rect = clear_clip_rect,
+        add_texture = add_texture,
+        remove_texture = remove_texture,
+        update_texture = update_texture,
+
+        shape_init = shape_init,
+        shape_destroy = shape_destroy,
+        shape_render = shape_render,
     }
 }

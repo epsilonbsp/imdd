@@ -13,43 +13,6 @@ WINDOW_HEIGHT :: 540
 GL_VERSION_MAJOR :: 4
 GL_VERSION_MINOR :: 6
 
-OUTPUT_VS :: `#version 460 core
-    out vec2 v_tex_coord;
-
-    const vec2 positions[] = vec2[](
-        vec2(-1.0, -1.0),
-        vec2(1.0, -1.0),
-        vec2(-1.0, 1.0),
-        vec2(1.0, 1.0)
-    );
-
-    const vec2 tex_coords[] = vec2[](
-        vec2(0.0, 0.0),
-        vec2(1.0, 0.0),
-        vec2(0.0, 1.0),
-        vec2(1.0, 1.0)
-    );
-
-    void main() {
-        gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
-        v_tex_coord = tex_coords[gl_VertexID];
-    }
-`
-
-OUTPUT_FS :: `#version 460 core
-    precision highp float;
-
-    in vec2 v_tex_coord;
-
-    out vec4 o_frag_color;
-
-    uniform sampler2D sa_texture;
-
-    void main() {
-        o_frag_color = texture(sa_texture, v_tex_coord);
-    }
-`
-
 main :: proc() {
     if !sdl.Init({.VIDEO}) {
         fmt.printf("SDL ERROR: %s\n", sdl.GetError())
@@ -95,16 +58,6 @@ main :: proc() {
     compute_camera_projection(&debug_camera, f32(viewport_x), f32(viewport_y))
     compute_camera_view(&debug_camera)
 
-    output_shader: imdd3.Shader
-    imdd3.make_shader(&output_shader, gl.load_shaders_source(OUTPUT_VS, OUTPUT_FS))
-
-    imdd3.debug_init(WINDOW_WIDTH, WINDOW_HEIGHT); defer imdd3.debug_free()
-
-    mesh: imdd3.Debug_Mesh;
-    imdd3.debug_mesh_box3(&mesh, {-192, 96, 256}, {64, 128, 64}, 0xaa0000_ff)
-    imdd3.debug_mesh_box3(&mesh, {-192, 0, 256}, {128, 64, 128}, 0x0000aa_ff)
-    imdd3.build_debug_mesh(&mesh); defer imdd3.destroy_debug_mesh(&mesh)
-
     imdd3.init(imdd3_impl_gl.interface())
     defer imdd3.destroy()
 
@@ -121,8 +74,6 @@ main :: proc() {
                     break loop
                 case .WINDOW_RESIZED:
                     sdl.GetWindowSize(window, &viewport_x, &viewport_y)
-
-                    imdd3.debug_resize(viewport_x, viewport_y)
                 case .KEY_DOWN:
                     if event.key.scancode == sdl.Scancode.ESCAPE {
                         _ = sdl.SetWindowRelativeMouseMode(window, !sdl.GetWindowRelativeMouseMode(window))
@@ -163,7 +114,7 @@ main :: proc() {
 
         // imdd3.point({}, camera.forward, camera.right, 4, 0xffffffff)
 
-        // imdd3.grid_xy({}, {128, 128}, 16, 1, 0xff0000ff)
+        imdd3.grid_xy({}, {128, 128}, 16, 1, 0xff0000ff)
         // imdd3.grid_xz({}, {128, 128}, 16, 1, 0x00ff00ff)
         // imdd3.grid_yz({}, {128, 128}, 16, 1, 0x000ffff)
 
@@ -174,32 +125,12 @@ main :: proc() {
 
         // imdd3.frustum(debug_camera.projection * debug_camera.view, camera.forward, camera.right, 0.5, 0xd1496b_ff)
 
-        // imdd3.render(camera.projection * camera.view)
-
         imdd3.debug_aabb({-192, 32, -128}, {64, 64, 64}, 0xebbe60_ff)
         imdd3.debug_cylinder_aa({-64, 32, -128}, {32, 64}, 0x9fe685_ff)
         imdd3.debug_cone_aa({64, 32, -128}, {32, 64}, 0x4963e6_ff)
         imdd3.debug_sphere({192, 32, -128}, 32, 0xe68ac4_ff)
 
-        imdd3.debug_mesh(&mesh)
-
-        imdd3.debug_prepare(
-            camera.position,
-            camera.forward,
-            camera.projection,
-            camera.view
-        )
-        imdd3.debug_render()
-
-        gl.Viewport(0, 0, viewport_x, viewport_y)
-        gl.ClearColor(0, 0, 0, 1.0)
-        gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-
-        gl.ActiveTexture(gl.TEXTURE0)
-        gl.BindTexture(gl.TEXTURE_2D, imdd3.debug_get_framebuffer().color_tbo)
-
-        imdd3.use_shader(&output_shader)
-        gl.DrawArrays(gl.TRIANGLE_STRIP, 0, 4)
+        imdd3.render(camera.projection, camera.view, {f32(viewport_x), f32(viewport_y)})
 
         sdl.GL_SwapWindow(window)
     }

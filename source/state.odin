@@ -25,6 +25,11 @@ State :: struct {
     fonts: [3]Font,
     font_weight: Font_Weight,
     icons: Icons,
+
+    // Shape data (bucketed by type)
+    shape_len: i32,
+    shape_data: [Shape_Type][dynamic]Debug_Shape,
+    shape_data_len: [Shape_Type]i32,
 }
 
 state: State
@@ -40,6 +45,9 @@ init :: proc(renderer: Renderer) {
 
     load_fonts()
     load_icons()
+
+    // Shape
+    init_shape_rdr()
 }
 
 destroy :: proc() {
@@ -51,11 +59,16 @@ destroy :: proc() {
     delete(state.indices)
 
     delete(state.icons.icons)
+
+    // Shape
+    free_shape_rdr()
 }
 
-render :: proc(projection: matrix[4, 4]f32) {
-    state.renderer.flush(state.vertices[:], state.indices[:], projection)
+render :: proc(projection: matrix[4, 4]f32, view: matrix[4, 4]f32, resolution: [2]f32) {
+    state.renderer.flush(state.vertices[:], state.indices[:], projection * view)
 
     clear(&state.vertices)
     clear(&state.indices)
+
+    render_shape_rdr(resolution, projection, view)
 }
