@@ -21,7 +21,6 @@ Debug_Shape :: struct {
 push_shape :: proc(type: Shape_Type) -> ^Debug_Shape {
     shape := &state.shape_data[type][state.shape_data_len[type]]
     state.shape_data_len[type] = (state.shape_data_len[type] + 1) % DEBUG_SHAPE_CAP
-    state.shape_len += 1
     return shape
 }
 
@@ -147,6 +146,4 @@ render_shape_rdr :: proc(resolution: [2]f32, projection: matrix[4, 4]f32, view: 
     for type in Shape_Type {
         state.shape_data_len[type] = 0
     }
-
-    state.shape_len = 0
 }

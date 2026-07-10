@@ -17,4 +17,9 @@ Renderer :: struct {
     shape_init: proc(vertices: []glm.vec3, indices: []u32, offset: [Shape_Type]Index_Offset),
     shape_destroy: proc(),
     shape_render: proc(data: [Shape_Type][]Debug_Shape, resolution: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
+
+    // primitive
+    primitive_renderer_init: proc(vertices: []Primitive_Vertex, indices: []u32, offset: [Primitive_Type]Primitive_Range),
+    primitive_renderer_destroy: proc(),
+    primitive_renderer_render: proc(data: [Primitive_Type][]Primitive_Instance, viewport: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
 }

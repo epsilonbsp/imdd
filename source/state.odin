@@ -27,7 +27,6 @@ State :: struct {
     icons: Icons,
 
     // Shape data (bucketed by type)
-    shape_len: i32,
     shape_data: [Shape_Type][dynamic]Debug_Shape,
     shape_data_len: [Shape_Type]i32,
 }
@@ -48,6 +47,9 @@ init :: proc(renderer: Renderer) {
 
     // Shape
     init_shape_rdr()
+
+    // Primitive
+    primitive_renderer_init()
 }
 
 destroy :: proc() {
@@ -62,6 +64,9 @@ destroy :: proc() {
 
     // Shape
     free_shape_rdr()
+
+    // Primitive
+    primitive_renderer_destroy()
 }
 
 render :: proc(projection: matrix[4, 4]f32, view: matrix[4, 4]f32, resolution: [2]f32) {
@@ -71,4 +76,7 @@ render :: proc(projection: matrix[4, 4]f32, view: matrix[4, 4]f32, resolution: [
     clear(&state.indices)
 
     render_shape_rdr(resolution, projection, view)
+
+    // Primitive
+    primitive_renderer_render(resolution, projection, view)
 }

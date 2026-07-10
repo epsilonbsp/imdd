@@ -148,5 +148,9 @@ interface :: proc() -> imdd3.Renderer {
         shape_init = shape_init,
         shape_destroy = shape_destroy,
         shape_render = shape_render,
+
+        primitive_renderer_init = primitive_renderer_init,
+        primitive_renderer_destroy = primitive_renderer_destroy,
+        primitive_renderer_render = primitive_renderer_render,
     }
 }

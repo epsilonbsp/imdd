@@ -125,7 +125,8 @@ main :: proc() {
 
         // imdd3.frustum(debug_camera.projection * debug_camera.view, camera.forward, camera.right, 0.5, 0xd1496b_ff)
 
-        imdd3.debug_aabb({-192, 32, -128}, {64, 64, 64}, 0xebbe60_ff)
+        imdd3.primitive_aabb({-192, 32, -128}, {64, 64, 64}, 0xebbe60_ff)
+        // imdd3.debug_aabb({-192, 32, -128}, {64, 64, 64}, 0xebbe60_ff)
         imdd3.debug_cylinder_aa({-64, 32, -128}, {32, 64}, 0x9fe685_ff)
         imdd3.debug_cone_aa({64, 32, -128}, {32, 64}, 0x4963e6_ff)
         imdd3.debug_sphere({192, 32, -128}, 32, 0xe68ac4_ff)
