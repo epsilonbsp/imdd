@@ -51,6 +51,7 @@ destroy :: proc() {
 render :: proc(projection: matrix[4, 4]f32, view: matrix[4, 4]f32, resolution: [2]f32) {
     line_render(projection, view)
     triangle_render(projection, view)
+    curve_render(projection, view)
 
     // Old
     // render_shape_rdr(resolution, projection, view)

@@ -24,6 +24,7 @@ init :: proc() {
 
     line_init()
     triangle_init()
+    curve_init()
 }
 
 destroy :: proc() {
@@ -32,6 +33,7 @@ destroy :: proc() {
 
     line_destroy()
     triangle_destroy()
+    curve_destroy()
 }
 
 set_clip_rect :: proc(x: i32, y: i32, w: i32, h: i32) {
@@ -81,6 +83,7 @@ interface :: proc() -> imdd3.Renderer {
         primitive_renderer_render = primitive_renderer_render,
 
         line_render = line_render,
-        triangle_render = triangle_render
+        triangle_render = triangle_render,
+        curve_render = curve_render,
     }
 }

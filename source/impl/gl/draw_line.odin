@@ -51,8 +51,14 @@ LINE_VS :: GLSL_VERSION + `
         vec4 view_curr = u_view * vec4(curr.position, 1.0);
         vec4 view_next = u_view * vec4(next.position, 1.0);
 
-        vec3 view_dir = normalize(view_next.xyz - view_curr.xyz);
-        vec3 view_perp = normalize(cross(view_dir, vec3(0.0, 0.0, 1.0)));
+        vec4 clip_curr = u_projection * view_curr;
+        vec4 clip_next = u_projection * view_next;
+
+        vec2 screen_curr = clip_curr.xy / clip_curr.w;
+        vec2 screen_next = clip_next.xy / clip_next.w;
+
+        vec2 screen_dir = normalize(screen_next - screen_curr);
+        vec3 view_perp = normalize(vec3(-screen_dir.y, screen_dir.x, 0.0));
 
         float dx = offsets[gl_VertexID].x;
         float dy = offsets[gl_VertexID].y;

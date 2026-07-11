@@ -117,6 +117,8 @@ main :: proc() {
 
         imdd3.grid_xy({}, {128, 128}, 16, 1, 0xff0000ff)
         imdd3.draw_line({}, {128, 128, 128}, 4, 0xff0000ff)
+        imdd3.draw_curve({-128, 0, 0}, {0, 128, 0}, {128, 0, 0}, 4, 0x00ff00ff)
+        imdd3.draw_circle({0, 0, -128}, {0, 0, -1}, {1, 0, 0}, 64, 4, 0x4963e6ff)
 
         // imdd3.grid_xz({}, {128, 128}, 16, 1, 0x00ff00ff)
         // imdd3.grid_yz({}, {128, 128}, 16, 1, 0x000ffff)

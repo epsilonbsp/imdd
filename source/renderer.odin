@@ -24,4 +24,5 @@ Renderer :: struct {
 
     line_render: proc(vertices: []Line_Vertex, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
     triangle_render: proc(vertices: []Triangle_Vertex, indices: []u32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
+    curve_render: proc(vertices: []Curve_Vertex, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
 }
