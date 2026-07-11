@@ -50,6 +50,9 @@ init :: proc(renderer: Renderer) {
 
     // Primitive
     primitive_renderer_init()
+
+    // Line
+    line_init()
 }
 
 destroy :: proc() {
@@ -67,6 +70,9 @@ destroy :: proc() {
 
     // Primitive
     primitive_renderer_destroy()
+
+    // Line
+    line_destroy()
 }
 
 render :: proc(projection: matrix[4, 4]f32, view: matrix[4, 4]f32, resolution: [2]f32) {
@@ -79,4 +85,7 @@ render :: proc(projection: matrix[4, 4]f32, view: matrix[4, 4]f32, resolution: [
 
     // Primitive
     primitive_renderer_render(resolution, projection, view)
+
+    // Line
+    line_render(projection, view)
 }

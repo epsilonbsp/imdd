@@ -152,5 +152,9 @@ interface :: proc() -> imdd3.Renderer {
         primitive_renderer_init = primitive_renderer_init,
         primitive_renderer_destroy = primitive_renderer_destroy,
         primitive_renderer_render = primitive_renderer_render,
+
+        line_init = line_init,
+        line_destroy = line_destroy,
+        line_render = line_render,
     }
 }

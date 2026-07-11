@@ -114,7 +114,10 @@ main :: proc() {
 
         // imdd3.point({}, camera.forward, camera.right, 4, 0xffffffff)
 
+
         imdd3.grid_xy({}, {128, 128}, 16, 1, 0xff0000ff)
+        imdd3.draw_line({}, {128, 128, 128}, 4, 0xff0000ff)
+
         // imdd3.grid_xz({}, {128, 128}, 16, 1, 0x00ff00ff)
         // imdd3.grid_yz({}, {128, 128}, 16, 1, 0x000ffff)
 
@@ -125,11 +128,11 @@ main :: proc() {
 
         // imdd3.frustum(debug_camera.projection * debug_camera.view, camera.forward, camera.right, 0.5, 0xd1496b_ff)
 
-        imdd3.primitive_aabb({-192, 32, -128}, {64, 64, 64}, 0xebbe60_ff)
+        // imdd3.primitive_aabb({-192, 32, -128}, {64, 64, 64}, 0xebbe60_ff)
         // imdd3.debug_aabb({-192, 32, -128}, {64, 64, 64}, 0xebbe60_ff)
-        imdd3.debug_cylinder_aa({-64, 32, -128}, {32, 64}, 0x9fe685_ff)
-        imdd3.debug_cone_aa({64, 32, -128}, {32, 64}, 0x4963e6_ff)
-        imdd3.debug_sphere({192, 32, -128}, 32, 0xe68ac4_ff)
+        // imdd3.debug_cylinder_aa({-64, 32, -128}, {32, 64}, 0x9fe685_ff)
+        // imdd3.debug_cone_aa({64, 32, -128}, {32, 64}, 0x4963e6_ff)
+        // imdd3.debug_sphere({192, 32, -128}, 32, 0xe68ac4_ff)
 
         imdd3.render(camera.projection, camera.view, {f32(viewport_x), f32(viewport_y)})
 
