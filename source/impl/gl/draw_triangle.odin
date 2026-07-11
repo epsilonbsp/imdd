@@ -1,6 +1,8 @@
 package imdd3_impl_gl
 
-GLSL_VERSION :: "#version 460 core"
+import gl "vendor:OpenGL"
+
+import imdd3 "../.."
 
 MAIN_VS :: GLSL_VERSION + `
     layout(location = 0) in uint i_mode;
@@ -140,3 +142,89 @@ MAIN_FS :: GLSL_VERSION + `
         }
     }
 `
+
+Triangle_State :: struct {
+    program: u32,
+    uniforms: gl.Uniforms,
+    vao: u32,
+    vbo: u32,
+    ibo: u32,
+}
+
+triangle_state: Triangle_State
+
+triangle_init :: proc() {
+    ok: bool
+    triangle_state.program, ok = gl.load_shaders_source(MAIN_VS, MAIN_FS)
+    triangle_state.uniforms = gl.get_uniforms_from_program(triangle_state.program)
+    assert(ok, "ERROR: Failed to compile triangle program")
+
+    gl.GenVertexArrays(1, &triangle_state.vao)
+    gl.BindVertexArray(triangle_state.vao)
+
+    gl.GenBuffers(1, &triangle_state.vbo)
+    gl.BindBuffer(gl.ARRAY_BUFFER, triangle_state.vbo)
+    gl.BufferData(gl.ARRAY_BUFFER, imdd3.TRIANGLE_VERTEX_CAP * size_of(imdd3.Triangle_Vertex), nil, gl.STREAM_DRAW)
+
+    gl.EnableVertexAttribArray(0)
+    gl.VertexAttribIPointer(0, 1, gl.UNSIGNED_INT, size_of(imdd3.Triangle_Vertex), offset_of(imdd3.Triangle_Vertex, mode))
+
+    gl.EnableVertexAttribArray(1)
+    gl.VertexAttribPointer(1, 3, gl.FLOAT, gl.FALSE, size_of(imdd3.Triangle_Vertex), offset_of(imdd3.Triangle_Vertex, position))
+
+    gl.EnableVertexAttribArray(2)
+    gl.VertexAttribPointer(2, 2, gl.FLOAT, gl.FALSE, size_of(imdd3.Triangle_Vertex), offset_of(imdd3.Triangle_Vertex, tex_coord))
+
+    gl.EnableVertexAttribArray(3)
+    gl.VertexAttribIPointer(3, 1, gl.UNSIGNED_INT, size_of(imdd3.Triangle_Vertex), offset_of(imdd3.Triangle_Vertex, tex_index))
+
+    gl.EnableVertexAttribArray(4)
+    gl.VertexAttribIPointer(4, 2, gl.UNSIGNED_INT, size_of(imdd3.Triangle_Vertex), offset_of(imdd3.Triangle_Vertex, colors))
+
+    gl.EnableVertexAttribArray(5)
+    gl.VertexAttribPointer(5, 4, gl.FLOAT, gl.FALSE, size_of(imdd3.Triangle_Vertex), offset_of(imdd3.Triangle_Vertex, params))
+
+    gl.GenBuffers(1, &triangle_state.ibo)
+    gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, triangle_state.ibo)
+    gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, imdd3.TRIANGLE_INDEX_CAP * size_of(u32), nil, gl.STREAM_DRAW)
+}
+
+triangle_destroy :: proc() {
+    gl.DeleteProgram(triangle_state.program)
+    gl.destroy_uniforms(triangle_state.uniforms)
+
+    gl.DeleteVertexArrays(1, &triangle_state.vao)
+    gl.DeleteBuffers(1, &triangle_state.vbo)
+    gl.DeleteBuffers(1, &triangle_state.ibo)
+}
+
+triangle_render :: proc(vertices: []imdd3.Triangle_Vertex, indices: []u32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
+    if len(vertices) == 0 {
+        return
+    }
+
+    projection := projection * view
+
+    gl.UseProgram(triangle_state.program)
+    gl.UniformMatrix4fv(triangle_state.uniforms["u_projection"].location, 1, false, &projection[0][0])
+
+    gl.BindVertexArray(triangle_state.vao)
+
+    gl.BindBuffer(gl.ARRAY_BUFFER, triangle_state.vbo)
+    gl.BufferData(gl.ARRAY_BUFFER, imdd3.TRIANGLE_VERTEX_CAP * size_of(imdd3.Triangle_Vertex), nil, gl.STREAM_DRAW)
+    gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices) * size_of(imdd3.Triangle_Vertex), raw_data(vertices))
+
+    gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, triangle_state.ibo)
+    gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, imdd3.TRIANGLE_INDEX_CAP * size_of(u32), nil, gl.STREAM_DRAW)
+    gl.BufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, len(indices) * size_of(u32), raw_data(indices))
+
+    gl.ActiveTexture(gl.TEXTURE0)
+    gl.BindTexture(gl.TEXTURE_2D, renderer.atlas_tex)
+    gl.Uniform1i(triangle_state.uniforms["u_atlas_tex"].location, 0)
+
+    gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, renderer.tex_map.ssbo)
+
+    gl.Enable(gl.BLEND); defer gl.Disable(gl.BLEND)
+    gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+    gl.DrawElements(gl.TRIANGLES, i32(len(indices)), gl.UNSIGNED_INT, nil)
+}

@@ -2,6 +2,42 @@ package imdd3
 
 import glm "core:math/linalg/glsl"
 
+TRIANGLE_VERTEX_CAP :: 16384
+TRIANGLE_INDEX_CAP :: TRIANGLE_VERTEX_CAP * 3 / 2
+
+Triangle_Vertex :: struct {
+    mode: u32,
+    position: [3]f32,
+    tex_coord: [2]f32,
+    tex_index: u32,
+    colors: [2]u32,
+    params: [4]f32,
+}
+
+Triangle_State :: struct {
+    vertices: [dynamic]Triangle_Vertex,
+    indices: [dynamic]u32,
+}
+
+triangle_state: Triangle_State
+
+triangle_init :: proc() {
+    triangle_state.vertices = make([dynamic]Triangle_Vertex, 0, TRIANGLE_VERTEX_CAP)
+    triangle_state.indices = make([dynamic]u32, 0, TRIANGLE_INDEX_CAP)
+}
+
+triangle_destroy :: proc() {
+    delete(triangle_state.vertices)
+    delete(triangle_state.indices)
+}
+
+triangle_render :: proc(projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
+    state.renderer.triangle_render(triangle_state.vertices[:], triangle_state.indices[:], projection, view)
+
+    clear(&triangle_state.vertices)
+    clear(&triangle_state.indices)
+}
+
 point :: proc(pos: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, color: u32) {
     bitangent := glm.normalize(glm.cross(normal, tangent))
 
@@ -10,18 +46,18 @@ point :: proc(pos: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, color: 
     c := pos + tangent * radius + bitangent * radius
     d := pos - tangent * radius + bitangent * radius
 
-    l := u32(len(state.vertices))
+    l := u32(len(triangle_state.vertices))
 
     append(
-        &state.vertices,
-        Vertex{1, a, {}, 0, {color, 0}, {radius, radius, radius, 0}},
-        Vertex{2, b, {}, 0, {color, 0}, {radius, radius, radius, 0}},
-        Vertex{3, c, {}, 0, {color, 0}, {radius, radius, radius, 0}},
-        Vertex{4, d, {}, 0, {color, 0}, {radius, radius, radius, 0}}
+        &triangle_state.vertices,
+        Triangle_Vertex{1, a, {}, 0, {color, 0}, {radius, radius, radius, 0}},
+        Triangle_Vertex{2, b, {}, 0, {color, 0}, {radius, radius, radius, 0}},
+        Triangle_Vertex{3, c, {}, 0, {color, 0}, {radius, radius, radius, 0}},
+        Triangle_Vertex{4, d, {}, 0, {color, 0}, {radius, radius, radius, 0}}
     )
 
     append(
-        &state.indices,
+        &triangle_state.indices,
         l, l + 1, l + 2,
         l, l + 2, l + 3
     )
@@ -38,18 +74,18 @@ line :: proc(a: [3]f32, b: [3]f32, normal: [3]f32, tangent: [3]f32, width: f32, 
     dir := diff / length
     perp := glm.normalize(glm.cross(normal, dir)) * (width * 0.5)
 
-    l := u32(len(state.vertices))
+    l := u32(len(triangle_state.vertices))
 
     append(
-        &state.vertices,
-        Vertex{0, a - perp, {}, 0, {color, 0}, {}},
-        Vertex{0, b - perp, {}, 0, {color, 0}, {}},
-        Vertex{0, b + perp, {}, 0, {color, 0}, {}},
-        Vertex{0, a + perp, {}, 0, {color, 0}, {}}
+        &triangle_state.vertices,
+        Triangle_Vertex{0, a - perp, {}, 0, {color, 0}, {}},
+        Triangle_Vertex{0, b - perp, {}, 0, {color, 0}, {}},
+        Triangle_Vertex{0, b + perp, {}, 0, {color, 0}, {}},
+        Triangle_Vertex{0, a + perp, {}, 0, {color, 0}, {}}
     )
 
     append(
-        &state.indices,
+        &triangle_state.indices,
         l, l + 1, l + 2,
         l, l + 2, l + 3
     )
@@ -68,21 +104,21 @@ arrow :: proc(a: [3]f32, b: [3]f32, normal: [3]f32, tangent: [3]f32, width: f32,
     body_perp := glm.normalize(glm.cross(normal, dir)) * (width * 0.5)
     head_perp := glm.normalize(glm.cross(normal, dir)) * (head_size * 0.5)
 
-    l := u32(len(state.vertices))
+    l := u32(len(triangle_state.vertices))
 
     append(
-        &state.vertices,
-        Vertex{0, a - body_perp, {}, 0, {color, 0}, {}},
-        Vertex{0, body_end - body_perp, {}, 0, {color, 0}, {}},
-        Vertex{0, body_end + body_perp, {}, 0, {color, 0}, {}},
-        Vertex{0, a + body_perp, {}, 0, {color, 0}, {}},
-        Vertex{0, b, {}, 0, {color, 0}, {}},
-        Vertex{0, body_end + head_perp, {}, 0, {color, 0}, {}},
-        Vertex{0, body_end - head_perp, {}, 0, {color, 0}, {}}
+        &triangle_state.vertices,
+        Triangle_Vertex{0, a - body_perp, {}, 0, {color, 0}, {}},
+        Triangle_Vertex{0, body_end - body_perp, {}, 0, {color, 0}, {}},
+        Triangle_Vertex{0, body_end + body_perp, {}, 0, {color, 0}, {}},
+        Triangle_Vertex{0, a + body_perp, {}, 0, {color, 0}, {}},
+        Triangle_Vertex{0, b, {}, 0, {color, 0}, {}},
+        Triangle_Vertex{0, body_end + head_perp, {}, 0, {color, 0}, {}},
+        Triangle_Vertex{0, body_end - head_perp, {}, 0, {color, 0}, {}}
     )
 
     append(
-        &state.indices,
+        &triangle_state.indices,
         l, l + 1, l + 2,
         l, l + 2, l + 3,
         l + 4, l + 5, l + 6
@@ -90,17 +126,17 @@ arrow :: proc(a: [3]f32, b: [3]f32, normal: [3]f32, tangent: [3]f32, width: f32,
 }
 
 triangle :: proc(a: [3]f32, b: [3]f32, c: [3]f32, color: u32) {
-    l := u32(len(state.vertices))
+    l := u32(len(triangle_state.vertices))
 
     append(
-        &state.vertices,
-        Vertex{0, a, {}, 0, {color, 0}, {}},
-        Vertex{0, b, {}, 0, {color, 0}, {}},
-        Vertex{0, c, {}, 0, {color, 0}, {}}
+        &triangle_state.vertices,
+        Triangle_Vertex{0, a, {}, 0, {color, 0}, {}},
+        Triangle_Vertex{0, b, {}, 0, {color, 0}, {}},
+        Triangle_Vertex{0, c, {}, 0, {color, 0}, {}}
     )
 
     append(
-        &state.indices,
+        &triangle_state.indices,
         l, l + 1, l + 2
     )
 }
@@ -112,18 +148,18 @@ rect :: proc(pos: [3]f32, size: [2]f32, color: u32) {
     c := pos + {hs.x, hs.y, pos.z}
     d := pos + {-hs.x, hs.y, pos.z}
 
-    l := u32(len(state.vertices))
+    l := u32(len(triangle_state.vertices))
 
     append(
-        &state.vertices,
-        Vertex{0, a, {}, 0, {color, 0}, {}},
-        Vertex{0, b, {}, 0, {color, 0}, {}},
-        Vertex{0, c, {}, 0, {color, 0}, {}},
-        Vertex{0, d, {}, 0, {color, 0}, {}}
+        &triangle_state.vertices,
+        Triangle_Vertex{0, a, {}, 0, {color, 0}, {}},
+        Triangle_Vertex{0, b, {}, 0, {color, 0}, {}},
+        Triangle_Vertex{0, c, {}, 0, {color, 0}, {}},
+        Triangle_Vertex{0, d, {}, 0, {color, 0}, {}}
     )
 
     append(
-        &state.indices,
+        &triangle_state.indices,
         l, l + 1, l + 2,
         l, l + 2, l + 3
     )
@@ -136,18 +172,18 @@ rect :: proc(pos: [3]f32, size: [2]f32, color: u32) {
 //     c := pos + {hs.x, hs.y}
 //     d := pos + {-hs.x, hs.y}
 
-//     l := u32(len(state.vertices))
+//     l := u32(len(triangle_state.vertices))
 
 //     append(
-//         &state.vertices,
-//         Vertex{1, a, {}, 0, {color, 0}, {hs.x, hs.y, radius, 0}},
-//         Vertex{2, b, {}, 0, {color, 0}, {hs.x, hs.y, radius, 0}},
-//         Vertex{3, c, {}, 0, {color, 0}, {hs.x, hs.y, radius, 0}},
-//         Vertex{4, d, {}, 0, {color, 0}, {hs.x, hs.y, radius, 0}}
+//         &triangle_state.vertices,
+//         Triangle_Vertex{1, a, {}, 0, {color, 0}, {hs.x, hs.y, radius, 0}},
+//         Triangle_Vertex{2, b, {}, 0, {color, 0}, {hs.x, hs.y, radius, 0}},
+//         Triangle_Vertex{3, c, {}, 0, {color, 0}, {hs.x, hs.y, radius, 0}},
+//         Triangle_Vertex{4, d, {}, 0, {color, 0}, {hs.x, hs.y, radius, 0}}
 //     )
 
 //     append(
-//         &state.indices,
+//         &triangle_state.indices,
 //         l, l + 1, l + 2,
 //         l, l + 2, l + 3
 //     )
@@ -159,18 +195,18 @@ rect :: proc(pos: [3]f32, size: [2]f32, color: u32) {
 //     c := pos + {radius, radius}
 //     d := pos + {-radius, radius}
 
-//     l := u32(len(state.vertices))
+//     l := u32(len(triangle_state.vertices))
 
 //     append(
-//         &state.vertices,
-//         Vertex{1, a, {}, 0, {color, 0}, {radius, radius, radius, 0}},
-//         Vertex{2, b, {}, 0, {color, 0}, {radius, radius, radius, 0}},
-//         Vertex{3, c, {}, 0, {color, 0}, {radius, radius, radius, 0}},
-//         Vertex{4, d, {}, 0, {color, 0}, {radius, radius, radius, 0}}
+//         &triangle_state.vertices,
+//         Triangle_Vertex{1, a, {}, 0, {color, 0}, {radius, radius, radius, 0}},
+//         Triangle_Vertex{2, b, {}, 0, {color, 0}, {radius, radius, radius, 0}},
+//         Triangle_Vertex{3, c, {}, 0, {color, 0}, {radius, radius, radius, 0}},
+//         Triangle_Vertex{4, d, {}, 0, {color, 0}, {radius, radius, radius, 0}}
 //     )
 
 //     append(
-//         &state.indices,
+//         &triangle_state.indices,
 //         l, l + 1, l + 2,
 //         l, l + 2, l + 3
 //     )
@@ -183,18 +219,18 @@ rect :: proc(pos: [3]f32, size: [2]f32, color: u32) {
 //     c := pos + {hs.x, hs.y}
 //     d := pos + {-hs.x, hs.y}
 
-//     l := u32(len(state.vertices))
+//     l := u32(len(triangle_state.vertices))
 
 //     append(
-//         &state.vertices,
-//         Vertex{1, a, {}, 0, {fill_color, stroke_color}, {hs.x, hs.y, radius, stroke_width}},
-//         Vertex{2, b, {}, 0, {fill_color, stroke_color}, {hs.x, hs.y, radius, stroke_width}},
-//         Vertex{3, c, {}, 0, {fill_color, stroke_color}, {hs.x, hs.y, radius, stroke_width}},
-//         Vertex{4, d, {}, 0, {fill_color, stroke_color}, {hs.x, hs.y, radius, stroke_width}}
+//         &triangle_state.vertices,
+//         Triangle_Vertex{1, a, {}, 0, {fill_color, stroke_color}, {hs.x, hs.y, radius, stroke_width}},
+//         Triangle_Vertex{2, b, {}, 0, {fill_color, stroke_color}, {hs.x, hs.y, radius, stroke_width}},
+//         Triangle_Vertex{3, c, {}, 0, {fill_color, stroke_color}, {hs.x, hs.y, radius, stroke_width}},
+//         Triangle_Vertex{4, d, {}, 0, {fill_color, stroke_color}, {hs.x, hs.y, radius, stroke_width}}
 //     )
 
 //     append(
-//         &state.indices,
+//         &triangle_state.indices,
 //         l, l + 1, l + 2,
 //         l, l + 2, l + 3
 //     )
@@ -249,18 +285,18 @@ text :: proc(pos: [3]f32, normal: [3]f32, tangent: [3]f32, text: string, font_si
             c := pos + tangent * quad_right + bitangent * quad_top
             d := pos + tangent * quad_left + bitangent * quad_top
 
-            l := u32(len(state.vertices))
+            l := u32(len(triangle_state.vertices))
 
             append(
-                &state.vertices,
-                Vertex{5, a, {g.uv_left,  g.uv_bottom}, 0, {color, 0}, {px_range, 0, 0, 0}},
-                Vertex{5, b, {g.uv_right, g.uv_bottom}, 0, {color, 0}, {px_range, 0, 0, 0}},
-                Vertex{5, c, {g.uv_right, g.uv_top}, 0, {color, 0}, {px_range, 0, 0, 0}},
-                Vertex{5, d, {g.uv_left,  g.uv_top}, 0, {color, 0}, {px_range, 0, 0, 0}}
+                &triangle_state.vertices,
+                Triangle_Vertex{5, a, {g.uv_left,  g.uv_bottom}, 0, {color, 0}, {px_range, 0, 0, 0}},
+                Triangle_Vertex{5, b, {g.uv_right, g.uv_bottom}, 0, {color, 0}, {px_range, 0, 0, 0}},
+                Triangle_Vertex{5, c, {g.uv_right, g.uv_top}, 0, {color, 0}, {px_range, 0, 0, 0}},
+                Triangle_Vertex{5, d, {g.uv_left,  g.uv_top}, 0, {color, 0}, {px_range, 0, 0, 0}}
             )
 
             append(
-                &state.indices,
+                &triangle_state.indices,
                 l, l + 1, l + 2,
                 l, l + 2, l + 3
             )
@@ -285,18 +321,18 @@ icon :: proc(pos: [3]f32, size: f32, key: string, color: u32) {
 
     px_range := state.icons.distance_range * (size / ic.px_size)
 
-    l := u32(len(state.vertices))
+    l := u32(len(triangle_state.vertices))
 
     append(
-        &state.vertices,
-        Vertex{5, a, {ic.uv_left, ic.uv_bottom}, 0, {color, 0}, {px_range, 0, 0, 0}},
-        Vertex{5, b, {ic.uv_right, ic.uv_bottom}, 0, {color, 0}, {px_range, 0, 0, 0}},
-        Vertex{5, c, {ic.uv_right, ic.uv_top}, 0, {color, 0}, {px_range, 0, 0, 0}},
-        Vertex{5, d, {ic.uv_left, ic.uv_top}, 0, {color, 0}, {px_range, 0, 0, 0}},
+        &triangle_state.vertices,
+        Triangle_Vertex{5, a, {ic.uv_left, ic.uv_bottom}, 0, {color, 0}, {px_range, 0, 0, 0}},
+        Triangle_Vertex{5, b, {ic.uv_right, ic.uv_bottom}, 0, {color, 0}, {px_range, 0, 0, 0}},
+        Triangle_Vertex{5, c, {ic.uv_right, ic.uv_top}, 0, {color, 0}, {px_range, 0, 0, 0}},
+        Triangle_Vertex{5, d, {ic.uv_left, ic.uv_top}, 0, {color, 0}, {px_range, 0, 0, 0}},
     )
 
     append(
-        &state.indices,
+        &triangle_state.indices,
         l, l + 1, l + 2,
         l, l + 2, l + 3
     )
@@ -309,18 +345,18 @@ image :: proc(pos: [3]f32, size: [2]f32, sprite: Sprite) {
     c := pos + {hs.x, hs.y, pos.z}
     d := pos + {-hs.x, hs.y, pos.z}
 
-    l := u32(len(state.vertices))
+    l := u32(len(triangle_state.vertices))
 
     append(
-        &state.vertices,
-        Vertex{0, a, {sprite.left, sprite.bottom}, sprite.handle, {0xffffffff, 0}, {}},
-        Vertex{0, b, {sprite.right, sprite.bottom}, sprite.handle, {0xffffffff, 0}, {}},
-        Vertex{0, c, {sprite.right, sprite.top}, sprite.handle, {0xffffffff, 0}, {}},
-        Vertex{0, d, {sprite.left, sprite.top}, sprite.handle, {0xffffffff, 0}, {}}
+        &triangle_state.vertices,
+        Triangle_Vertex{0, a, {sprite.left, sprite.bottom}, sprite.handle, {0xffffffff, 0}, {}},
+        Triangle_Vertex{0, b, {sprite.right, sprite.bottom}, sprite.handle, {0xffffffff, 0}, {}},
+        Triangle_Vertex{0, c, {sprite.right, sprite.top}, sprite.handle, {0xffffffff, 0}, {}},
+        Triangle_Vertex{0, d, {sprite.left, sprite.top}, sprite.handle, {0xffffffff, 0}, {}}
     )
 
     append(
-        &state.indices,
+        &triangle_state.indices,
         l, l + 1, l + 2,
         l, l + 2, l + 3
     )
@@ -333,18 +369,18 @@ image_rounded :: proc(pos: [3]f32, size: [2]f32, sprite: Sprite, radius: f32 = 0
     c := pos + {hs.x, hs.y, pos.z}
     d := pos + {-hs.x, hs.y, pos.z}
 
-    l := u32(len(state.vertices))
+    l := u32(len(triangle_state.vertices))
 
     append(
-        &state.vertices,
-        Vertex{1, a, {sprite.left, sprite.bottom}, sprite.handle, {0xffffffff, 0}, {hs.x, hs.y, radius, 0}},
-        Vertex{2, b, {sprite.right, sprite.bottom}, sprite.handle, {0xffffffff, 0}, {hs.x, hs.y, radius, 0}},
-        Vertex{3, c, {sprite.right, sprite.top}, sprite.handle, {0xffffffff, 0}, {hs.x, hs.y, radius, 0}},
-        Vertex{4, d, {sprite.left, sprite.top}, sprite.handle, {0xffffffff, 0}, {hs.x, hs.y, radius, 0}}
+        &triangle_state.vertices,
+        Triangle_Vertex{1, a, {sprite.left, sprite.bottom}, sprite.handle, {0xffffffff, 0}, {hs.x, hs.y, radius, 0}},
+        Triangle_Vertex{2, b, {sprite.right, sprite.bottom}, sprite.handle, {0xffffffff, 0}, {hs.x, hs.y, radius, 0}},
+        Triangle_Vertex{3, c, {sprite.right, sprite.top}, sprite.handle, {0xffffffff, 0}, {hs.x, hs.y, radius, 0}},
+        Triangle_Vertex{4, d, {sprite.left, sprite.top}, sprite.handle, {0xffffffff, 0}, {hs.x, hs.y, radius, 0}}
     )
 
     append(
-        &state.indices,
+        &triangle_state.indices,
         l, l + 1, l + 2,
         l, l + 2, l + 3
     )
@@ -359,18 +395,18 @@ grid :: proc(pos: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, cell_si
     c := pos + tangent * hs.x + bitangent * hs.y
     d := pos - tangent * hs.x + bitangent * hs.y
 
-    l := u32(len(state.vertices))
+    l := u32(len(triangle_state.vertices))
 
     append(
-        &state.vertices,
-        Vertex{6, a, {-hs.x, -hs.y}, 0, {color, 0}, {cell_size.x, cell_size.y, line_width, 0}},
-        Vertex{6, b, { hs.x, -hs.y}, 0, {color, 0}, {cell_size.x, cell_size.y, line_width, 0}},
-        Vertex{6, c, { hs.x, hs.y}, 0, {color, 0}, {cell_size.x, cell_size.y, line_width, 0}},
-        Vertex{6, d, {-hs.x, hs.y}, 0, {color, 0}, {cell_size.x, cell_size.y, line_width, 0}}
+        &triangle_state.vertices,
+        Triangle_Vertex{6, a, {-hs.x, -hs.y}, 0, {color, 0}, {cell_size.x, cell_size.y, line_width, 0}},
+        Triangle_Vertex{6, b, { hs.x, -hs.y}, 0, {color, 0}, {cell_size.x, cell_size.y, line_width, 0}},
+        Triangle_Vertex{6, c, { hs.x, hs.y}, 0, {color, 0}, {cell_size.x, cell_size.y, line_width, 0}},
+        Triangle_Vertex{6, d, {-hs.x, hs.y}, 0, {color, 0}, {cell_size.x, cell_size.y, line_width, 0}}
     )
 
     append(
-        &state.indices,
+        &triangle_state.indices,
         l, l + 1, l + 2,
         l, l + 2, l + 3
     )

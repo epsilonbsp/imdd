@@ -6,7 +6,6 @@ Renderer :: struct {
     // 2d
     init: proc(),
     destroy: proc(),
-    flush: proc(vertices: []Vertex, indices: []u32, projection: matrix[4, 4]f32),
     set_clip_rect: proc(x: i32, y: i32, w: i32, h: i32),
     clear_clip_rect: proc(),
     add_texture: proc(width: i32, height: i32, data: []u8) -> u32,
@@ -23,8 +22,6 @@ Renderer :: struct {
     primitive_renderer_destroy: proc(),
     primitive_renderer_render: proc(data: [Primitive_Type][]Primitive_Instance, viewport: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
 
-    // line
-    line_init: proc(),
-    line_destroy: proc(),
     line_render: proc(vertices: []Line_Vertex, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
+    triangle_render: proc(vertices: []Triangle_Vertex, indices: []u32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
 }

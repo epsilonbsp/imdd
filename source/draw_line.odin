@@ -18,14 +18,10 @@ line_state: Line_State
 
 line_init :: proc() {
     line_state.vertices = make([dynamic]Line_Vertex, 0, LINE_VERTEX_CAP)
-
-    state.renderer.line_init()
 }
 
 line_destroy :: proc() {
     delete(line_state.vertices)
-
-    state.renderer.line_destroy()
 }
 
 line_render :: proc(projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
