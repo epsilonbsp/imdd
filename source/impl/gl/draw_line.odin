@@ -22,10 +22,10 @@ LINE_VS :: GLSL_VERSION + `
     uniform mat4 u_view;
 
     const vec2 offsets[4] = vec2[](
-        vec2(-0.5, 0.0),
-        vec2( 0.5, 0.0),
-        vec2(-0.5, 1.0),
-        vec2( 0.5, 1.0)
+        vec2(-1.0, 0.0),
+        vec2( 1.0, 0.0),
+        vec2(-1.0, 1.0),
+        vec2( 1.0, 1.0)
     );
 
     vec4 unpack_rgba(uint i) {

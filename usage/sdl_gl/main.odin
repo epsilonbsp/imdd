@@ -120,6 +120,17 @@ main :: proc() {
         imdd3.draw_curve({-128, 0, 0}, {0, 128, 0}, {128, 0, 0}, 4, 0x00ff00ff)
         imdd3.draw_circle({0, 0, -128}, {0, 0, -1}, {1, 0, 0}, 64, 4, 0x4963e6ff)
 
+        // line connecting into a curve: the curve's control point continues
+        // straight along the line's own direction, so the tangent matches at
+        // the point they meet
+        line_start := [3]f32{-250, 0, -100}
+        line_end := [3]f32{-50, 0, -100}
+        curve_control := [3]f32{50, 0, -100}
+        curve_end := [3]f32{50, 150, -100}
+
+        imdd3.draw_line(line_start, line_end, 8, 0xffaa00ff)
+        imdd3.draw_curve(line_end, curve_control, curve_end, 8, 0xffaa00ff)
+
         // imdd3.grid_xz({}, {128, 128}, 16, 1, 0x00ff00ff)
         // imdd3.grid_yz({}, {128, 128}, 16, 1, 0x000ffff)
 
