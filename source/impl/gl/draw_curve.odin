@@ -6,20 +6,20 @@ import imdd3 "../.."
 
 CURVE_VS :: GLSL_VERSION + `
     layout(location = 0) in vec3 i_position;
-    layout(location = 1) in float i_weight;
-    layout(location = 2) in float i_radius;
+    layout(location = 1) in float i_radius;
+    layout(location = 2) in float i_weight;
     layout(location = 3) in uint i_color;
 
     out Vertex_Data {
-        float weight;
         float radius;
+        float weight;
         uint color;
     } v_data;
 
     void main() {
         gl_Position = vec4(i_position, 1.0);
-        v_data.weight = i_weight;
         v_data.radius = i_radius;
+        v_data.weight = i_weight;
         v_data.color = i_color;
     }
 `
@@ -28,14 +28,14 @@ CURVE_TCS :: GLSL_VERSION + `
     layout(vertices = 3) out;
 
     in Vertex_Data {
-        float weight;
         float radius;
+        float weight;
         uint color;
     } v_data_in[];
 
     out Vertex_Data {
-        float weight;
         float radius;
+        float weight;
         uint color;
     } v_data_out[];
 
@@ -48,8 +48,8 @@ CURVE_TCS :: GLSL_VERSION + `
         }
 
         gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
-        v_data_out[gl_InvocationID].weight = v_data_in[gl_InvocationID].weight;
         v_data_out[gl_InvocationID].radius = v_data_in[gl_InvocationID].radius;
+        v_data_out[gl_InvocationID].weight = v_data_in[gl_InvocationID].weight;
         v_data_out[gl_InvocationID].color = v_data_in[gl_InvocationID].color;
     }
 `
@@ -58,8 +58,8 @@ CURVE_TES :: GLSL_VERSION + `
     layout(isolines, equal_spacing) in;
 
     in Vertex_Data {
-        float weight;
         float radius;
+        float weight;
         uint color;
     } v_data[];
 
@@ -176,8 +176,6 @@ CURVE_GS :: GLSL_VERSION + `
 `
 
 CURVE_FS :: GLSL_VERSION + `
-    precision highp float;
-
     in vec4 v_color;
 
     out vec4 o_frag_color;
@@ -190,34 +188,22 @@ CURVE_FS :: GLSL_VERSION + `
 Curve_State :: struct {
     program: u32,
     uniforms: gl.Uniforms,
+
     vao: u32,
     vbo: u32,
 }
 
 curve_state: Curve_State
 
-compile_curve_program :: proc() -> (program: u32, ok: bool) {
-    vs := gl.compile_shader_from_source(CURVE_VS, .VERTEX_SHADER) or_return
-    defer gl.DeleteShader(vs)
-
-    tcs := gl.compile_shader_from_source(CURVE_TCS, .TESS_CONTROL_SHADER) or_return
-    defer gl.DeleteShader(tcs)
-
-    tes := gl.compile_shader_from_source(CURVE_TES, .TESS_EVALUATION_SHADER) or_return
-    defer gl.DeleteShader(tes)
-
-    gs := gl.compile_shader_from_source(CURVE_GS, .GEOMETRY_SHADER) or_return
-    defer gl.DeleteShader(gs)
-
-    fs := gl.compile_shader_from_source(CURVE_FS, .FRAGMENT_SHADER) or_return
-    defer gl.DeleteShader(fs)
-
-    return gl.create_and_link_program([]u32{vs, tcs, tes, gs, fs})
-}
-
 curve_init :: proc() {
     ok: bool
-    curve_state.program, ok = compile_curve_program()
+    curve_state.program, ok = load_shaders({
+        {.VERTEX_SHADER, CURVE_VS},
+        {.TESS_CONTROL_SHADER, CURVE_TCS},
+        {.TESS_EVALUATION_SHADER, CURVE_TES},
+        {.GEOMETRY_SHADER, CURVE_GS},
+        {.FRAGMENT_SHADER, CURVE_FS},
+    })
     assert(ok, "ERROR: Failed to compile curve program")
     curve_state.uniforms = gl.get_uniforms_from_program(curve_state.program)
 
@@ -232,10 +218,10 @@ curve_init :: proc() {
     gl.VertexAttribPointer(0, 3, gl.FLOAT, false, size_of(imdd3.Curve_Vertex), offset_of(imdd3.Curve_Vertex, position))
 
     gl.EnableVertexAttribArray(1)
-    gl.VertexAttribPointer(1, 1, gl.FLOAT, false, size_of(imdd3.Curve_Vertex), offset_of(imdd3.Curve_Vertex, weight))
+    gl.VertexAttribPointer(1, 1, gl.FLOAT, false, size_of(imdd3.Curve_Vertex), offset_of(imdd3.Curve_Vertex, radius))
 
     gl.EnableVertexAttribArray(2)
-    gl.VertexAttribPointer(2, 1, gl.FLOAT, false, size_of(imdd3.Curve_Vertex), offset_of(imdd3.Curve_Vertex, radius))
+    gl.VertexAttribPointer(2, 1, gl.FLOAT, false, size_of(imdd3.Curve_Vertex), offset_of(imdd3.Curve_Vertex, weight))
 
     gl.EnableVertexAttribArray(3)
     gl.VertexAttribIPointer(3, 1, gl.UNSIGNED_INT, size_of(imdd3.Curve_Vertex), offset_of(imdd3.Curve_Vertex, color))

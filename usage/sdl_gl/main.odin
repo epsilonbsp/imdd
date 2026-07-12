@@ -131,7 +131,7 @@ main :: proc() {
         // imdd3.draw_curve({124, 0, 0}, {128, 0, 0}, {128, 0, -4}, 2, 0xff0000ff)
         // imdd3.draw_line({128, 0, -4}, {128, 0, -128}, 2, 0xff0000ff)
         // // imdd3.draw_curve({-128, 0, 0}, {0, 128, 0}, {128, 0, 0}, 4, 0x00ff00ff)
-        // imdd3.draw_circle({0, 0, -128}, {0, 0, -1}, {1, 0, 0}, 64, 2, 0x4963e6ff)
+        imdd3.draw_circle({0, 0, -128}, {0, 0, -1}, {1, 0, 0}, 64, 2, 0x4963e6ff)
 
         // // line connecting into a curve: the curve's control point continues
         // // straight along the line's own direction, so the tangent matches at

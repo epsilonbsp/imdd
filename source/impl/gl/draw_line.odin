@@ -111,28 +111,20 @@ LINE_FS :: GLSL_VERSION + `
 Line_State :: struct {
     program: u32,
     uniforms: gl.Uniforms,
+
     vao: u32,
     vbo: u32,
 }
 
 line_state: Line_State
 
-compile_line_program :: proc() -> (program: u32, ok: bool) {
-    vs := gl.compile_shader_from_source(LINE_VS, .VERTEX_SHADER) or_return
-    defer gl.DeleteShader(vs)
-
-    gs := gl.compile_shader_from_source(LINE_GS, .GEOMETRY_SHADER) or_return
-    defer gl.DeleteShader(gs)
-
-    fs := gl.compile_shader_from_source(LINE_FS, .FRAGMENT_SHADER) or_return
-    defer gl.DeleteShader(fs)
-
-    return gl.create_and_link_program([]u32{vs, gs, fs})
-}
-
 line_init :: proc() {
     ok: bool
-    line_state.program, ok = compile_line_program()
+    line_state.program, ok = load_shaders({
+        {.VERTEX_SHADER, LINE_VS},
+        {.GEOMETRY_SHADER, LINE_GS},
+        {.FRAGMENT_SHADER, LINE_FS},
+    })
     assert(ok, "ERROR: Failed to compile line program")
     line_state.uniforms = gl.get_uniforms_from_program(line_state.program)
 
@@ -159,6 +151,7 @@ line_init :: proc() {
 line_destroy :: proc() {
     gl.DeleteProgram(line_state.program)
     gl.destroy_uniforms(line_state.uniforms)
+
     gl.DeleteVertexArrays(1, &line_state.vao)
     gl.DeleteBuffers(1, &line_state.vbo)
 }

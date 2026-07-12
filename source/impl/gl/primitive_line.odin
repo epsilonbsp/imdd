@@ -164,32 +164,21 @@ Shape_Renderer :: struct {
 
 shape_renderer: Shape_Renderer
 
-compile_shape_program :: proc() -> (program: u32, ok: bool) {
-    vs := gl.compile_shader_from_source(SHAPE_VS, .VERTEX_SHADER) or_return
-    defer gl.DeleteShader(vs)
-
-    gs := gl.compile_shader_from_source(SHAPE_GS, .GEOMETRY_SHADER) or_return
-    defer gl.DeleteShader(gs)
-
-    fs := gl.compile_shader_from_source(SHAPE_FS, .FRAGMENT_SHADER) or_return
-    defer gl.DeleteShader(fs)
-
-    return gl.create_and_link_program([]u32{vs, gs, fs})
-}
-
 shape_init :: proc(vertices: []glm.vec3, indices: []u32, offset: [imdd3.Shape_Type]imdd3.Index_Offset) {
     ok: bool
-    shape_renderer.program, ok = compile_shape_program()
+    shape_renderer.program, ok = load_shaders({
+        {.VERTEX_SHADER, SHAPE_VS},
+        {.GEOMETRY_SHADER, SHAPE_GS},
+        {.FRAGMENT_SHADER, SHAPE_FS},
+    })
     assert(ok, "ERROR: Failed to compile shape program")
     shape_renderer.uniforms = gl.get_uniforms_from_program(shape_renderer.program)
 
     shape_renderer.offset = offset
 
-    // vao
     gl.GenVertexArrays(1, &shape_renderer.vao)
     gl.BindVertexArray(shape_renderer.vao)
 
-    // vbo
     gl.GenBuffers(1, &shape_renderer.vbo)
     gl.BindBuffer(gl.ARRAY_BUFFER, shape_renderer.vbo)
     gl.BufferData(gl.ARRAY_BUFFER, size_of(glm.vec3) * len(vertices), raw_data(vertices), gl.DYNAMIC_DRAW)
@@ -197,12 +186,10 @@ shape_init :: proc(vertices: []glm.vec3, indices: []u32, offset: [imdd3.Shape_Ty
     gl.EnableVertexAttribArray(0)
     gl.VertexAttribPointer(0, 3, gl.FLOAT, false, size_of(glm.vec3), 0)
 
-    // ibo
     gl.GenBuffers(1, &shape_renderer.ibo)
     gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, shape_renderer.ibo)
     gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, size_of(u32) * len(indices), raw_data(indices), gl.DYNAMIC_DRAW)
 
-    // ubo (one region per shape type, indexed via baseInstance)
     gl.GenBuffers(1, &shape_renderer.ubo)
     gl.BindBuffer(gl.ARRAY_BUFFER, shape_renderer.ubo)
     gl.BufferData(gl.ARRAY_BUFFER, size_of(imdd3.Debug_Shape) * imdd3.DEBUG_SHAPE_CAP * len(imdd3.Shape_Type), nil, gl.DYNAMIC_DRAW)
@@ -228,7 +215,6 @@ shape_init :: proc(vertices: []glm.vec3, indices: []u32, offset: [imdd3.Shape_Ty
     gl.VertexAttribIPointer(4, 1, gl.UNSIGNED_INT, size_of(imdd3.Debug_Shape), attrib_offset)
     gl.VertexAttribDivisor(4, 1)
 
-    // draw indirect buffer
     gl.GenBuffers(1, &shape_renderer.dibo)
 }
 

@@ -6,8 +6,8 @@ CURVE_VERTEX_CAP :: 16384
 
 Curve_Vertex :: struct {
     position: [3]f32,
-    weight: f32,
     radius: f32,
+    weight: f32,
     color: u32,
 }
 
@@ -31,35 +31,33 @@ curve_render :: proc(projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
     clear(&curve_state.vertices)
 }
 
-draw_curve :: proc(p0: [3]f32, p1: [3]f32, p2: [3]f32, width: f32, color: u32) {
+draw_curve :: proc(point0: [3]f32, point1: [3]f32, point2: [3]f32, width: f32, color: u32) {
     radius := width * 0.5
 
     append(&curve_state.vertices,
-        Curve_Vertex{p0, 1, radius, color},
-        Curve_Vertex{p1, 1, radius, color},
-        Curve_Vertex{p2, 1, radius, color}
+        Curve_Vertex{point0, radius, 1, color},
+        Curve_Vertex{point1, radius, 1, color},
+        Curve_Vertex{point2, radius, 1, color}
     )
 }
 
 draw_arc :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, angle0: f32, angle1: f32, width: f32, color: u32) {
     bitangent := glm.normalize(glm.cross(normal, tangent))
-
-    half_angle := (angle1 - angle0) * 0.5
     mid_angle := (angle0 + angle1) * 0.5
+    half_angle := (angle1 - angle0) * 0.5
+    weight := glm.cos(half_angle)
+    arc_radius := radius / weight
 
-    w := glm.cos(half_angle)
-    p1_radius := radius / w
-
-    p0 := center + tangent * (radius * glm.cos(angle0)) + bitangent * (radius * glm.sin(angle0))
-    p1 := center + tangent * (p1_radius * glm.cos(mid_angle)) + bitangent * (p1_radius * glm.sin(mid_angle))
-    p2 := center + tangent * (radius * glm.cos(angle1)) + bitangent * (radius * glm.sin(angle1))
+    point0 := center + tangent * (radius * glm.cos(angle0)) + bitangent * (radius * glm.sin(angle0))
+    point1 := center + tangent * (arc_radius * glm.cos(mid_angle)) + bitangent * (arc_radius * glm.sin(mid_angle))
+    point2 := center + tangent * (radius * glm.cos(angle1)) + bitangent * (radius * glm.sin(angle1))
 
     line_radius := width * 0.5
 
     append(&curve_state.vertices,
-        Curve_Vertex{p0, 1, line_radius, color},
-        Curve_Vertex{p1, w, line_radius, color},
-        Curve_Vertex{p2, 1, line_radius, color}
+        Curve_Vertex{point0, line_radius, 1, color},
+        Curve_Vertex{point1, line_radius, weight, color},
+        Curve_Vertex{point2, line_radius, 1, color}
     )
 }
 

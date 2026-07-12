@@ -155,7 +155,7 @@ triangle_state: Triangle_State
 
 triangle_init :: proc() {
     ok: bool
-    triangle_state.program, ok = gl.load_shaders_source(MAIN_VS, MAIN_FS)
+    triangle_state.program, ok = load_shaders({{.VERTEX_SHADER, MAIN_VS}, {.FRAGMENT_SHADER, MAIN_FS}})
     triangle_state.uniforms = gl.get_uniforms_from_program(triangle_state.program)
     assert(ok, "ERROR: Failed to compile triangle program")
 

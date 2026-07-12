@@ -67,7 +67,7 @@ primitive_renderer: Primitive_Renderer
 
 primitive_renderer_init :: proc(vertices: []imdd3.Primitive_Vertex, indices: []u32, offset: [imdd3.Primitive_Type]imdd3.Primitive_Range) {
     ok: bool
-    primitive_renderer.program, ok = gl.load_shaders_source(PRIMITIVE_VS, PRIMITIVE_FS)
+    primitive_renderer.program, ok = load_shaders({{.VERTEX_SHADER, PRIMITIVE_VS}, {.FRAGMENT_SHADER, PRIMITIVE_FS}})
     assert(ok, "ERROR: Failed to compile primitive program")
     primitive_renderer.uniforms = gl.get_uniforms_from_program(primitive_renderer.program)
 
