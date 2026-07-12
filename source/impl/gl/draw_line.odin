@@ -154,17 +154,14 @@ line_destroy :: proc() {
     gl.DeleteBuffers(1, &line_state.vbo)
 }
 
-line_render :: proc(vertices: []imdd3.Line_Vertex, projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
+line_render :: proc(vertices: []imdd3.Line_Vertex) {
     if len(vertices) < 2 {
         return
     }
 
-    projection := projection
-    view := view
-
     gl.UseProgram(line_state.program)
-    gl.UniformMatrix4fv(line_state.uniforms["u_projection"].location, 1, false, &projection[0][0])
-    gl.UniformMatrix4fv(line_state.uniforms["u_view"].location, 1, false, &view[0][0])
+    gl.UniformMatrix4fv(line_state.uniforms["u_projection"].location, 1, false, &renderer.projection[0][0])
+    gl.UniformMatrix4fv(line_state.uniforms["u_view"].location, 1, false, &renderer.view[0][0])
 
     gl.BindVertexArray(line_state.vao)
 

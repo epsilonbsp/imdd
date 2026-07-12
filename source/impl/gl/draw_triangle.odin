@@ -199,17 +199,14 @@ triangle_destroy :: proc() {
     gl.DeleteBuffers(1, &triangle_state.ibo)
 }
 
-triangle_render :: proc(vertices: []imdd3.Triangle_Vertex, indices: []u32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
+triangle_render :: proc(vertices: []imdd3.Triangle_Vertex, indices: []u32) {
     if len(vertices) == 0 {
         return
     }
 
-    projection := projection
-    view := view
-
     gl.UseProgram(triangle_state.program)
-    gl.UniformMatrix4fv(triangle_state.uniforms["u_projection"].location, 1, false, &projection[0][0])
-    gl.UniformMatrix4fv(triangle_state.uniforms["u_view"].location, 1, false, &view[0][0])
+    gl.UniformMatrix4fv(triangle_state.uniforms["u_projection"].location, 1, false, &renderer.projection[0][0])
+    gl.UniformMatrix4fv(triangle_state.uniforms["u_view"].location, 1, false, &renderer.view[0][0])
 
     gl.BindVertexArray(triangle_state.vao)
 

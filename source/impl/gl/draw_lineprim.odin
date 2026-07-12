@@ -162,6 +162,8 @@ Lineprim_State :: struct {
 lineprim_state: Lineprim_State
 
 lineprim_init :: proc(vertices: []glm.vec3, indices: []u32, ranges: [imdd3.Lineprim_Type]imdd3.Lineprim_Range) {
+    lineprim_state.ranges = ranges
+
     ok: bool
     lineprim_state.program, ok = load_shaders({
         {.VERTEX_SHADER, LINEPRIM_VS},
@@ -170,8 +172,6 @@ lineprim_init :: proc(vertices: []glm.vec3, indices: []u32, ranges: [imdd3.Linep
     })
     assert(ok, "ERROR: Failed to compile lineprim program")
     lineprim_state.uniforms = gl.get_uniforms_from_program(lineprim_state.program)
-
-    lineprim_state.ranges = ranges
 
     gl.GenVertexArrays(1, &lineprim_state.vao)
     gl.BindVertexArray(lineprim_state.vao)
@@ -226,7 +226,7 @@ lineprim_destroy :: proc() {
     gl.DeleteBuffers(1, &lineprim_state.dibo)
 }
 
-lineprim_render :: proc(data: [imdd3.Lineprim_Type][]imdd3.Lineprim_Instance, projection: matrix[4, 4]f32, view: matrix[4, 4]f32, viewport: [2]f32) {
+lineprim_render :: proc(data: [imdd3.Lineprim_Type][]imdd3.Lineprim_Instance) {
     total := 0
 
     for type in imdd3.Lineprim_Type {
@@ -237,13 +237,10 @@ lineprim_render :: proc(data: [imdd3.Lineprim_Type][]imdd3.Lineprim_Instance, pr
         return
     }
 
-    projection := projection
-    view := view
-
     gl.UseProgram(lineprim_state.program)
-    gl.Uniform2f(lineprim_state.uniforms["u_viewport"].location, viewport[0], viewport[1])
-    gl.UniformMatrix4fv(lineprim_state.uniforms["u_projection"].location, 1, false, &projection[0][0])
-    gl.UniformMatrix4fv(lineprim_state.uniforms["u_view"].location, 1, false, &view[0][0])
+    gl.Uniform2f(lineprim_state.uniforms["u_viewport"].location, f32(renderer.viewport[0]), f32(renderer.viewport[1]))
+    gl.UniformMatrix4fv(lineprim_state.uniforms["u_projection"].location, 1, false, &renderer.projection[0][0])
+    gl.UniformMatrix4fv(lineprim_state.uniforms["u_view"].location, 1, false, &renderer.view[0][0])
 
     gl.BindVertexArray(lineprim_state.vao)
     gl.BindBuffer(gl.ARRAY_BUFFER, lineprim_state.ubo)

@@ -236,17 +236,14 @@ curve_destroy :: proc() {
     gl.DeleteBuffers(1, &curve_state.vbo)
 }
 
-curve_render :: proc(vertices: []imdd3.Curve_Vertex, projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
+curve_render :: proc(vertices: []imdd3.Curve_Vertex) {
     if len(vertices) < 3 {
         return
     }
 
-    projection := projection
-    view := view
-
     gl.UseProgram(curve_state.program)
-    gl.UniformMatrix4fv(curve_state.uniforms["u_projection"].location, 1, false, &projection[0][0])
-    gl.UniformMatrix4fv(curve_state.uniforms["u_view"].location, 1, false, &view[0][0])
+    gl.UniformMatrix4fv(curve_state.uniforms["u_projection"].location, 1, false, &renderer.projection[0][0])
+    gl.UniformMatrix4fv(curve_state.uniforms["u_view"].location, 1, false, &renderer.view[0][0])
 
     gl.BindVertexArray(curve_state.vao)
 

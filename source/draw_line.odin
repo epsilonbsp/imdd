@@ -32,8 +32,8 @@ line_destroy :: proc() {
     delete(line_state.vertices)
 }
 
-line_render :: proc(projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
-    renderer.interface.line_render(line_state.vertices[:], projection, view)
+line_render :: proc() {
+    renderer.interface.line_render(line_state.vertices[:])
 
     clear(&line_state.vertices)
 }

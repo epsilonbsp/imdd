@@ -25,8 +25,8 @@ curve_destroy :: proc() {
     delete(curve_state.vertices)
 }
 
-curve_render :: proc(projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
-    renderer.interface.curve_render(curve_state.vertices[:], projection, view)
+curve_render :: proc() {
+    renderer.interface.curve_render(curve_state.vertices[:])
 
     clear(&curve_state.vertices)
 }

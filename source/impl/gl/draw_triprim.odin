@@ -63,12 +63,12 @@ Triprim_State :: struct {
 triprim_state: Triprim_State
 
 triprim_init :: proc(vertices: []imdd3.Triprim_Vertex, indices: []u32, ranges: [imdd3.Triprim_Type]imdd3.Triprim_Range) {
+    triprim_state.ranges = ranges
+
     ok: bool
     triprim_state.program, ok = load_shaders({{.VERTEX_SHADER, TRIPRIM_VS}, {.FRAGMENT_SHADER, TRIPRIM_FS}})
     assert(ok, "ERROR: Failed to compile triprim program")
     triprim_state.uniforms = gl.get_uniforms_from_program(triprim_state.program)
-
-    triprim_state.ranges = ranges
 
     gl.GenVertexArrays(1, &triprim_state.vao)
     gl.BindVertexArray(triprim_state.vao)
@@ -126,7 +126,7 @@ triprim_destroy :: proc() {
     gl.DeleteBuffers(1, &triprim_state.dibo)
 }
 
-triprim_render :: proc(data: [imdd3.Triprim_Type][]imdd3.Triprim_Instance, projection: matrix[4, 4]f32, view: matrix[4, 4]f32, viewport: [2]f32) {
+triprim_render :: proc(data: [imdd3.Triprim_Type][]imdd3.Triprim_Instance) {
     total := 0
 
     for type in imdd3.Triprim_Type {
@@ -137,12 +137,9 @@ triprim_render :: proc(data: [imdd3.Triprim_Type][]imdd3.Triprim_Instance, proje
         return
     }
 
-    projection := projection
-    view := view
-
     gl.UseProgram(triprim_state.program)
-    gl.UniformMatrix4fv(triprim_state.uniforms["u_projection"].location, 1, false, &projection[0][0])
-    gl.UniformMatrix4fv(triprim_state.uniforms["u_view"].location, 1, false, &view[0][0])
+    gl.UniformMatrix4fv(triprim_state.uniforms["u_projection"].location, 1, false, &renderer.projection[0][0])
+    gl.UniformMatrix4fv(triprim_state.uniforms["u_view"].location, 1, false, &renderer.view[0][0])
 
     gl.BindVertexArray(triprim_state.vao)
     gl.BindBuffer(gl.ARRAY_BUFFER, triprim_state.ubo)

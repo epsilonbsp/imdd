@@ -5,6 +5,10 @@ import gl "vendor:OpenGL"
 import imdd3 "../.."
 
 Renderer :: struct {
+    viewport: [2]i32,
+    projection: matrix[4, 4]f32,
+    view: matrix[4, 4]f32,
+
     atlas_tex: u32,
     tex_map: Texture_Map,
 }
@@ -53,6 +57,12 @@ update_texture :: proc(handle: u32, x: i32, y: i32, w: i32, h: i32, data: []u8) 
     gl.BindTexture(gl.TEXTURE_2D, 0)
 }
 
+prepare_renderer :: proc(viewport: [2]i32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
+    renderer.viewport = viewport
+    renderer.projection = projection
+    renderer.view = view
+}
+
 interface :: proc() -> imdd3.Renderer_Interface {
     return {
         init = init,
@@ -61,6 +71,8 @@ interface :: proc() -> imdd3.Renderer_Interface {
         add_texture = add_texture,
         remove_texture = remove_texture,
         update_texture = update_texture,
+
+        prepare_renderer = prepare_renderer,
 
         line_render = line_render,
         curve_render = curve_render,

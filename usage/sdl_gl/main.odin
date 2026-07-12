@@ -176,7 +176,7 @@ main :: proc() {
         imdd3.draw_lineprim_cone_aa({64, 32, -128}, {32, 64}, 0x4963e6_ff)
         imdd3.draw_lineprim_sphere({192, 32, -128}, 32, 0xe68ac4_ff)
 
-        imdd3.render(camera.projection, camera.view, {f32(viewport_x), f32(viewport_y)})
+        imdd3.render({viewport_x, viewport_y}, camera.projection, camera.view, )
 
         sdl.GL_SwapWindow(window)
     }

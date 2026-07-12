@@ -31,8 +31,8 @@ triangle_destroy :: proc() {
     delete(triangle_state.indices)
 }
 
-triangle_render :: proc(projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
-    renderer.interface.triangle_render(triangle_state.vertices[:], triangle_state.indices[:], projection, view)
+triangle_render :: proc() {
+    renderer.interface.triangle_render(triangle_state.vertices[:], triangle_state.indices[:])
 
     clear(&triangle_state.vertices)
     clear(&triangle_state.indices)
