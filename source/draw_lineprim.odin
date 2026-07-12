@@ -251,7 +251,7 @@ lineprim_push :: proc(type: Lineprim_Type) -> ^Lineprim_Instance {
 }
 
 // API
-draw_lineprim_aabb :: proc(position: glm.vec3, size: glm.vec3, color: u32) {
+draw_wire_aabb :: proc(position: glm.vec3, size: glm.vec3, color: u32) {
     instance := lineprim_push(.Box)
     instance.translation = position
     instance.rotation = {}
@@ -259,7 +259,7 @@ draw_lineprim_aabb :: proc(position: glm.vec3, size: glm.vec3, color: u32) {
     instance.color = color
 }
 
-draw_lineprim_aabb_bounds :: proc(min: glm.vec3, max: glm.vec3, color: u32) {
+draw_wire_aabb_bounds :: proc(min: glm.vec3, max: glm.vec3, color: u32) {
     instance := lineprim_push(.Box)
     instance.translation = (min + max) / 2
     instance.rotation = {}
@@ -267,7 +267,7 @@ draw_lineprim_aabb_bounds :: proc(min: glm.vec3, max: glm.vec3, color: u32) {
     instance.color = color
 }
 
-draw_lineprim_obb :: proc(position: glm.vec3, size: glm.vec3, rotation: glm.vec3, color: u32) {
+draw_wire_obb :: proc(position: glm.vec3, size: glm.vec3, rotation: glm.vec3, color: u32) {
     instance := lineprim_push(.Box)
     instance.translation = position
     instance.rotation = quat_rotation_xyz(rotation)
@@ -275,7 +275,7 @@ draw_lineprim_obb :: proc(position: glm.vec3, size: glm.vec3, rotation: glm.vec3
     instance.color = color
 }
 
-draw_lineprim_cylinder_aa :: proc(position: glm.vec3, size: glm.vec2, color: u32) {
+draw_wire_cylinder_aa :: proc(position: glm.vec3, size: glm.vec2, color: u32) {
     instance := lineprim_push(.Cylinder)
     instance.translation = position
     instance.rotation = {}
@@ -283,7 +283,7 @@ draw_lineprim_cylinder_aa :: proc(position: glm.vec3, size: glm.vec2, color: u32
     instance.color = color
 }
 
-draw_lineprim_cylinder_o :: proc(position: glm.vec3, size: glm.vec2, rotation: glm.vec3, color: u32) {
+draw_wire_cylinder_o :: proc(position: glm.vec3, size: glm.vec2, rotation: glm.vec3, color: u32) {
     instance := lineprim_push(.Cylinder)
     instance.translation = position
     instance.rotation = quat_rotation_xyz(rotation)
@@ -291,7 +291,7 @@ draw_lineprim_cylinder_o :: proc(position: glm.vec3, size: glm.vec2, rotation: g
     instance.color = color
 }
 
-draw_lineprim_cylinder_ab :: proc(start: glm.vec3, end: glm.vec3, radius: f32, color: u32) {
+draw_wire_cylinder_ab :: proc(start: glm.vec3, end: glm.vec3, radius: f32, color: u32) {
     height := glm.distance(start, end) / 2
 
     instance := lineprim_push(.Cylinder)
@@ -301,7 +301,7 @@ draw_lineprim_cylinder_ab :: proc(start: glm.vec3, end: glm.vec3, radius: f32, c
     instance.color = color
 }
 
-draw_lineprim_cone_aa :: proc(position: glm.vec3, size: glm.vec2, color: u32) {
+draw_wire_cone_aa :: proc(position: glm.vec3, size: glm.vec2, color: u32) {
     instance := lineprim_push(.Cone)
     instance.translation = position
     instance.rotation = {}
@@ -309,7 +309,7 @@ draw_lineprim_cone_aa :: proc(position: glm.vec3, size: glm.vec2, color: u32) {
     instance.color = color
 }
 
-draw_lineprim_cone_o :: proc(position: glm.vec3, size: glm.vec2, rotation: glm.vec3, color: u32) {
+draw_wire_cone_o :: proc(position: glm.vec3, size: glm.vec2, rotation: glm.vec3, color: u32) {
     instance := lineprim_push(.Cone)
     instance.translation = position
     instance.rotation = quat_rotation_xyz(rotation)
@@ -317,7 +317,7 @@ draw_lineprim_cone_o :: proc(position: glm.vec3, size: glm.vec2, rotation: glm.v
     instance.color = color
 }
 
-draw_lineprim_cone_ab :: proc(start: glm.vec3, end: glm.vec3, radius: f32, color: u32) {
+draw_wire_cone_ab :: proc(start: glm.vec3, end: glm.vec3, radius: f32, color: u32) {
     height := glm.distance(start, end) / 2
 
     instance := lineprim_push(.Cone)
@@ -327,7 +327,7 @@ draw_lineprim_cone_ab :: proc(start: glm.vec3, end: glm.vec3, radius: f32, color
     instance.color = color
 }
 
-draw_lineprim_sphere :: proc(position: glm.vec3, radius: f32, color: u32) {
+draw_wire_sphere :: proc(position: glm.vec3, radius: f32, color: u32) {
     instance := lineprim_push(.Sphere)
     instance.translation = position
     instance.rotation = {}

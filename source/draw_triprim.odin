@@ -129,7 +129,7 @@ triprim_push :: proc(type: Triprim_Type) -> ^Triprim_Instance {
 }
 
 // API
-draw_triprim_aabb :: proc(position: [3]f32, size: [3]f32, color: u32) {
+draw_aabb :: proc(position: [3]f32, size: [3]f32, color: u32) {
     instance := triprim_push(.Box)
     instance.translation = position
     instance.rotation = {}

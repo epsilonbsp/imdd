@@ -62,7 +62,7 @@ draw_arc :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, a
     )
 }
 
-draw_circle :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, width: f32, color: u32) {
+draw_ring :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, width: f32, color: u32) {
     segment: f32 = glm.PI * 2 / 3
 
     draw_arc(center, normal, tangent, radius, segment * 0, segment * 1, width, color)
