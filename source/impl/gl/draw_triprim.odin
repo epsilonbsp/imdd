@@ -62,13 +62,13 @@ Triprim_State :: struct {
 
 triprim_state: Triprim_State
 
-triprim_init :: proc(vertices: []imdd3.Triprim_Vertex, indices: []u32, offset: [imdd3.Triprim_Type]imdd3.Triprim_Range) {
+triprim_init :: proc(vertices: []imdd3.Triprim_Vertex, indices: []u32, ranges: [imdd3.Triprim_Type]imdd3.Triprim_Range) {
     ok: bool
     triprim_state.program, ok = load_shaders({{.VERTEX_SHADER, TRIPRIM_VS}, {.FRAGMENT_SHADER, TRIPRIM_FS}})
     assert(ok, "ERROR: Failed to compile triprim program")
     triprim_state.uniforms = gl.get_uniforms_from_program(triprim_state.program)
 
-    triprim_state.ranges = offset
+    triprim_state.ranges = ranges
 
     gl.GenVertexArrays(1, &triprim_state.vao)
     gl.BindVertexArray(triprim_state.vao)
@@ -126,9 +126,7 @@ triprim_destroy :: proc() {
     gl.DeleteBuffers(1, &triprim_state.dibo)
 }
 
-triprim_render :: proc(data: [imdd3.Triprim_Type][]imdd3.Triprim_Instance, viewport: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
-    gl.Enable(gl.DEPTH_TEST); defer gl.Disable(gl.DEPTH_TEST)
-
+triprim_render :: proc(data: [imdd3.Triprim_Type][]imdd3.Triprim_Instance, projection: matrix[4, 4]f32, view: matrix[4, 4]f32, viewport: [2]f32) {
     total := 0
 
     for type in imdd3.Triprim_Type {
@@ -173,5 +171,6 @@ triprim_render :: proc(data: [imdd3.Triprim_Type][]imdd3.Triprim_Instance, viewp
     gl.BindBuffer(gl.DRAW_INDIRECT_BUFFER, triprim_state.dibo)
     gl.BufferData(gl.DRAW_INDIRECT_BUFFER, size_of(commands), &commands[0], gl.STREAM_DRAW)
 
+    gl.Enable(gl.DEPTH_TEST); defer gl.Disable(gl.DEPTH_TEST)
     gl.MultiDrawElementsIndirect(gl.TRIANGLES, gl.UNSIGNED_INT, nil, i32(len(imdd3.Triprim_Type)), 0)
 }

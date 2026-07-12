@@ -19,6 +19,7 @@ load_shaders :: proc(sources: []Shader_Source, binary_retrievable := false) -> (
 
     for source in sources {
         shader_id := gl.compile_shader_from_source(source.source, source.type) or_return
+
         append(&shader_ids, shader_id)
     }
 

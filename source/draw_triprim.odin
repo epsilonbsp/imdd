@@ -48,18 +48,16 @@ triprim_destroy :: proc() {
     for type in Triprim_Type {
         delete(triprim_state.instances[type])
     }
-
-    state.renderer.triprim_destroy()
 }
 
-triprim_render :: proc(viewport: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
+triprim_render :: proc(projection: matrix[4, 4]f32, view: matrix[4, 4]f32, viewport: [2]f32) {
     data: [Triprim_Type][]Triprim_Instance
 
     for type in Triprim_Type {
         data[type] = triprim_state.instances[type][:triprim_state.counts[type]]
     }
 
-    state.renderer.triprim_render(data, viewport, projection, view)
+    state.renderer.triprim_render(data, projection, view, viewport)
 
     for type in Triprim_Type {
         triprim_state.counts[type] = 0

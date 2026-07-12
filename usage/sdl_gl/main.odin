@@ -164,8 +164,7 @@ main :: proc() {
         // imdd3.grid_xz({}, {128, 128}, 16, 1, 0x00ff00ff)
         // imdd3.grid_yz({}, {128, 128}, 16, 1, 0x000ffff)
 
-        // imdd3.line({}, {0, 128, 0}, camera.forward, camera.right, 8, 0x00ff00ff)
-        // imdd3.arrow({}, {0, 128, 0}, camera.forward, camera.right, 8, 16, 0x00ff00ff)
+        imdd3.arrow({}, {0, 128, 0}, camera.forward, camera.right, 8, 16, 0x00ff00ff)
 
         // imdd3.text({}, {0, 0, -1}, {1, 0, 0}, "Hello, World!", 16, 16, 0xff00ffff)
 

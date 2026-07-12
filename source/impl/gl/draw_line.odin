@@ -87,8 +87,6 @@ LINE_GS :: GLSL_VERSION + `
 `
 
 LINE_FS :: GLSL_VERSION + `
-    precision highp float;
-
     in vec4 v_color;
     in vec2 v_tex_coord;
     flat in uint v_round;
@@ -176,6 +174,5 @@ line_render :: proc(vertices: []imdd3.Line_Vertex, projection: matrix[4, 4]f32, 
     gl.Enable(gl.DEPTH_TEST); defer gl.Disable(gl.DEPTH_TEST)
     gl.Enable(gl.BLEND); defer gl.Disable(gl.BLEND)
     gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-
     gl.DrawArrays(gl.LINES, 0, i32(len(vertices)))
 }

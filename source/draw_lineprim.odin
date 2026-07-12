@@ -51,18 +51,16 @@ lineprim_destroy :: proc() {
     for type in Lineprim_Type {
         delete(lineprim_state.instances[type])
     }
-
-    state.renderer.lineprim_destroy()
 }
 
-lineprim_render :: proc(resolution: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
+lineprim_render :: proc(projection: matrix[4, 4]f32, view: matrix[4, 4]f32, viewport: [2]f32) {
     data: [Lineprim_Type][]Lineprim_Instance
 
     for type in Lineprim_Type {
         data[type] = lineprim_state.instances[type][:lineprim_state.counts[type]]
     }
 
-    state.renderer.lineprim_render(data, resolution, projection, view)
+    state.renderer.lineprim_render(data, projection, view, viewport)
 
     for type in Lineprim_Type {
         lineprim_state.counts[type] = 0

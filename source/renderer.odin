@@ -15,11 +15,8 @@ Renderer :: struct {
     curve_render: proc(vertices: []Curve_Vertex, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
 
     lineprim_init: proc(vertices: []glm.vec3, indices: []u32, ranges: [Lineprim_Type]Lineprim_Range),
-    lineprim_destroy: proc(),
-    lineprim_render: proc(data: [Lineprim_Type][]Lineprim_Instance, resolution: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
+    lineprim_render: proc(data: [Lineprim_Type][]Lineprim_Instance, projection: matrix[4, 4]f32, view: matrix[4, 4]f32, viewport: [2]f32),
 
-    triprim_init: proc(vertices: []Triprim_Vertex, indices: []u32, offset: [Triprim_Type]Triprim_Range),
-    triprim_destroy: proc(),
-    triprim_render: proc(data: [Triprim_Type][]Triprim_Instance, viewport: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
-
+    triprim_init: proc(vertices: []Triprim_Vertex, indices: []u32, ranges: [Triprim_Type]Triprim_Range),
+    triprim_render: proc(data: [Triprim_Type][]Triprim_Instance, projection: matrix[4, 4]f32, view: matrix[4, 4]f32, viewport: [2]f32),
 }

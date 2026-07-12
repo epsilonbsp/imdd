@@ -30,8 +30,10 @@ destroy :: proc() {
     texture_map_destroy(&renderer.tex_map)
 
     line_destroy()
-    triangle_destroy()
     curve_destroy()
+    triangle_destroy()
+    lineprim_destroy()
+    triprim_destroy()
 }
 
 add_texture :: proc(width: i32, height: i32, data: []u8) -> u32 {
@@ -65,11 +67,9 @@ interface :: proc() -> imdd3.Renderer {
         triangle_render = triangle_render,
 
         lineprim_init = lineprim_init,
-        lineprim_destroy = lineprim_destroy,
         lineprim_render = lineprim_render,
 
         triprim_init = triprim_init,
-        triprim_destroy = triprim_destroy,
         triprim_render = triprim_render,
     }
 }

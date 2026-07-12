@@ -5,7 +5,6 @@ import gl "vendor:OpenGL"
 
 import imdd3 "../.."
 
-
 LINEPRIM_VS :: GLSL_VERSION + `
     layout(location = 0) in vec3 i_position;
     layout(location = 1) in vec3 i_translation;
@@ -56,7 +55,7 @@ LINEPRIM_GS :: GLSL_VERSION + `
 
     uniform mat4 u_projection;
     uniform mat4 u_view;
-    uniform vec2 u_resolution;
+    uniform vec2 u_viewport;
 
     void main() {
         vec4 p0_world = gl_in[0].gl_Position;
@@ -71,8 +70,8 @@ LINEPRIM_GS :: GLSL_VERSION + `
         vec2 p0_ndc = p0_clip.xy / p0_clip.w;
         vec2 p1_ndc = p1_clip.xy / p1_clip.w;
 
-        vec2 p0_screen = p0_ndc * u_resolution * 0.5;
-        vec2 p1_screen = p1_ndc * u_resolution * 0.5;
+        vec2 p0_screen = p0_ndc * u_viewport * 0.5;
+        vec2 p1_screen = p1_ndc * u_viewport * 0.5;
 
         vec2 dir = normalize(p1_screen - p0_screen);
         vec2 normal = vec2(-dir.y, dir.x);
@@ -83,10 +82,10 @@ LINEPRIM_GS :: GLSL_VERSION + `
         vec2 p1a_screen = p1_screen + offset;
         vec2 p1b_screen = p1_screen - offset;
 
-        vec2 p0a_ndc = p0a_screen / (u_resolution * 0.5);
-        vec2 p0b_ndc = p0b_screen / (u_resolution * 0.5);
-        vec2 p1a_ndc = p1a_screen / (u_resolution * 0.5);
-        vec2 p1b_ndc = p1b_screen / (u_resolution * 0.5);
+        vec2 p0a_ndc = p0a_screen / (u_viewport * 0.5);
+        vec2 p0b_ndc = p0b_screen / (u_viewport * 0.5);
+        vec2 p1a_ndc = p1a_screen / (u_viewport * 0.5);
+        vec2 p1b_ndc = p1b_screen / (u_viewport * 0.5);
 
         v_color = v_gd[0].color;
         v_width = LINE_WIDTH;
@@ -114,8 +113,6 @@ LINEPRIM_GS :: GLSL_VERSION + `
 `
 
 LINEPRIM_FS :: GLSL_VERSION + `
-    precision highp float;
-
     #define AA_WIDTH 1.0
 
     in vec4 v_color;
@@ -125,12 +122,12 @@ LINEPRIM_FS :: GLSL_VERSION + `
 
     out vec4 o_frag_color;
 
-    uniform vec2 u_resolution;
+    uniform vec2 u_viewport;
     uniform sampler2D sa_depth;
 
     void main() {
         #ifdef USE_DEPTH
-            vec2 rm_uv = vec2(gl_FragCoord.x, u_resolution.y - gl_FragCoord.y) / u_resolution;
+            vec2 rm_uv = vec2(gl_FragCoord.x, u_viewport.y - gl_FragCoord.y) / u_viewport;
             float rm_depth = texture(sa_depth, rm_uv).x;
 
             if (rm_depth < v_depth) {
@@ -229,11 +226,7 @@ lineprim_destroy :: proc() {
     gl.DeleteBuffers(1, &lineprim_state.dibo)
 }
 
-lineprim_render :: proc(data: [imdd3.Lineprim_Type][]imdd3.Lineprim_Instance, resolution: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
-    gl.Enable(gl.DEPTH_TEST); defer gl.Disable(gl.DEPTH_TEST)
-    gl.Enable(gl.BLEND); defer gl.Disable(gl.BLEND)
-    gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-
+lineprim_render :: proc(data: [imdd3.Lineprim_Type][]imdd3.Lineprim_Instance, projection: matrix[4, 4]f32, view: matrix[4, 4]f32, viewport: [2]f32) {
     total := 0
 
     for type in imdd3.Lineprim_Type {
@@ -248,7 +241,7 @@ lineprim_render :: proc(data: [imdd3.Lineprim_Type][]imdd3.Lineprim_Instance, re
     view := view
 
     gl.UseProgram(lineprim_state.program)
-    gl.Uniform2f(lineprim_state.uniforms["u_resolution"].location, resolution[0], resolution[1])
+    gl.Uniform2f(lineprim_state.uniforms["u_viewport"].location, viewport[0], viewport[1])
     gl.UniformMatrix4fv(lineprim_state.uniforms["u_projection"].location, 1, false, &projection[0][0])
     gl.UniformMatrix4fv(lineprim_state.uniforms["u_view"].location, 1, false, &view[0][0])
 
@@ -279,5 +272,8 @@ lineprim_render :: proc(data: [imdd3.Lineprim_Type][]imdd3.Lineprim_Instance, re
     gl.BindBuffer(gl.DRAW_INDIRECT_BUFFER, lineprim_state.dibo)
     gl.BufferData(gl.DRAW_INDIRECT_BUFFER, size_of(commands), &commands[0], gl.STREAM_DRAW)
 
+    gl.Enable(gl.DEPTH_TEST); defer gl.Disable(gl.DEPTH_TEST)
+    gl.Enable(gl.BLEND); defer gl.Disable(gl.BLEND)
+    gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
     gl.MultiDrawElementsIndirect(gl.LINES, gl.UNSIGNED_INT, nil, i32(len(imdd3.Lineprim_Type)), 0)
 }

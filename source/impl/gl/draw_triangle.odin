@@ -21,6 +21,7 @@ MAIN_VS :: GLSL_VERSION + `
     out vec2 v_sdf_coord;
 
     uniform mat4 u_projection;
+    uniform mat4 u_view;
 
     const vec2 SDF_COORDS[] = vec2[](
         vec2(-1.0, -1.0),
@@ -39,7 +40,7 @@ MAIN_VS :: GLSL_VERSION + `
     }
 
     void main() {
-        gl_Position = u_projection * vec4(i_position, 1.0);
+        gl_Position = u_projection * u_view * vec4(i_position, 1.0);
 
         v_mode = i_mode;
         v_tex_coord = i_tex_coord;
@@ -203,10 +204,12 @@ triangle_render :: proc(vertices: []imdd3.Triangle_Vertex, indices: []u32, proje
         return
     }
 
-    projection := projection * view
+    projection := projection
+    view := view
 
     gl.UseProgram(triangle_state.program)
     gl.UniformMatrix4fv(triangle_state.uniforms["u_projection"].location, 1, false, &projection[0][0])
+    gl.UniformMatrix4fv(triangle_state.uniforms["u_view"].location, 1, false, &view[0][0])
 
     gl.BindVertexArray(triangle_state.vao)
 
@@ -224,6 +227,7 @@ triangle_render :: proc(vertices: []imdd3.Triangle_Vertex, indices: []u32, proje
 
     gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, renderer.tex_map.ssbo)
 
+    gl.Enable(gl.DEPTH_TEST); defer gl.Disable(gl.DEPTH_TEST)
     gl.Enable(gl.BLEND); defer gl.Disable(gl.BLEND)
     gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
     gl.DrawElements(gl.TRIANGLES, i32(len(indices)), gl.UNSIGNED_INT, nil)
