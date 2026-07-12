@@ -45,7 +45,7 @@ main :: proc() {
 
     camera: Camera; init_camera(&camera)
 
-    movement_speed: f32 = 256
+    movement_speed: f32 = 64
     yaw_speed: f32 = 0.002
     pitch_speed: f32 = 0.002
     zoom_speed: f32 = 20
@@ -115,21 +115,51 @@ main :: proc() {
         // imdd3.point({}, camera.forward, camera.right, 4, 0xffffffff)
 
 
-        imdd3.grid_xy({}, {128, 128}, 16, 1, 0xff0000ff)
-        imdd3.draw_line({}, {128, 128, 128}, 4, 0xff0000ff)
-        imdd3.draw_curve({-128, 0, 0}, {0, 128, 0}, {128, 0, 0}, 4, 0x00ff00ff)
-        imdd3.draw_circle({0, 0, -128}, {0, 0, -1}, {1, 0, 0}, 64, 4, 0x4963e6ff)
+        // imdd3.draw_line({}, {124, 0, 0}, 2, 0xff0000ff, true)
+        // imdd3.draw_line_cap({}, {0, -1, 0}, 8, 0xff0000ff, .Circle)
+        imdd3.draw_line_strip({
+            {0, 0, 0},
+            {128, 0, 0},
+            {128, 128, 0},
+            {0, 128, 0},
+        }, 2, 0xff0000ff, .Circle, true)
 
-        // line connecting into a curve: the curve's control point continues
-        // straight along the line's own direction, so the tangent matches at
-        // the point they meet
-        line_start := [3]f32{-250, 0, -100}
-        line_end := [3]f32{-50, 0, -100}
-        curve_control := [3]f32{50, 0, -100}
-        curve_end := [3]f32{50, 150, -100}
+        // imdd3.grid_xy({}, {128, 128}, 16, 1, 0xff0000ff)
+        // imdd3.draw_line({}, {124, 0, 0}, 2, 0xff0000ff)
+        // // control point (128,0,0) is where both lines' own directions meet,
+        // // so the curve's tangent matches each line exactly at the connection
+        // imdd3.draw_curve({124, 0, 0}, {128, 0, 0}, {128, 0, -4}, 2, 0xff0000ff)
+        // imdd3.draw_line({128, 0, -4}, {128, 0, -128}, 2, 0xff0000ff)
+        // // imdd3.draw_curve({-128, 0, 0}, {0, 128, 0}, {128, 0, 0}, 4, 0x00ff00ff)
+        // imdd3.draw_circle({0, 0, -128}, {0, 0, -1}, {1, 0, 0}, 64, 2, 0x4963e6ff)
 
-        imdd3.draw_line(line_start, line_end, 8, 0xffaa00ff)
-        imdd3.draw_curve(line_end, curve_control, curve_end, 8, 0xffaa00ff)
+        // // line connecting into a curve: the curve's control point continues
+        // // straight along the line's own direction, so the tangent matches at
+        // // the point they meet
+        // line_start := [3]f32{-250, 0, -100}
+        // line_end := [3]f32{-50, 0, -100}
+        // curve_control := [3]f32{50, 0, -100}
+        // curve_end := [3]f32{50, 150, -100}
+
+        // imdd3.draw_line(line_start, line_end, 8, 0xffaa00ff)
+        // imdd3.draw_curve(line_end, curve_control, curve_end, 8, 0xffaa00ff)
+
+        // // two non-coplanar (skew) lines: line A runs flat along +X, line B
+        // // runs diagonally up and back in Z - they don't share a plane, so
+        // // instead of intersecting their directions we pull back from a shared
+        // // corner point along each direction and let the corner itself be the
+        // // curve's control point (same trick draw_arc uses for a round corner)
+        // corner_3d := [3]f32{300, 0, -50}
+        // dir_a_3d := [3]f32{1, 0, 0}
+        // dir_b_3d := [3]f32{0, 0.6, -0.8}
+        // reach_3d: f32 = 40
+
+        // p0_3d := corner_3d - dir_a_3d * reach_3d
+        // p2_3d := corner_3d + dir_b_3d * reach_3d
+
+        // imdd3.draw_line({150, 0, -50}, p0_3d, 2, 0x22ccffff)
+        // imdd3.draw_curve(p0_3d, corner_3d, p2_3d, 2, 0x22ccffff)
+        // imdd3.draw_line(p2_3d, p2_3d + dir_b_3d * 120, 2, 0x22ccffff)
 
         // imdd3.grid_xz({}, {128, 128}, 16, 1, 0x00ff00ff)
         // imdd3.grid_yz({}, {128, 128}, 16, 1, 0x000ffff)
