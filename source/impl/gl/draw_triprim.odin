@@ -5,13 +5,15 @@ import gl "vendor:OpenGL"
 import imdd3 "../.."
 
 TRIPRIM_VS :: GLSL_VERSION + `
-    layout(location = 0) in vec3 i_position;
-    layout(location = 1) in vec3 i_normal;
-    layout(location = 2) in vec3 i_barycentric;
-    layout(location = 3) in vec3 i_translation;
-    layout(location = 4) in vec4 i_rotation;
-    layout(location = 5) in vec3 i_scale;
-    layout(location = 6) in uint i_color;
+    layout(location = 0) in vec3 i_anchor;
+    layout(location = 1) in vec3 i_direction;
+    layout(location = 2) in vec3 i_normal;
+    layout(location = 3) in vec3 i_barycentric;
+    layout(location = 4) in vec3 i_translation;
+    layout(location = 5) in vec4 i_rotation;
+    layout(location = 6) in vec3 i_scale;
+    layout(location = 7) in float i_radius;
+    layout(location = 8) in uint i_color;
 
     out vec4 v_color;
     out vec3 v_barycentric;
@@ -33,7 +35,8 @@ TRIPRIM_VS :: GLSL_VERSION + `
     }
 
     void main() {
-        vec3 world_position = rotate(i_position * i_scale, i_rotation) + i_translation;
+        vec3 local_position = i_anchor * i_scale + i_direction * i_radius;
+        vec3 world_position = rotate(local_position, i_rotation) + i_translation;
         gl_Position = u_projection * u_view * vec4(world_position, 1.0);
         v_color = unpack_rgba(i_color);
         v_barycentric = i_barycentric;
@@ -87,33 +90,40 @@ triprim_init :: proc(vertices: []imdd3.Triprim_Vertex, ranges: [imdd3.Triprim_Ty
     gl.BufferData(gl.ARRAY_BUFFER, size_of(imdd3.Triprim_Vertex) * len(vertices), raw_data(vertices), gl.STATIC_DRAW)
 
     gl.EnableVertexAttribArray(0)
-    gl.VertexAttribPointer(0, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Vertex), offset_of(imdd3.Triprim_Vertex, position))
+    gl.VertexAttribPointer(0, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Vertex), offset_of(imdd3.Triprim_Vertex, anchor))
 
     gl.EnableVertexAttribArray(1)
-    gl.VertexAttribPointer(1, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Vertex), offset_of(imdd3.Triprim_Vertex, normal))
+    gl.VertexAttribPointer(1, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Vertex), offset_of(imdd3.Triprim_Vertex, direction))
 
     gl.EnableVertexAttribArray(2)
-    gl.VertexAttribPointer(2, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Vertex), offset_of(imdd3.Triprim_Vertex, barycentric))
+    gl.VertexAttribPointer(2, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Vertex), offset_of(imdd3.Triprim_Vertex, normal))
+
+    gl.EnableVertexAttribArray(3)
+    gl.VertexAttribPointer(3, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Vertex), offset_of(imdd3.Triprim_Vertex, barycentric))
 
     gl.GenBuffers(1, &triprim_state.ubo)
     gl.BindBuffer(gl.ARRAY_BUFFER, triprim_state.ubo)
     gl.BufferData(gl.ARRAY_BUFFER, size_of(imdd3.Triprim_Instance) * imdd3.TRIPRIM_CAP * len(imdd3.Triprim_Type), nil, gl.DYNAMIC_DRAW)
 
-    gl.EnableVertexAttribArray(3)
-    gl.VertexAttribPointer(3, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, translation))
-    gl.VertexAttribDivisor(3, 1)
-
     gl.EnableVertexAttribArray(4)
-    gl.VertexAttribPointer(4, 4, gl.FLOAT, false, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, rotation))
+    gl.VertexAttribPointer(4, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, translation))
     gl.VertexAttribDivisor(4, 1)
 
     gl.EnableVertexAttribArray(5)
-    gl.VertexAttribPointer(5, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, scale))
+    gl.VertexAttribPointer(5, 4, gl.FLOAT, false, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, rotation))
     gl.VertexAttribDivisor(5, 1)
 
     gl.EnableVertexAttribArray(6)
-    gl.VertexAttribIPointer(6, 1, gl.UNSIGNED_INT, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, color))
+    gl.VertexAttribPointer(6, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, scale))
     gl.VertexAttribDivisor(6, 1)
+
+    gl.EnableVertexAttribArray(7)
+    gl.VertexAttribPointer(7, 1, gl.FLOAT, false, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, radius))
+    gl.VertexAttribDivisor(7, 1)
+
+    gl.EnableVertexAttribArray(8)
+    gl.VertexAttribIPointer(8, 1, gl.UNSIGNED_INT, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, color))
+    gl.VertexAttribDivisor(8, 1)
 
     gl.GenBuffers(1, &triprim_state.dibo)
 }
