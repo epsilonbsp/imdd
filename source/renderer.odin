@@ -17,7 +17,7 @@ Renderer_Interface :: struct {
     lineprim_init: proc(vertices: []Lineprim_Vertex, indices: []u32, ranges: [Lineprim_Type]Lineprim_Range),
     lineprim_render: proc(data: [Lineprim_Type][]Lineprim_Instance),
 
-    triprim_init: proc(vertices: []Triprim_Vertex, indices: []u32, ranges: [Triprim_Type]Triprim_Range),
+    triprim_init: proc(vertices: []Triprim_Vertex, ranges: [Triprim_Type]Triprim_Range),
     triprim_render: proc(data: [Triprim_Type][]Triprim_Instance),
 }
 

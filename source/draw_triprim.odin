@@ -5,6 +5,7 @@ TRIPRIM_CAP :: 256
 Triprim_Vertex :: struct {
     position: [3]f32,
     normal: [3]f32,
+    barycentric: [3]f32,
 }
 
 Triprim_Type :: enum {
@@ -32,16 +33,15 @@ triprim_state: Triprim_State
 
 triprim_init :: proc() {
     vertices: [dynamic]Triprim_Vertex; defer delete(vertices)
-    indices: [dynamic]u32; defer delete(indices)
 
     ranges: [Triprim_Type]Triprim_Range
-    ranges[.Box] = triprim_generate_box(&vertices, &indices)
+    ranges[.Box] = triprim_generate_box(&vertices)
 
     for type in Triprim_Type {
         triprim_state.instances[type] = make([dynamic]Triprim_Instance, TRIPRIM_CAP, TRIPRIM_CAP)
     }
 
-    renderer.interface.triprim_init(vertices[:], indices[:], ranges)
+    renderer.interface.triprim_init(vertices[:], ranges)
 }
 
 triprim_destroy :: proc() {
@@ -64,59 +64,60 @@ triprim_render :: proc() {
     }
 }
 
-triprim_generate_box :: proc(vertices: ^[dynamic]Triprim_Vertex, indices: ^[dynamic]u32) -> (range: Triprim_Range) {
-    range.first = u32(len(indices))
-
-    index := u32(len(vertices))
+triprim_generate_box :: proc(vertices: ^[dynamic]Triprim_Vertex) -> (range: Triprim_Range) {
+    range.first = u32(len(vertices))
 
     append(vertices,
         // Left
-        Triprim_Vertex{{-0.5, -0.5, -0.5}, {-1, 0, 0}},
-        Triprim_Vertex{{-0.5, -0.5,  0.5}, {-1, 0, 0}},
-        Triprim_Vertex{{-0.5,  0.5,  0.5}, {-1, 0, 0}},
-        Triprim_Vertex{{-0.5,  0.5, -0.5}, {-1, 0, 0}},
+        Triprim_Vertex{{-0.5, -0.5, -0.5}, {-1, 0, 0}, {1, 1, 0}},
+        Triprim_Vertex{{-0.5, -0.5,  0.5}, {-1, 0, 0}, {0, 2, 0}},
+        Triprim_Vertex{{-0.5,  0.5,  0.5}, {-1, 0, 0}, {0, 1, 1}},
+        Triprim_Vertex{{-0.5, -0.5, -0.5}, {-1, 0, 0}, {1, 0, 1}},
+        Triprim_Vertex{{-0.5,  0.5,  0.5}, {-1, 0, 0}, {0, 1, 1}},
+        Triprim_Vertex{{-0.5,  0.5, -0.5}, {-1, 0, 0}, {0, 0, 2}},
 
         // Right
-        Triprim_Vertex{{ 0.5, -0.5,  0.5}, {1, 0, 0}},
-        Triprim_Vertex{{ 0.5, -0.5, -0.5}, {1, 0, 0}},
-        Triprim_Vertex{{ 0.5,  0.5, -0.5}, {1, 0, 0}},
-        Triprim_Vertex{{ 0.5,  0.5,  0.5}, {1, 0, 0}},
+        Triprim_Vertex{{ 0.5, -0.5,  0.5}, {1, 0, 0}, {1, 1, 0}},
+        Triprim_Vertex{{ 0.5, -0.5, -0.5}, {1, 0, 0}, {0, 2, 0}},
+        Triprim_Vertex{{ 0.5,  0.5, -0.5}, {1, 0, 0}, {0, 1, 1}},
+        Triprim_Vertex{{ 0.5, -0.5,  0.5}, {1, 0, 0}, {1, 0, 1}},
+        Triprim_Vertex{{ 0.5,  0.5, -0.5}, {1, 0, 0}, {0, 1, 1}},
+        Triprim_Vertex{{ 0.5,  0.5,  0.5}, {1, 0, 0}, {0, 0, 2}},
 
         // Bottom
-        Triprim_Vertex{{-0.5, -0.5, -0.5}, {0, -1, 0}},
-        Triprim_Vertex{{ 0.5, -0.5, -0.5}, {0, -1, 0}},
-        Triprim_Vertex{{ 0.5, -0.5,  0.5}, {0, -1, 0}},
-        Triprim_Vertex{{-0.5, -0.5,  0.5}, {0, -1, 0}},
+        Triprim_Vertex{{-0.5, -0.5, -0.5}, {0, -1, 0}, {1, 1, 0}},
+        Triprim_Vertex{{ 0.5, -0.5, -0.5}, {0, -1, 0}, {0, 2, 0}},
+        Triprim_Vertex{{ 0.5, -0.5,  0.5}, {0, -1, 0}, {0, 1, 1}},
+        Triprim_Vertex{{-0.5, -0.5, -0.5}, {0, -1, 0}, {1, 0, 1}},
+        Triprim_Vertex{{ 0.5, -0.5,  0.5}, {0, -1, 0}, {0, 1, 1}},
+        Triprim_Vertex{{-0.5, -0.5,  0.5}, {0, -1, 0}, {0, 0, 2}},
 
         // Top
-        Triprim_Vertex{{-0.5,  0.5,  0.5}, {0, 1, 0}},
-        Triprim_Vertex{{ 0.5,  0.5,  0.5}, {0, 1, 0}},
-        Triprim_Vertex{{ 0.5,  0.5, -0.5}, {0, 1, 0}},
-        Triprim_Vertex{{-0.5,  0.5, -0.5}, {0, 1, 0}},
+        Triprim_Vertex{{-0.5,  0.5,  0.5}, {0, 1, 0}, {1, 1, 0}},
+        Triprim_Vertex{{ 0.5,  0.5,  0.5}, {0, 1, 0}, {0, 2, 0}},
+        Triprim_Vertex{{ 0.5,  0.5, -0.5}, {0, 1, 0}, {0, 1, 1}},
+        Triprim_Vertex{{-0.5,  0.5,  0.5}, {0, 1, 0}, {1, 0, 1}},
+        Triprim_Vertex{{ 0.5,  0.5, -0.5}, {0, 1, 0}, {0, 1, 1}},
+        Triprim_Vertex{{-0.5,  0.5, -0.5}, {0, 1, 0}, {0, 0, 2}},
 
         // Back
-        Triprim_Vertex{{-0.5, -0.5,  0.5}, {0, 0, 1}},
-        Triprim_Vertex{{ 0.5, -0.5,  0.5}, {0, 0, 1}},
-        Triprim_Vertex{{ 0.5,  0.5,  0.5}, {0, 0, 1}},
-        Triprim_Vertex{{-0.5,  0.5,  0.5}, {0, 0, 1}},
+        Triprim_Vertex{{-0.5, -0.5,  0.5}, {0, 0, 1}, {1, 1, 0}},
+        Triprim_Vertex{{ 0.5, -0.5,  0.5}, {0, 0, 1}, {0, 2, 0}},
+        Triprim_Vertex{{ 0.5,  0.5,  0.5}, {0, 0, 1}, {0, 1, 1}},
+        Triprim_Vertex{{-0.5, -0.5,  0.5}, {0, 0, 1}, {1, 0, 1}},
+        Triprim_Vertex{{ 0.5,  0.5,  0.5}, {0, 0, 1}, {0, 1, 1}},
+        Triprim_Vertex{{-0.5,  0.5,  0.5}, {0, 0, 1}, {0, 0, 2}},
 
         // Front
-        Triprim_Vertex{{ 0.5, -0.5, -0.5}, {0, 0, -1}},
-        Triprim_Vertex{{-0.5, -0.5, -0.5}, {0, 0, -1}},
-        Triprim_Vertex{{-0.5,  0.5, -0.5}, {0, 0, -1}},
-        Triprim_Vertex{{ 0.5,  0.5, -0.5}, {0, 0, -1}},
+        Triprim_Vertex{{ 0.5, -0.5, -0.5}, {0, 0, -1}, {1, 1, 0}},
+        Triprim_Vertex{{-0.5, -0.5, -0.5}, {0, 0, -1}, {0, 2, 0}},
+        Triprim_Vertex{{-0.5,  0.5, -0.5}, {0, 0, -1}, {0, 1, 1}},
+        Triprim_Vertex{{ 0.5, -0.5, -0.5}, {0, 0, -1}, {1, 0, 1}},
+        Triprim_Vertex{{-0.5,  0.5, -0.5}, {0, 0, -1}, {0, 1, 1}},
+        Triprim_Vertex{{ 0.5,  0.5, -0.5}, {0, 0, -1}, {0, 0, 2}},
     )
 
-    for face in 0 ..< 6 {
-        base := index + u32(face) * 4
-
-        append(indices,
-            base + 0, base + 1, base + 2,
-            base + 0, base + 2, base + 3,
-        )
-    }
-
-    range.count = i32(len(indices)) - i32(range.first)
+    range.count = i32(len(vertices)) - i32(range.first)
 
     return range
 }

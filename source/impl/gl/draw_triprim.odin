@@ -7,12 +7,14 @@ import imdd3 "../.."
 TRIPRIM_VS :: GLSL_VERSION + `
     layout(location = 0) in vec3 i_position;
     layout(location = 1) in vec3 i_normal;
-    layout(location = 2) in vec3 i_translation;
-    layout(location = 3) in vec4 i_rotation;
-    layout(location = 4) in vec3 i_scale;
-    layout(location = 5) in uint i_color;
+    layout(location = 2) in vec3 i_barycentric;
+    layout(location = 3) in vec3 i_translation;
+    layout(location = 4) in vec4 i_rotation;
+    layout(location = 5) in vec3 i_scale;
+    layout(location = 6) in uint i_color;
 
     out vec4 v_color;
+    out vec3 v_barycentric;
 
     uniform mat4 u_projection;
     uniform mat4 u_view;
@@ -34,16 +36,24 @@ TRIPRIM_VS :: GLSL_VERSION + `
         vec3 world_position = rotate(i_position * i_scale, i_rotation) + i_translation;
         gl_Position = u_projection * u_view * vec4(world_position, 1.0);
         v_color = unpack_rgba(i_color);
+        v_barycentric = i_barycentric;
     }
 `
 
 TRIPRIM_FS :: GLSL_VERSION + `
+#define EDGE_WIDTH 2
+
 in vec4 v_color;
+in vec3 v_barycentric;
 
 out vec4 o_frag_color;
 
 void main() {
-    o_frag_color = v_color;
+    vec3 d = fwidth(v_barycentric) * EDGE_WIDTH;
+    vec3 f = smoothstep(vec3(0.0), d, v_barycentric);
+    float edge = min(min(f.x, f.y), f.z);
+
+    o_frag_color = mix(vec4(0.0, 0.0, 0.0, v_color.a), v_color, edge);
 }
 `
 
@@ -53,7 +63,6 @@ Triprim_State :: struct {
 
     vao: u32,
     vbo: u32,
-    ibo: u32,
     ubo: u32,
     dibo: u32,
 
@@ -62,7 +71,7 @@ Triprim_State :: struct {
 
 triprim_state: Triprim_State
 
-triprim_init :: proc(vertices: []imdd3.Triprim_Vertex, indices: []u32, ranges: [imdd3.Triprim_Type]imdd3.Triprim_Range) {
+triprim_init :: proc(vertices: []imdd3.Triprim_Vertex, ranges: [imdd3.Triprim_Type]imdd3.Triprim_Range) {
     triprim_state.ranges = ranges
 
     ok: bool
@@ -83,34 +92,28 @@ triprim_init :: proc(vertices: []imdd3.Triprim_Vertex, indices: []u32, ranges: [
     gl.EnableVertexAttribArray(1)
     gl.VertexAttribPointer(1, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Vertex), offset_of(imdd3.Triprim_Vertex, normal))
 
-    gl.GenBuffers(1, &triprim_state.ibo)
-    gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, triprim_state.ibo)
-    gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, size_of(u32) * len(indices), raw_data(indices), gl.STATIC_DRAW)
+    gl.EnableVertexAttribArray(2)
+    gl.VertexAttribPointer(2, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Vertex), offset_of(imdd3.Triprim_Vertex, barycentric))
 
     gl.GenBuffers(1, &triprim_state.ubo)
     gl.BindBuffer(gl.ARRAY_BUFFER, triprim_state.ubo)
     gl.BufferData(gl.ARRAY_BUFFER, size_of(imdd3.Triprim_Instance) * imdd3.TRIPRIM_CAP * len(imdd3.Triprim_Type), nil, gl.DYNAMIC_DRAW)
 
-    attrib_offset: uintptr = 0
-
-    gl.EnableVertexAttribArray(2)
-    gl.VertexAttribPointer(2, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Instance), attrib_offset)
-    gl.VertexAttribDivisor(2, 1)
-    attrib_offset += size_of([3]f32)
-
     gl.EnableVertexAttribArray(3)
-    gl.VertexAttribPointer(3, 4, gl.FLOAT, false, size_of(imdd3.Triprim_Instance), attrib_offset)
+    gl.VertexAttribPointer(3, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, translation))
     gl.VertexAttribDivisor(3, 1)
-    attrib_offset += size_of([4]f32)
 
     gl.EnableVertexAttribArray(4)
-    gl.VertexAttribPointer(4, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Instance), attrib_offset)
+    gl.VertexAttribPointer(4, 4, gl.FLOAT, false, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, rotation))
     gl.VertexAttribDivisor(4, 1)
-    attrib_offset += size_of([3]f32)
 
     gl.EnableVertexAttribArray(5)
-    gl.VertexAttribIPointer(5, 1, gl.UNSIGNED_INT, size_of(imdd3.Triprim_Instance), attrib_offset)
+    gl.VertexAttribPointer(5, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, scale))
     gl.VertexAttribDivisor(5, 1)
+
+    gl.EnableVertexAttribArray(6)
+    gl.VertexAttribIPointer(6, 1, gl.UNSIGNED_INT, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, color))
+    gl.VertexAttribDivisor(6, 1)
 
     gl.GenBuffers(1, &triprim_state.dibo)
 }
@@ -121,7 +124,6 @@ triprim_destroy :: proc() {
 
     gl.DeleteVertexArrays(1, &triprim_state.vao)
     gl.DeleteBuffers(1, &triprim_state.vbo)
-    gl.DeleteBuffers(1, &triprim_state.ibo)
     gl.DeleteBuffers(1, &triprim_state.ubo)
     gl.DeleteBuffers(1, &triprim_state.dibo)
 }
@@ -146,7 +148,7 @@ triprim_render :: proc(data: [imdd3.Triprim_Type][]imdd3.Triprim_Instance) {
 
     region_size :: size_of(imdd3.Triprim_Instance) * imdd3.TRIPRIM_CAP
 
-    commands: [len(imdd3.Triprim_Type)]gl.DrawElementsIndirectCommand
+    commands: [len(imdd3.Triprim_Type)]gl.DrawArraysIndirectCommand
 
     for type in imdd3.Triprim_Type {
         i := int(type)
@@ -159,8 +161,7 @@ triprim_render :: proc(data: [imdd3.Triprim_Type][]imdd3.Triprim_Instance) {
         commands[i] = {
             count = u32(triprim_state.ranges[type].count),
             instanceCount = u32(len(instances)),
-            firstIndex = triprim_state.ranges[type].first,
-            baseVertex = 0,
+            first = triprim_state.ranges[type].first,
             baseInstance = u32(i) * imdd3.TRIPRIM_CAP,
         }
     }
@@ -170,5 +171,5 @@ triprim_render :: proc(data: [imdd3.Triprim_Type][]imdd3.Triprim_Instance) {
 
     gl.Enable(gl.DEPTH_TEST); defer gl.Disable(gl.DEPTH_TEST)
     gl.DepthFunc(gl.LEQUAL); defer gl.DepthFunc(gl.LESS)
-    gl.MultiDrawElementsIndirect(gl.TRIANGLES, gl.UNSIGNED_INT, nil, i32(len(imdd3.Triprim_Type)), 0)
+    gl.MultiDrawArraysIndirect(gl.TRIANGLES, nil, i32(len(imdd3.Triprim_Type)), 0)
 }
