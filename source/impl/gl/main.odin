@@ -78,9 +78,9 @@ interface :: proc() -> imdd3.Renderer {
         shape_destroy = shape_destroy,
         shape_render = shape_render,
 
-        primitive_renderer_init = primitive_renderer_init,
-        primitive_renderer_destroy = primitive_renderer_destroy,
-        primitive_renderer_render = primitive_renderer_render,
+        triprim_init = triprim_init,
+        triprim_destroy = triprim_destroy,
+        triprim_render = triprim_render,
 
         line_render = line_render,
         triangle_render = triangle_render,

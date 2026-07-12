@@ -1,76 +1,76 @@
 package imdd3
 
-PRIMITIVE_CAP :: 256
+TRIPRIM_CAP :: 256
 
-Primitive_Vertex :: struct {
+Triprim_Vertex :: struct {
     position: [3]f32,
     normal: [3]f32,
 }
 
-Primitive_Type :: enum {
+Triprim_Type :: enum {
     Box,
 }
 
-Primitive_Range :: struct {
+Triprim_Range :: struct {
     first: u32,
     count: i32,
 }
 
-Primitive_Instance :: struct {
+Triprim_Instance :: struct {
     translation: [3]f32,
     rotation: quaternion128,
     scale: [3]f32,
     color: u32,
 }
 
-Primitive_Renderer :: struct {
-    instances: [Primitive_Type][dynamic]Primitive_Instance,
-    counts: [Primitive_Type]i32,
+Triprim_State :: struct {
+    instances: [Triprim_Type][dynamic]Triprim_Instance,
+    counts: [Triprim_Type]i32,
 }
 
-primitive_renderer: Primitive_Renderer
+triprim_state: Triprim_State
 
-primitive_generate_box :: proc(vertices: ^[dynamic]Primitive_Vertex, indices: ^[dynamic]u32) -> (range: Primitive_Range) {
+triprim_generate_box :: proc(vertices: ^[dynamic]Triprim_Vertex, indices: ^[dynamic]u32) -> (range: Triprim_Range) {
     range.first = u32(len(indices))
 
     index := u32(len(vertices))
 
     append(vertices,
         // Left
-        Primitive_Vertex{{-0.5, -0.5, -0.5}, {-1, 0, 0}},
-        Primitive_Vertex{{-0.5, -0.5,  0.5}, {-1, 0, 0}},
-        Primitive_Vertex{{-0.5,  0.5,  0.5}, {-1, 0, 0}},
-        Primitive_Vertex{{-0.5,  0.5, -0.5}, {-1, 0, 0}},
+        Triprim_Vertex{{-0.5, -0.5, -0.5}, {-1, 0, 0}},
+        Triprim_Vertex{{-0.5, -0.5,  0.5}, {-1, 0, 0}},
+        Triprim_Vertex{{-0.5,  0.5,  0.5}, {-1, 0, 0}},
+        Triprim_Vertex{{-0.5,  0.5, -0.5}, {-1, 0, 0}},
 
         // Right
-        Primitive_Vertex{{ 0.5, -0.5,  0.5}, {1, 0, 0}},
-        Primitive_Vertex{{ 0.5, -0.5, -0.5}, {1, 0, 0}},
-        Primitive_Vertex{{ 0.5,  0.5, -0.5}, {1, 0, 0}},
-        Primitive_Vertex{{ 0.5,  0.5,  0.5}, {1, 0, 0}},
+        Triprim_Vertex{{ 0.5, -0.5,  0.5}, {1, 0, 0}},
+        Triprim_Vertex{{ 0.5, -0.5, -0.5}, {1, 0, 0}},
+        Triprim_Vertex{{ 0.5,  0.5, -0.5}, {1, 0, 0}},
+        Triprim_Vertex{{ 0.5,  0.5,  0.5}, {1, 0, 0}},
 
         // Bottom
-        Primitive_Vertex{{-0.5, -0.5, -0.5}, {0, -1, 0}},
-        Primitive_Vertex{{ 0.5, -0.5, -0.5}, {0, -1, 0}},
-        Primitive_Vertex{{ 0.5, -0.5,  0.5}, {0, -1, 0}},
-        Primitive_Vertex{{-0.5, -0.5,  0.5}, {0, -1, 0}},
+        Triprim_Vertex{{-0.5, -0.5, -0.5}, {0, -1, 0}},
+        Triprim_Vertex{{ 0.5, -0.5, -0.5}, {0, -1, 0}},
+        Triprim_Vertex{{ 0.5, -0.5,  0.5}, {0, -1, 0}},
+        Triprim_Vertex{{-0.5, -0.5,  0.5}, {0, -1, 0}},
 
         // Top
-        Primitive_Vertex{{-0.5,  0.5,  0.5}, {0, 1, 0}},
-        Primitive_Vertex{{ 0.5,  0.5,  0.5}, {0, 1, 0}},
-        Primitive_Vertex{{ 0.5,  0.5, -0.5}, {0, 1, 0}},
-        Primitive_Vertex{{-0.5,  0.5, -0.5}, {0, 1, 0}},
+        Triprim_Vertex{{-0.5,  0.5,  0.5}, {0, 1, 0}},
+        Triprim_Vertex{{ 0.5,  0.5,  0.5}, {0, 1, 0}},
+        Triprim_Vertex{{ 0.5,  0.5, -0.5}, {0, 1, 0}},
+        Triprim_Vertex{{-0.5,  0.5, -0.5}, {0, 1, 0}},
 
         // Back
-        Primitive_Vertex{{-0.5, -0.5,  0.5}, {0, 0, 1}},
-        Primitive_Vertex{{ 0.5, -0.5,  0.5}, {0, 0, 1}},
-        Primitive_Vertex{{ 0.5,  0.5,  0.5}, {0, 0, 1}},
-        Primitive_Vertex{{-0.5,  0.5,  0.5}, {0, 0, 1}},
+        Triprim_Vertex{{-0.5, -0.5,  0.5}, {0, 0, 1}},
+        Triprim_Vertex{{ 0.5, -0.5,  0.5}, {0, 0, 1}},
+        Triprim_Vertex{{ 0.5,  0.5,  0.5}, {0, 0, 1}},
+        Triprim_Vertex{{-0.5,  0.5,  0.5}, {0, 0, 1}},
 
         // Front
-        Primitive_Vertex{{ 0.5, -0.5, -0.5}, {0, 0, -1}},
-        Primitive_Vertex{{-0.5, -0.5, -0.5}, {0, 0, -1}},
-        Primitive_Vertex{{-0.5,  0.5, -0.5}, {0, 0, -1}},
-        Primitive_Vertex{{ 0.5,  0.5, -0.5}, {0, 0, -1}},
+        Triprim_Vertex{{ 0.5, -0.5, -0.5}, {0, 0, -1}},
+        Triprim_Vertex{{-0.5, -0.5, -0.5}, {0, 0, -1}},
+        Triprim_Vertex{{-0.5,  0.5, -0.5}, {0, 0, -1}},
+        Triprim_Vertex{{ 0.5,  0.5, -0.5}, {0, 0, -1}},
     )
 
     for face in 0 ..< 6 {
@@ -87,51 +87,51 @@ primitive_generate_box :: proc(vertices: ^[dynamic]Primitive_Vertex, indices: ^[
     return range
 }
 
-primitive_renderer_init :: proc() {
-    vertices: [dynamic]Primitive_Vertex; defer delete(vertices)
+triprim_init :: proc() {
+    vertices: [dynamic]Triprim_Vertex; defer delete(vertices)
     indices: [dynamic]u32; defer delete(indices)
 
-    ranges: [Primitive_Type]Primitive_Range
-    ranges[.Box] = primitive_generate_box(&vertices, &indices)
+    ranges: [Triprim_Type]Triprim_Range
+    ranges[.Box] = triprim_generate_box(&vertices, &indices)
 
-    for type in Primitive_Type {
-        primitive_renderer.instances[type] = make([dynamic]Primitive_Instance, PRIMITIVE_CAP, PRIMITIVE_CAP)
+    for type in Triprim_Type {
+        triprim_state.instances[type] = make([dynamic]Triprim_Instance, TRIPRIM_CAP, TRIPRIM_CAP)
     }
 
-    state.renderer.primitive_renderer_init(vertices[:], indices[:], ranges)
+    state.renderer.triprim_init(vertices[:], indices[:], ranges)
 }
 
-primitive_renderer_destroy :: proc() {
-    for type in Primitive_Type {
-        delete(primitive_renderer.instances[type])
+triprim_destroy :: proc() {
+    for type in Triprim_Type {
+        delete(triprim_state.instances[type])
     }
 
-    state.renderer.primitive_renderer_destroy()
+    state.renderer.triprim_destroy()
 }
 
-primitive_renderer_render :: proc(viewport: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
-    data: [Primitive_Type][]Primitive_Instance
+triprim_render :: proc(viewport: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
+    data: [Triprim_Type][]Triprim_Instance
 
-    for type in Primitive_Type {
-        data[type] = primitive_renderer.instances[type][:primitive_renderer.counts[type]]
+    for type in Triprim_Type {
+        data[type] = triprim_state.instances[type][:triprim_state.counts[type]]
     }
 
-    state.renderer.primitive_renderer_render(data, viewport, projection, view)
+    state.renderer.triprim_render(data, viewport, projection, view)
 
-    for type in Primitive_Type {
-        primitive_renderer.counts[type] = 0
+    for type in Triprim_Type {
+        triprim_state.counts[type] = 0
     }
 }
 
-primitive_push :: proc(type: Primitive_Type) -> ^Primitive_Instance {
-    instance := &primitive_renderer.instances[type][primitive_renderer.counts[type]]
-    primitive_renderer.counts[type] = (primitive_renderer.counts[type] + 1) % PRIMITIVE_CAP
+triprim_push :: proc(type: Triprim_Type) -> ^Triprim_Instance {
+    instance := &triprim_state.instances[type][triprim_state.counts[type]]
+    triprim_state.counts[type] = (triprim_state.counts[type] + 1) % TRIPRIM_CAP
 
     return instance
 }
 
-primitive_aabb :: proc(position: [3]f32, size: [3]f32, color: u32) {
-    instance := primitive_push(.Box)
+draw_triprim_aabb :: proc(position: [3]f32, size: [3]f32, color: u32) {
+    instance := triprim_push(.Box)
     instance.translation = position
     instance.rotation = {}
     instance.scale = size

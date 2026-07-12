@@ -30,8 +30,8 @@ init :: proc(renderer: Renderer) {
     // Shape
     init_shape_rdr()
 
-    // Primitive
-    primitive_renderer_init()
+    // Triprim
+    triprim_init()
 }
 
 destroy :: proc() {
@@ -44,8 +44,8 @@ destroy :: proc() {
     // Shape
     free_shape_rdr()
 
-    // Primitive
-    primitive_renderer_destroy()
+    // Triprim
+    triprim_destroy()
 }
 
 render :: proc(projection: matrix[4, 4]f32, view: matrix[4, 4]f32, resolution: [2]f32) {
@@ -53,7 +53,6 @@ render :: proc(projection: matrix[4, 4]f32, view: matrix[4, 4]f32, resolution: [
     triangle_render(projection, view)
     curve_render(projection, view)
 
-    // Old
-    // render_shape_rdr(resolution, projection, view)
-    // primitive_renderer_render(resolution, projection, view)
+    render_shape_rdr(resolution, projection, view)
+    triprim_render(resolution, projection, view)
 }

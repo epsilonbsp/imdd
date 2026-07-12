@@ -17,10 +17,10 @@ Renderer :: struct {
     shape_destroy: proc(),
     shape_render: proc(data: [Shape_Type][]Debug_Shape, resolution: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
 
-    // primitive
-    primitive_renderer_init: proc(vertices: []Primitive_Vertex, indices: []u32, offset: [Primitive_Type]Primitive_Range),
-    primitive_renderer_destroy: proc(),
-    primitive_renderer_render: proc(data: [Primitive_Type][]Primitive_Instance, viewport: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
+    // triprim
+    triprim_init: proc(vertices: []Triprim_Vertex, indices: []u32, offset: [Triprim_Type]Triprim_Range),
+    triprim_destroy: proc(),
+    triprim_render: proc(data: [Triprim_Type][]Triprim_Instance, viewport: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
 
     line_render: proc(vertices: []Line_Vertex, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
     triangle_render: proc(vertices: []Triangle_Vertex, indices: []u32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
