@@ -38,6 +38,7 @@ line_render :: proc() {
     clear(&line_state.vertices)
 }
 
+// API
 draw_line :: proc(point0: [3]f32, point1: [3]f32, width: f32, color: u32, is_rounded := false) {
     radius := width * 0.5
 

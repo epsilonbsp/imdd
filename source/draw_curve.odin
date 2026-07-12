@@ -31,6 +31,7 @@ curve_render :: proc() {
     clear(&curve_state.vertices)
 }
 
+// API
 draw_curve :: proc(point0: [3]f32, point1: [3]f32, point2: [3]f32, width: f32, color: u32) {
     radius := width * 0.5
 

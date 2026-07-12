@@ -250,6 +250,7 @@ lineprim_push :: proc(type: Lineprim_Type) -> ^Lineprim_Instance {
     return instance
 }
 
+// API
 draw_lineprim_aabb :: proc(position: glm.vec3, size: glm.vec3, color: u32) {
     instance := lineprim_push(.Box)
     instance.translation = position

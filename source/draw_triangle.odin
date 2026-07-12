@@ -38,6 +38,7 @@ triangle_render :: proc() {
     clear(&triangle_state.indices)
 }
 
+// API
 point :: proc(pos: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, color: u32) {
     bitangent := glm.normalize(glm.cross(normal, tangent))
 
@@ -141,12 +142,14 @@ triangle :: proc(a: [3]f32, b: [3]f32, c: [3]f32, color: u32) {
     )
 }
 
-rect :: proc(pos: [3]f32, size: [2]f32, color: u32) {
+rect :: proc(pos: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, color: u32) {
     hs := size / 2
-    a := pos + {-hs.x, -hs.y, pos.z}
-    b := pos + {hs.x, -hs.y, pos.z}
-    c := pos + {hs.x, hs.y, pos.z}
-    d := pos + {-hs.x, hs.y, pos.z}
+    bitangent := glm.normalize(glm.cross(normal, tangent))
+
+    a := pos - tangent * hs.x - bitangent * hs.y
+    b := pos + tangent * hs.x - bitangent * hs.y
+    c := pos + tangent * hs.x + bitangent * hs.y
+    d := pos - tangent * hs.x + bitangent * hs.y
 
     l := u32(len(triangle_state.vertices))
 
@@ -165,92 +168,98 @@ rect :: proc(pos: [3]f32, size: [2]f32, color: u32) {
     )
 }
 
-// rect_rounded :: proc(pos: [2]f32, size: [2]f32, color: u32, radius: f32 = 0) {
-//     hs := size / 2
-//     a := pos + {-hs.x, -hs.y}
-//     b := pos + {hs.x, -hs.y}
-//     c := pos + {hs.x, hs.y}
-//     d := pos + {-hs.x, hs.y}
+rect_rounded :: proc(pos: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, color: u32, radius: f32 = 0) {
+    hs := size / 2
+    bitangent := glm.normalize(glm.cross(normal, tangent))
 
-//     l := u32(len(triangle_state.vertices))
+    a := pos - tangent * hs.x - bitangent * hs.y
+    b := pos + tangent * hs.x - bitangent * hs.y
+    c := pos + tangent * hs.x + bitangent * hs.y
+    d := pos - tangent * hs.x + bitangent * hs.y
 
-//     append(
-//         &triangle_state.vertices,
-//         Triangle_Vertex{1, a, {}, 0, {color, 0}, {hs.x, hs.y, radius, 0}},
-//         Triangle_Vertex{2, b, {}, 0, {color, 0}, {hs.x, hs.y, radius, 0}},
-//         Triangle_Vertex{3, c, {}, 0, {color, 0}, {hs.x, hs.y, radius, 0}},
-//         Triangle_Vertex{4, d, {}, 0, {color, 0}, {hs.x, hs.y, radius, 0}}
-//     )
+    l := u32(len(triangle_state.vertices))
 
-//     append(
-//         &triangle_state.indices,
-//         l, l + 1, l + 2,
-//         l, l + 2, l + 3
-//     )
-// }
+    append(
+        &triangle_state.vertices,
+        Triangle_Vertex{1, a, {}, 0, {color, 0}, {hs.x, hs.y, radius, 0}},
+        Triangle_Vertex{2, b, {}, 0, {color, 0}, {hs.x, hs.y, radius, 0}},
+        Triangle_Vertex{3, c, {}, 0, {color, 0}, {hs.x, hs.y, radius, 0}},
+        Triangle_Vertex{4, d, {}, 0, {color, 0}, {hs.x, hs.y, radius, 0}}
+    )
 
-// circle :: proc(pos: [2]f32, radius: f32, color: u32) {
-//     a := pos + {-radius, -radius}
-//     b := pos + {radius, -radius}
-//     c := pos + {radius, radius}
-//     d := pos + {-radius, radius}
+    append(
+        &triangle_state.indices,
+        l, l + 1, l + 2,
+        l, l + 2, l + 3
+    )
+}
 
-//     l := u32(len(triangle_state.vertices))
+circle :: proc(pos: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, color: u32) {
+    bitangent := glm.normalize(glm.cross(normal, tangent))
 
-//     append(
-//         &triangle_state.vertices,
-//         Triangle_Vertex{1, a, {}, 0, {color, 0}, {radius, radius, radius, 0}},
-//         Triangle_Vertex{2, b, {}, 0, {color, 0}, {radius, radius, radius, 0}},
-//         Triangle_Vertex{3, c, {}, 0, {color, 0}, {radius, radius, radius, 0}},
-//         Triangle_Vertex{4, d, {}, 0, {color, 0}, {radius, radius, radius, 0}}
-//     )
+    a := pos - tangent * radius - bitangent * radius
+    b := pos + tangent * radius - bitangent * radius
+    c := pos + tangent * radius + bitangent * radius
+    d := pos - tangent * radius + bitangent * radius
 
-//     append(
-//         &triangle_state.indices,
-//         l, l + 1, l + 2,
-//         l, l + 2, l + 3
-//     )
-// }
+    l := u32(len(triangle_state.vertices))
 
-// box :: proc(pos: [2]f32, size: [2]f32, fill_color: u32, radius: f32 = 0, stroke_width: f32 = 0, stroke_color: u32) {
-//     hs := size / 2
-//     a := pos + {-hs.x, -hs.y}
-//     b := pos + {hs.x, -hs.y}
-//     c := pos + {hs.x, hs.y}
-//     d := pos + {-hs.x, hs.y}
+    append(
+        &triangle_state.vertices,
+        Triangle_Vertex{1, a, {}, 0, {color, 0}, {radius, radius, radius, 0}},
+        Triangle_Vertex{2, b, {}, 0, {color, 0}, {radius, radius, radius, 0}},
+        Triangle_Vertex{3, c, {}, 0, {color, 0}, {radius, radius, radius, 0}},
+        Triangle_Vertex{4, d, {}, 0, {color, 0}, {radius, radius, radius, 0}}
+    )
 
-//     l := u32(len(triangle_state.vertices))
+    append(
+        &triangle_state.indices,
+        l, l + 1, l + 2,
+        l, l + 2, l + 3
+    )
+}
 
-//     append(
-//         &triangle_state.vertices,
-//         Triangle_Vertex{1, a, {}, 0, {fill_color, stroke_color}, {hs.x, hs.y, radius, stroke_width}},
-//         Triangle_Vertex{2, b, {}, 0, {fill_color, stroke_color}, {hs.x, hs.y, radius, stroke_width}},
-//         Triangle_Vertex{3, c, {}, 0, {fill_color, stroke_color}, {hs.x, hs.y, radius, stroke_width}},
-//         Triangle_Vertex{4, d, {}, 0, {fill_color, stroke_color}, {hs.x, hs.y, radius, stroke_width}}
-//     )
+box :: proc(pos: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, fill_color: u32, radius: f32 = 0, stroke_width: f32 = 0, stroke_color: u32) {
+    hs := size / 2
+    bitangent := glm.normalize(glm.cross(normal, tangent))
 
-//     append(
-//         &triangle_state.indices,
-//         l, l + 1, l + 2,
-//         l, l + 2, l + 3
-//     )
-// }
+    a := pos - tangent * hs.x - bitangent * hs.y
+    b := pos + tangent * hs.x - bitangent * hs.y
+    c := pos + tangent * hs.x + bitangent * hs.y
+    d := pos - tangent * hs.x + bitangent * hs.y
 
-// box_circle :: proc(pos: [2]f32, radius: f32, fill_color: u32, stroke_width: f32 = 0, stroke_color: u32) {
-//     box(pos, {radius * 2, radius * 2}, fill_color, radius, stroke_width, stroke_color)
-// }
+    l := u32(len(triangle_state.vertices))
 
-// rect_outline :: proc(pos: [2]f32, size: [2]f32, stroke_width: f32 = 0, stroke_color: u32) {
-//     box(pos, size, 0, 0, stroke_width, stroke_color)
-// }
+    append(
+        &triangle_state.vertices,
+        Triangle_Vertex{1, a, {}, 0, {fill_color, stroke_color}, {hs.x, hs.y, radius, stroke_width}},
+        Triangle_Vertex{2, b, {}, 0, {fill_color, stroke_color}, {hs.x, hs.y, radius, stroke_width}},
+        Triangle_Vertex{3, c, {}, 0, {fill_color, stroke_color}, {hs.x, hs.y, radius, stroke_width}},
+        Triangle_Vertex{4, d, {}, 0, {fill_color, stroke_color}, {hs.x, hs.y, radius, stroke_width}}
+    )
 
-// rect_rounded_outline :: proc(pos: [2]f32, size: [2]f32, radius: f32 = 0, stroke_width: f32 = 0, stroke_color: u32) {
-//     box(pos, size, 0, radius, stroke_width, stroke_color)
-// }
+    append(
+        &triangle_state.indices,
+        l, l + 1, l + 2,
+        l, l + 2, l + 3
+    )
+}
 
-// circle_outline :: proc(pos: [2]f32, radius: f32, stroke_width: f32 = 0, stroke_color: u32) {
-//     box(pos, {radius * 2, radius * 2}, 0, radius, stroke_width, stroke_color)
-// }
+box_circle :: proc(pos: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, fill_color: u32, stroke_width: f32 = 0, stroke_color: u32) {
+    box(pos, normal, tangent, {radius * 2, radius * 2}, fill_color, radius, stroke_width, stroke_color)
+}
+
+rect_outline :: proc(pos: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, stroke_width: f32 = 0, stroke_color: u32) {
+    box(pos, normal, tangent, size, 0, 0, stroke_width, stroke_color)
+}
+
+rect_rounded_outline :: proc(pos: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, radius: f32 = 0, stroke_width: f32 = 0, stroke_color: u32) {
+    box(pos, normal, tangent, size, 0, radius, stroke_width, stroke_color)
+}
+
+circle_outline :: proc(pos: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, stroke_width: f32 = 0, stroke_color: u32) {
+    box(pos, normal, tangent, {radius * 2, radius * 2}, 0, radius, stroke_width, stroke_color)
+}
 
 text :: proc(pos: [3]f32, normal: [3]f32, tangent: [3]f32, text: string, font_size: f32, line_height: f32, color: u32, clip_max_x: f32 = max(f32)) {
     font := &renderer.fonts[renderer.font_weight]
@@ -306,7 +315,7 @@ text :: proc(pos: [3]f32, normal: [3]f32, tangent: [3]f32, text: string, font_si
     }
 }
 
-icon :: proc(pos: [3]f32, size: f32, key: string, color: u32) {
+icon :: proc(pos: [3]f32, normal: [3]f32, tangent: [3]f32, size: f32, key: string, color: u32) {
     ic, ok := renderer.icons.icons[key]
 
     if !ok {
@@ -338,7 +347,7 @@ icon :: proc(pos: [3]f32, size: f32, key: string, color: u32) {
     )
 }
 
-image :: proc(pos: [3]f32, size: [2]f32, sprite: Sprite) {
+image :: proc(pos: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, sprite: Sprite) {
     hs := size / 2
     a := pos + {-hs.x, -hs.y, pos.z}
     b := pos + {hs.x, -hs.y, pos.z}
@@ -362,7 +371,7 @@ image :: proc(pos: [3]f32, size: [2]f32, sprite: Sprite) {
     )
 }
 
-image_rounded :: proc(pos: [3]f32, size: [2]f32, sprite: Sprite, radius: f32 = 0) {
+image_rounded :: proc(pos: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, sprite: Sprite, radius: f32 = 0) {
     hs := size / 2
     a := pos + {-hs.x, -hs.y, pos.z}
     b := pos + {hs.x, -hs.y, pos.z}
