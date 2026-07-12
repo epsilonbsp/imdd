@@ -1,7 +1,5 @@
 package imdd3
 
-import glm "core:math/linalg/glsl"
-
 Renderer_Interface :: struct {
     init: proc(),
     destroy: proc(),
@@ -16,7 +14,7 @@ Renderer_Interface :: struct {
     triangle_render: proc(vertices: []Triangle_Vertex, indices: []u32),
     curve_render: proc(vertices: []Curve_Vertex),
 
-    lineprim_init: proc(vertices: []glm.vec3, indices: []u32, ranges: [Lineprim_Type]Lineprim_Range),
+    lineprim_init: proc(vertices: []Lineprim_Vertex, indices: []u32, ranges: [Lineprim_Type]Lineprim_Range),
     lineprim_render: proc(data: [Lineprim_Type][]Lineprim_Instance),
 
     triprim_init: proc(vertices: []Triprim_Vertex, indices: []u32, ranges: [Triprim_Type]Triprim_Range),

@@ -1,16 +1,17 @@
 package imdd3_impl_gl
 
-import glm "core:math/linalg/glsl"
 import gl "vendor:OpenGL"
 
 import imdd3 "../.."
 
 LINEPRIM_VS :: GLSL_VERSION + `
-    layout(location = 0) in vec3 i_position;
-    layout(location = 1) in vec3 i_translation;
-    layout(location = 2) in vec4 i_rotation;
-    layout(location = 3) in vec3 i_scale;
-    layout(location = 4) in uint i_color;
+    layout(location = 0) in vec3 i_anchor;
+    layout(location = 1) in vec3 i_direction;
+    layout(location = 2) in vec3 i_translation;
+    layout(location = 3) in vec4 i_rotation;
+    layout(location = 4) in vec3 i_scale;
+    layout(location = 5) in float i_radius;
+    layout(location = 6) in uint i_color;
 
     out Geometry_Data {
         vec4 color;
@@ -33,7 +34,8 @@ LINEPRIM_VS :: GLSL_VERSION + `
     }
 
     void main() {
-        gl_Position = vec4(rotate(i_position * i_scale, i_rotation) + i_translation, 1.0);
+        vec3 local_pos = i_anchor * i_scale + i_direction * i_radius;
+        gl_Position = vec4(rotate(local_pos, i_rotation) + i_translation, 1.0);
         v_gd.color = unpack_rgba(i_color);
     }
 `
@@ -161,7 +163,7 @@ Lineprim_State :: struct {
 
 lineprim_state: Lineprim_State
 
-lineprim_init :: proc(vertices: []glm.vec3, indices: []u32, ranges: [imdd3.Lineprim_Type]imdd3.Lineprim_Range) {
+lineprim_init :: proc(vertices: []imdd3.Lineprim_Vertex, indices: []u32, ranges: [imdd3.Lineprim_Type]imdd3.Lineprim_Range) {
     lineprim_state.ranges = ranges
 
     ok: bool
@@ -178,10 +180,13 @@ lineprim_init :: proc(vertices: []glm.vec3, indices: []u32, ranges: [imdd3.Linep
 
     gl.GenBuffers(1, &lineprim_state.vbo)
     gl.BindBuffer(gl.ARRAY_BUFFER, lineprim_state.vbo)
-    gl.BufferData(gl.ARRAY_BUFFER, size_of(glm.vec3) * len(vertices), raw_data(vertices), gl.DYNAMIC_DRAW)
+    gl.BufferData(gl.ARRAY_BUFFER, size_of(imdd3.Lineprim_Vertex) * len(vertices), raw_data(vertices), gl.DYNAMIC_DRAW)
 
     gl.EnableVertexAttribArray(0)
-    gl.VertexAttribPointer(0, 3, gl.FLOAT, false, size_of(glm.vec3), 0)
+    gl.VertexAttribPointer(0, 3, gl.FLOAT, false, size_of(imdd3.Lineprim_Vertex), offset_of(imdd3.Lineprim_Vertex, anchor))
+
+    gl.EnableVertexAttribArray(1)
+    gl.VertexAttribPointer(1, 3, gl.FLOAT, false, size_of(imdd3.Lineprim_Vertex), offset_of(imdd3.Lineprim_Vertex, direction))
 
     gl.GenBuffers(1, &lineprim_state.ibo)
     gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, lineprim_state.ibo)
@@ -191,26 +196,25 @@ lineprim_init :: proc(vertices: []glm.vec3, indices: []u32, ranges: [imdd3.Linep
     gl.BindBuffer(gl.ARRAY_BUFFER, lineprim_state.ubo)
     gl.BufferData(gl.ARRAY_BUFFER, size_of(imdd3.Lineprim_Instance) * imdd3.LINEPRIM_CAP * len(imdd3.Lineprim_Type), nil, gl.DYNAMIC_DRAW)
 
-    attrib_offset: uintptr = 0
-
-    gl.EnableVertexAttribArray(1)
-    gl.VertexAttribPointer(1, 3, gl.FLOAT, false, size_of(imdd3.Lineprim_Instance), attrib_offset)
-    gl.VertexAttribDivisor(1, 1)
-    attrib_offset += size_of(glm.vec3)
-
     gl.EnableVertexAttribArray(2)
-    gl.VertexAttribPointer(2, 4, gl.FLOAT, false, size_of(imdd3.Lineprim_Instance), attrib_offset)
+    gl.VertexAttribPointer(2, 3, gl.FLOAT, false, size_of(imdd3.Lineprim_Instance), offset_of(imdd3.Lineprim_Instance, translation))
     gl.VertexAttribDivisor(2, 1)
-    attrib_offset += size_of(glm.vec4)
 
     gl.EnableVertexAttribArray(3)
-    gl.VertexAttribPointer(3, 3, gl.FLOAT, false, size_of(imdd3.Lineprim_Instance), attrib_offset)
+    gl.VertexAttribPointer(3, 4, gl.FLOAT, false, size_of(imdd3.Lineprim_Instance), offset_of(imdd3.Lineprim_Instance, rotation))
     gl.VertexAttribDivisor(3, 1)
-    attrib_offset += size_of(glm.vec3)
 
     gl.EnableVertexAttribArray(4)
-    gl.VertexAttribIPointer(4, 1, gl.UNSIGNED_INT, size_of(imdd3.Lineprim_Instance), attrib_offset)
+    gl.VertexAttribPointer(4, 3, gl.FLOAT, false, size_of(imdd3.Lineprim_Instance), offset_of(imdd3.Lineprim_Instance, scale))
     gl.VertexAttribDivisor(4, 1)
+
+    gl.EnableVertexAttribArray(5)
+    gl.VertexAttribPointer(5, 1, gl.FLOAT, false, size_of(imdd3.Lineprim_Instance), offset_of(imdd3.Lineprim_Instance, radius))
+    gl.VertexAttribDivisor(5, 1)
+
+    gl.EnableVertexAttribArray(6)
+    gl.VertexAttribIPointer(6, 1, gl.UNSIGNED_INT, size_of(imdd3.Lineprim_Instance), offset_of(imdd3.Lineprim_Instance, color))
+    gl.VertexAttribDivisor(6, 1)
 
     gl.GenBuffers(1, &lineprim_state.dibo)
 }

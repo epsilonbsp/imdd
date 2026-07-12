@@ -9,12 +9,19 @@ Lineprim_Type :: enum {
     Cylinder,
     Cone,
     Sphere,
+    Capsule,
+}
+
+Lineprim_Vertex :: struct {
+    anchor: glm.vec3,
+    direction: glm.vec3,
 }
 
 Lineprim_Instance :: struct {
     translation: glm.vec3,
     rotation: glm.quat,
     scale: glm.vec3,
+    radius: f32,
     color: u32,
 }
 
@@ -31,14 +38,15 @@ Lineprim_State :: struct {
 lineprim_state: Lineprim_State
 
 lineprim_init :: proc() {
-    vertices: [dynamic]glm.vec3; defer delete(vertices)
+    vertices: [dynamic]Lineprim_Vertex; defer delete(vertices)
     indices: [dynamic]u32; defer delete(indices)
 
     ranges: [Lineprim_Type]Lineprim_Range
     ranges[.Box] = lineprim_generate_box(&vertices, &indices, {1, 1, 1})
     ranges[.Cylinder] = lineprim_generate_cylinder(&vertices, &indices, {1, 1}, 16)
     ranges[.Cone] = lineprim_generate_cone(&vertices, &indices, {1, 1}, 16)
-    ranges[.Sphere] = lineprim_generate_sphere(&vertices, &indices, 1, 16)
+    ranges[.Sphere] = lineprim_generate_sphere(&vertices, &indices, 16)
+    ranges[.Capsule] = lineprim_generate_capsule(&vertices, &indices, 16)
 
     for type in Lineprim_Type {
         lineprim_state.instances[type] = make([dynamic]Lineprim_Instance, LINEPRIM_CAP, LINEPRIM_CAP)
@@ -67,20 +75,20 @@ lineprim_render :: proc() {
     }
 }
 
-lineprim_generate_box :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u32, size: glm.vec3) -> (range: Lineprim_Range) {
+lineprim_generate_box :: proc(vertices: ^[dynamic]Lineprim_Vertex, indices: ^[dynamic]u32, size: glm.vec3) -> (range: Lineprim_Range) {
     range.first = cast(u32) len(indices)
 
     index := u32(len(vertices))
 
     append(vertices,
-        glm.vec3{-size.x, -size.y,  size.z},
-        glm.vec3{ size.x, -size.y,  size.z},
-        glm.vec3{ size.x,  size.y,  size.z},
-        glm.vec3{-size.x,  size.y,  size.z},
-        glm.vec3{ size.x, -size.y, -size.z},
-        glm.vec3{-size.x, -size.y, -size.z},
-        glm.vec3{-size.x,  size.y, -size.z},
-        glm.vec3{ size.x,  size.y, -size.z},
+        Lineprim_Vertex{{-size.x, -size.y,  size.z}, {}},
+        Lineprim_Vertex{{ size.x, -size.y,  size.z}, {}},
+        Lineprim_Vertex{{ size.x,  size.y,  size.z}, {}},
+        Lineprim_Vertex{{-size.x,  size.y,  size.z}, {}},
+        Lineprim_Vertex{{ size.x, -size.y, -size.z}, {}},
+        Lineprim_Vertex{{-size.x, -size.y, -size.z}, {}},
+        Lineprim_Vertex{{-size.x,  size.y, -size.z}, {}},
+        Lineprim_Vertex{{ size.x,  size.y, -size.z}, {}},
     )
 
     append(indices,
@@ -106,7 +114,7 @@ lineprim_generate_box :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u
     return range
 }
 
-lineprim_generate_cylinder :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u32, size: glm.vec2, segments: i32) -> (range: Lineprim_Range) {
+lineprim_generate_cylinder :: proc(vertices: ^[dynamic]Lineprim_Vertex, indices: ^[dynamic]u32, size: glm.vec2, segments: i32) -> (range: Lineprim_Range) {
     range.first = cast(u32) len(indices)
 
     angle := glm.PI * 2 / f32(segments)
@@ -115,13 +123,13 @@ lineprim_generate_cylinder :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dyna
     for i in 0 ..< segments {
         x, z: f32 = glm.cos(angle * f32(i)), glm.sin(angle * f32(i))
 
-        append(vertices, glm.vec3{x * size.x, -size.y, z * size.x})
+        append(vertices, Lineprim_Vertex{{x * size.x, -size.y, z * size.x}, {}})
     }
 
     for i in 0 ..< segments {
         x, z: f32 = glm.cos(angle * f32(i)), glm.sin(angle * f32(i))
 
-        append(vertices, glm.vec3{x * size.x, size.y, z * size.x})
+        append(vertices, Lineprim_Vertex{{x * size.x, size.y, z * size.x}, {}})
     }
 
     for i: u32 = 0; i < u32(segments); i += 1 {
@@ -145,7 +153,7 @@ lineprim_generate_cylinder :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dyna
     return range
 }
 
-lineprim_generate_cone :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u32, size: glm.vec2, segments: i32) -> (range: Lineprim_Range) {
+lineprim_generate_cone :: proc(vertices: ^[dynamic]Lineprim_Vertex, indices: ^[dynamic]u32, size: glm.vec2, segments: i32) -> (range: Lineprim_Range) {
     range.first = cast(u32) len(indices)
 
     angle := glm.PI * 2 / f32(segments)
@@ -154,10 +162,10 @@ lineprim_generate_cone :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]
     for i in 0 ..< segments {
         x, z: f32 = glm.cos(angle * f32(i)), glm.sin(angle * f32(i))
 
-        append(vertices, glm.vec3{x * size.x, -size.y, z * size.x})
+        append(vertices, Lineprim_Vertex{{x * size.x, -size.y, z * size.x}, {}})
     }
 
-    append(vertices, glm.vec3{0, size.y, 0})
+    append(vertices, Lineprim_Vertex{{0, size.y, 0}, {}})
 
     for i: u32 = 0; i < u32(segments); i += 1 {
         append(indices, index + i, index + (i + 1) % u32(segments))
@@ -175,33 +183,33 @@ lineprim_generate_cone :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]
     return range
 }
 
-lineprim_generate_sphere :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u32, radius: f32, segments: i32) -> (range: Lineprim_Range) {
+lineprim_generate_sphere :: proc(vertices: ^[dynamic]Lineprim_Vertex, indices: ^[dynamic]u32, segments: i32) -> (range: Lineprim_Range) {
     range.first = cast(u32) len(indices)
 
     rings := segments / 2
     start_index := u32(len(vertices))
     first_ring_start := start_index + 1
 
-    append(vertices, glm.vec3{0, radius, 0})
+    append(vertices, Lineprim_Vertex{{}, {0, 1, 0}})
 
     for lat in 1 ..< rings {
         theta := glm.PI * f32(lat) / f32(rings)
-        y := radius * glm.cos(theta)
-        r := radius * glm.sin(theta)
+        y := glm.cos(theta)
+        r := glm.sin(theta)
 
         for lon in 0 ..< segments {
             phi := 2.0 * glm.PI * f32(lon) / f32(segments)
             x := r * glm.cos(phi)
             z := r * glm.sin(phi)
 
-            append(vertices, glm.vec3{x, y, z})
+            append(vertices, Lineprim_Vertex{{}, {x, y, z}})
         }
     }
 
     num_mid_rings := u32(glm.max(0, rings - 1))
     bottom_index := first_ring_start + num_mid_rings * u32(segments)
 
-    append(vertices, glm.vec3{0, -radius, 0})
+    append(vertices, Lineprim_Vertex{{}, {0, -1, 0}})
 
     for lat: u32 = 0; lat < num_mid_rings; lat += 1 {
         row_start := first_ring_start + lat * u32(segments)
@@ -244,9 +252,86 @@ lineprim_generate_sphere :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynami
     return range
 }
 
+lineprim_generate_capsule :: proc(vertices: ^[dynamic]Lineprim_Vertex, indices: ^[dynamic]u32, segments: i32) -> (range: Lineprim_Range) {
+    range.first = cast(u32) len(indices)
+
+    hemi_rings := segments / 4
+
+    top_pole_index := u32(len(vertices))
+    append(vertices, Lineprim_Vertex{{0, 1, 0}, {0, 1, 0}})
+
+    top_first_ring := u32(len(vertices))
+
+    for lat in 1 ..= hemi_rings {
+        theta := (glm.PI * 0.5) * f32(lat) / f32(hemi_rings)
+        y := glm.cos(theta)
+        r := glm.sin(theta)
+
+        for lon in 0 ..< segments {
+            phi := 2.0 * glm.PI * f32(lon) / f32(segments)
+
+            append(vertices, Lineprim_Vertex{{0, 1, 0}, {r * glm.cos(phi), y, r * glm.sin(phi)}})
+        }
+    }
+
+    top_equator := top_first_ring + u32(hemi_rings - 1) * u32(segments)
+    bottom_first_ring := u32(len(vertices))
+
+    for lat in 1 ..= hemi_rings {
+        theta := (glm.PI * 0.5) * f32(lat) / f32(hemi_rings)
+        y := glm.cos(theta)
+        r := glm.sin(theta)
+
+        for lon in 0 ..< segments {
+            phi := 2.0 * glm.PI * f32(lon) / f32(segments)
+
+            append(vertices, Lineprim_Vertex{{0, -1, 0}, {r * glm.cos(phi), -y, r * glm.sin(phi)}})
+        }
+    }
+
+    bottom_equator := bottom_first_ring + u32(hemi_rings - 1) * u32(segments)
+    bottom_pole_index := u32(len(vertices))
+    append(vertices, Lineprim_Vertex{{0, -1, 0}, {0, -1, 0}})
+
+    for lon: u32 = 0; lon < u32(segments); lon += 1 {
+        append(indices, top_pole_index, top_first_ring + lon)
+        append(indices, bottom_pole_index, bottom_first_ring + lon)
+    }
+
+    for hemi in 0 ..< 2 {
+        ring_start := hemi == 0 ? top_first_ring : bottom_first_ring
+
+        for lat: u32 = 0; lat < u32(hemi_rings); lat += 1 {
+            row := ring_start + lat * u32(segments)
+
+            for lon: u32 = 0; lon < u32(segments); lon += 1 {
+                append(indices, row + lon, row + (lon + 1) % u32(segments))
+            }
+        }
+
+        for lat: u32 = 0; lat + 1 < u32(hemi_rings); lat += 1 {
+            row0 := ring_start + lat * u32(segments)
+            row1 := row0 + u32(segments)
+
+            for lon: u32 = 0; lon < u32(segments); lon += 1 {
+                append(indices, row0 + lon, row1 + lon)
+            }
+        }
+    }
+
+    for lon: u32 = 0; lon < u32(segments); lon += 1 {
+        append(indices, top_equator + lon, bottom_equator + lon)
+    }
+
+    range.count = cast(i32) len(indices) - i32(range.first)
+
+    return range
+}
+
 lineprim_push :: proc(type: Lineprim_Type) -> ^Lineprim_Instance {
     instance := &lineprim_state.instances[type][lineprim_state.counts[type]]
     lineprim_state.counts[type] = (lineprim_state.counts[type] + 1) % LINEPRIM_CAP
+
     return instance
 }
 
@@ -331,6 +416,35 @@ draw_wire_sphere :: proc(position: glm.vec3, radius: f32, color: u32) {
     instance := lineprim_push(.Sphere)
     instance.translation = position
     instance.rotation = {}
-    instance.scale = {radius, radius, radius}
+    instance.radius = radius
+    instance.color = color
+}
+
+draw_wire_capsule_aa :: proc(position: glm.vec3, size: glm.vec2, color: u32) {
+    instance := lineprim_push(.Capsule)
+    instance.translation = position
+    instance.rotation = {}
+    instance.scale = {0, size.y / 2, 0}
+    instance.radius = size.x
+    instance.color = color
+}
+
+draw_wire_capsule_o :: proc(position: glm.vec3, size: glm.vec2, rotation: glm.vec3, color: u32) {
+    instance := lineprim_push(.Capsule)
+    instance.translation = position
+    instance.rotation = quat_rotation_xyz(rotation)
+    instance.scale = {0, size.y / 2, 0}
+    instance.radius = size.x
+    instance.color = color
+}
+
+draw_wire_capsule_ab :: proc(start: glm.vec3, end: glm.vec3, radius: f32, color: u32) {
+    half_height := glm.distance(start, end) / 2
+
+    instance := lineprim_push(.Capsule)
+    instance.translation = (start + end) / 2
+    instance.rotation = quat_rotation_dir(glm.normalize(end - start))
+    instance.scale = {0, half_height, 0}
+    instance.radius = radius
     instance.color = color
 }
