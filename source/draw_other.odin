@@ -2,6 +2,7 @@ package imdd3
 
 import glm "core:math/linalg/glsl"
 
+// API
 frustum :: proc(proj_view: matrix[4, 4]f32, line_width: f32, color: u32) {
     inv_proj_view := glm.inverse(proj_view)
 
