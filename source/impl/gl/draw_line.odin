@@ -169,6 +169,7 @@ line_render :: proc(vertices: []imdd3.Line_Vertex) {
     gl.BufferSubData(gl.ARRAY_BUFFER, 0, len(vertices) * size_of(imdd3.Line_Vertex), raw_data(vertices))
 
     gl.Enable(gl.DEPTH_TEST); defer gl.Disable(gl.DEPTH_TEST)
+    gl.DepthFunc(gl.LEQUAL); defer gl.DepthFunc(gl.LESS)
     gl.Enable(gl.BLEND); defer gl.Disable(gl.BLEND)
     gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
     gl.DrawArrays(gl.LINES, 0, i32(len(vertices)))

@@ -169,5 +169,6 @@ triprim_render :: proc(data: [imdd3.Triprim_Type][]imdd3.Triprim_Instance) {
     gl.BufferData(gl.DRAW_INDIRECT_BUFFER, size_of(commands), &commands[0], gl.STREAM_DRAW)
 
     gl.Enable(gl.DEPTH_TEST); defer gl.Disable(gl.DEPTH_TEST)
+    gl.DepthFunc(gl.LEQUAL); defer gl.DepthFunc(gl.LESS)
     gl.MultiDrawElementsIndirect(gl.TRIANGLES, gl.UNSIGNED_INT, nil, i32(len(imdd3.Triprim_Type)), 0)
 }

@@ -270,6 +270,7 @@ lineprim_render :: proc(data: [imdd3.Lineprim_Type][]imdd3.Lineprim_Instance) {
     gl.BufferData(gl.DRAW_INDIRECT_BUFFER, size_of(commands), &commands[0], gl.STREAM_DRAW)
 
     gl.Enable(gl.DEPTH_TEST); defer gl.Disable(gl.DEPTH_TEST)
+    gl.DepthFunc(gl.LEQUAL); defer gl.DepthFunc(gl.LESS)
     gl.Enable(gl.BLEND); defer gl.Disable(gl.BLEND)
     gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
     gl.MultiDrawElementsIndirect(gl.LINES, gl.UNSIGNED_INT, nil, i32(len(imdd3.Lineprim_Type)), 0)
