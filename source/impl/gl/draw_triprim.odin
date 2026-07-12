@@ -44,7 +44,7 @@ TRIPRIM_VS :: GLSL_VERSION + `
 `
 
 TRIPRIM_FS :: GLSL_VERSION + `
-#define EDGE_WIDTH 2
+#define EDGE_WIDTH 1.5
 
 in vec4 v_color;
 in vec3 v_barycentric;

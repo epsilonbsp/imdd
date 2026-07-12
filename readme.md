@@ -41,6 +41,15 @@ draw_wire_cone_ab :: proc(start: glm.vec3, end: glm.vec3, radius: f32, color: u3
 draw_wire_sphere :: proc(position: glm.vec3, radius: f32, color: u32)
 
 draw_aabb :: proc(position: [3]f32, size: [3]f32, color: u32)
+draw_aabb_bounds :: proc(min: glm.vec3, max: glm.vec3, color: u32)
+draw_obb :: proc(position: glm.vec3, size: glm.vec3, rotation: glm.vec3, color: u32)
+draw_cylinder_aa :: proc(position: glm.vec3, size: glm.vec2, color: u32)
+draw_cylinder_o :: proc(position: glm.vec3, size: glm.vec2, rotation: glm.vec3, color: u32)
+draw_cylinder_ab :: proc(start: glm.vec3, end: glm.vec3, radius: f32, color: u32)
+draw_cone_aa :: proc(position: glm.vec3, size: glm.vec2, color: u32)
+draw_cone_o :: proc(position: glm.vec3, size: glm.vec2, rotation: glm.vec3, color: u32)
+draw_cone_ab :: proc(start: glm.vec3, end: glm.vec3, radius: f32, color: u32)
+draw_sphere :: proc(position: glm.vec3, radius: f32, color: u32)
 
 frustum :: proc(proj_view: matrix[4, 4]f32, line_width: f32, color: u32)
 ```
