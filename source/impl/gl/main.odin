@@ -4,8 +4,6 @@ import gl "vendor:OpenGL"
 
 import imdd3 "../.."
 
-GLSL_VERSION :: "#version 460 core"
-
 Renderer :: struct {
     atlas_tex: u32,
     tex_map: Texture_Map,
@@ -23,8 +21,8 @@ init :: proc() {
     add_texture(1, 1, white_tex_data[:])
 
     line_init()
-    triangle_init()
     curve_init()
+    triangle_init()
 }
 
 destroy :: proc() {
@@ -34,17 +32,6 @@ destroy :: proc() {
     line_destroy()
     triangle_destroy()
     curve_destroy()
-}
-
-set_clip_rect :: proc(x: i32, y: i32, w: i32, h: i32) {
-    viewport: [4]i32; gl.GetIntegerv(gl.VIEWPORT, &viewport[0])
-
-    gl.Enable(gl.SCISSOR_TEST)
-    gl.Scissor(x, viewport[3] - y - h, w, h)
-}
-
-clear_clip_rect :: proc() {
-    gl.Disable(gl.SCISSOR_TEST)
 }
 
 add_texture :: proc(width: i32, height: i32, data: []u8) -> u32 {
@@ -68,11 +55,14 @@ interface :: proc() -> imdd3.Renderer {
     return {
         init = init,
         destroy = destroy,
-        set_clip_rect = set_clip_rect,
-        clear_clip_rect = clear_clip_rect,
+
         add_texture = add_texture,
         remove_texture = remove_texture,
         update_texture = update_texture,
+
+        line_render = line_render,
+        curve_render = curve_render,
+        triangle_render = triangle_render,
 
         lineprim_init = lineprim_init,
         lineprim_destroy = lineprim_destroy,
@@ -81,9 +71,5 @@ interface :: proc() -> imdd3.Renderer {
         triprim_init = triprim_init,
         triprim_destroy = triprim_destroy,
         triprim_render = triprim_render,
-
-        line_render = line_render,
-        triangle_render = triangle_render,
-        curve_render = curve_render,
     }
 }

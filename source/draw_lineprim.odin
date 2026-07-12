@@ -30,6 +30,45 @@ Lineprim_State :: struct {
 
 lineprim_state: Lineprim_State
 
+lineprim_init :: proc() {
+    vertices: [dynamic]glm.vec3; defer delete(vertices)
+    indices: [dynamic]u32; defer delete(indices)
+
+    ranges: [Lineprim_Type]Lineprim_Range
+    ranges[.Box] = lineprim_generate_box(&vertices, &indices, {1, 1, 1})
+    ranges[.Cylinder] = lineprim_generate_cylinder(&vertices, &indices, {1, 1}, 16)
+    ranges[.Cone] = lineprim_generate_cone(&vertices, &indices, {1, 1}, 16)
+    ranges[.Sphere] = lineprim_generate_sphere(&vertices, &indices, 1, 16)
+
+    for type in Lineprim_Type {
+        lineprim_state.instances[type] = make([dynamic]Lineprim_Instance, LINEPRIM_CAP, LINEPRIM_CAP)
+    }
+
+    state.renderer.lineprim_init(vertices[:], indices[:], ranges)
+}
+
+lineprim_destroy :: proc() {
+    for type in Lineprim_Type {
+        delete(lineprim_state.instances[type])
+    }
+
+    state.renderer.lineprim_destroy()
+}
+
+lineprim_render :: proc(resolution: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
+    data: [Lineprim_Type][]Lineprim_Instance
+
+    for type in Lineprim_Type {
+        data[type] = lineprim_state.instances[type][:lineprim_state.counts[type]]
+    }
+
+    state.renderer.lineprim_render(data, resolution, projection, view)
+
+    for type in Lineprim_Type {
+        lineprim_state.counts[type] = 0
+    }
+}
+
 lineprim_generate_box :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u32, size: glm.vec3) -> (range: Lineprim_Range) {
     range.first = cast(u32) len(indices)
 
@@ -295,43 +334,4 @@ draw_lineprim_sphere :: proc(position: glm.vec3, radius: f32, color: u32) {
     instance.rotation = {}
     instance.scale = {radius, radius, radius}
     instance.color = color
-}
-
-lineprim_init :: proc() {
-    vertices: [dynamic]glm.vec3; defer delete(vertices)
-    indices: [dynamic]u32; defer delete(indices)
-
-    ranges: [Lineprim_Type]Lineprim_Range
-    ranges[.Box] = lineprim_generate_box(&vertices, &indices, {1, 1, 1})
-    ranges[.Cylinder] = lineprim_generate_cylinder(&vertices, &indices, {1, 1}, 16)
-    ranges[.Cone] = lineprim_generate_cone(&vertices, &indices, {1, 1}, 16)
-    ranges[.Sphere] = lineprim_generate_sphere(&vertices, &indices, 1, 16)
-
-    for type in Lineprim_Type {
-        lineprim_state.instances[type] = make([dynamic]Lineprim_Instance, LINEPRIM_CAP, LINEPRIM_CAP)
-    }
-
-    state.renderer.lineprim_init(vertices[:], indices[:], ranges)
-}
-
-lineprim_destroy :: proc() {
-    for type in Lineprim_Type {
-        delete(lineprim_state.instances[type])
-    }
-
-    state.renderer.lineprim_destroy()
-}
-
-lineprim_render :: proc(resolution: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
-    data: [Lineprim_Type][]Lineprim_Instance
-
-    for type in Lineprim_Type {
-        data[type] = lineprim_state.instances[type][:lineprim_state.counts[type]]
-    }
-
-    state.renderer.lineprim_render(data, resolution, projection, view)
-
-    for type in Lineprim_Type {
-        lineprim_state.counts[type] = 0
-    }
 }

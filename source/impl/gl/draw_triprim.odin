@@ -70,11 +70,9 @@ triprim_init :: proc(vertices: []imdd3.Triprim_Vertex, indices: []u32, offset: [
 
     triprim_state.ranges = offset
 
-    // vao
     gl.GenVertexArrays(1, &triprim_state.vao)
     gl.BindVertexArray(triprim_state.vao)
 
-    // vbo
     gl.GenBuffers(1, &triprim_state.vbo)
     gl.BindBuffer(gl.ARRAY_BUFFER, triprim_state.vbo)
     gl.BufferData(gl.ARRAY_BUFFER, size_of(imdd3.Triprim_Vertex) * len(vertices), raw_data(vertices), gl.STATIC_DRAW)
@@ -85,12 +83,10 @@ triprim_init :: proc(vertices: []imdd3.Triprim_Vertex, indices: []u32, offset: [
     gl.EnableVertexAttribArray(1)
     gl.VertexAttribPointer(1, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Vertex), offset_of(imdd3.Triprim_Vertex, normal))
 
-    // ibo
     gl.GenBuffers(1, &triprim_state.ibo)
     gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, triprim_state.ibo)
     gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, size_of(u32) * len(indices), raw_data(indices), gl.STATIC_DRAW)
 
-    // ubo (one region per triprim type, indexed via baseInstance)
     gl.GenBuffers(1, &triprim_state.ubo)
     gl.BindBuffer(gl.ARRAY_BUFFER, triprim_state.ubo)
     gl.BufferData(gl.ARRAY_BUFFER, size_of(imdd3.Triprim_Instance) * imdd3.TRIPRIM_CAP * len(imdd3.Triprim_Type), nil, gl.DYNAMIC_DRAW)
@@ -116,7 +112,6 @@ triprim_init :: proc(vertices: []imdd3.Triprim_Vertex, indices: []u32, offset: [
     gl.VertexAttribIPointer(5, 1, gl.UNSIGNED_INT, size_of(imdd3.Triprim_Instance), attrib_offset)
     gl.VertexAttribDivisor(5, 1)
 
-    // draw indirect buffer
     gl.GenBuffers(1, &triprim_state.dibo)
 }
 

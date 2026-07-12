@@ -98,8 +98,6 @@ draw_line_strip :: proc(points: [][3]f32, width: f32, color: u32, cap_type: Line
         start := curr
         end := next
 
-        // a looped strip has no true start/end - every point is an interior
-        // joint and gets recessed on both sides
         if is_looped || i > 0 {
             start = curr + seg_dir
         }
@@ -113,8 +111,6 @@ draw_line_strip :: proc(points: [][3]f32, width: f32, color: u32, cap_type: Line
         }
 
         if i > 0 {
-            // corner point itself is the control point, so the curve's
-            // tangent matches each recessed segment exactly at the seam
             draw_curve(prev_end, curr, start, width, color)
         }
 

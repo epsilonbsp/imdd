@@ -2,6 +2,8 @@ package imdd3_impl_gl
 
 import gl "vendor:OpenGL"
 
+GLSL_VERSION :: "#version 460 core"
+
 Shader_Source :: struct {
     type: gl.Shader_Type,
     source: string,
