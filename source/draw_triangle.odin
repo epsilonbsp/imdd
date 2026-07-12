@@ -319,7 +319,7 @@ draw_text :: proc(position: [3]f32, normal: [3]f32, tangent: [3]f32, text: strin
     bitangent := glm.normalize(glm.cross(tangent, normal))
 
     font := &renderer.fonts[renderer.font_weight]
-    px_range := font.distance_range * (font_size / font.em_size)
+    px_range := font.distance_range
 
     x := position.x
 
@@ -401,7 +401,7 @@ draw_icon :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: f32, ke
     point_c := center + tangent * extent + bitangent * extent
     point_d := center - tangent * extent + bitangent * extent
 
-    px_range := renderer.icons.distance_range * (size / ic.px_size)
+    px_range := renderer.icons.distance_range
 
     index := u32(len(triangle_state.vertices))
 

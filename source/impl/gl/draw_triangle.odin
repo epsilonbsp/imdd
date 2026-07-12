@@ -124,7 +124,9 @@ MAIN_FS :: GLSL_VERSION + `
                 stroke_a
             );
         } else if (v_mode == 5) {
-            float px_range = v_params.x;
+            vec2 unit_range = vec2(v_params.x) / vec2(textureSize(u_atlas_tex, 0));
+            vec2 screen_tex_size = vec2(1.0) / fwidth(v_tex_coord);
+            float px_range = max(0.5 * dot(unit_range, screen_tex_size), 1.0);
 
             vec4 msd = texture(u_atlas_tex, v_tex_coord);
             float sd = mix(median(msd.r, msd.g, msd.b), msd.a, clamp(px_range - 1.0, 0.0, 1.0));
