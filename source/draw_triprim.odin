@@ -41,7 +41,7 @@ triprim_init :: proc() {
         triprim_state.instances[type] = make([dynamic]Triprim_Instance, TRIPRIM_CAP, TRIPRIM_CAP)
     }
 
-    state.renderer.triprim_init(vertices[:], indices[:], ranges)
+    renderer.interface.triprim_init(vertices[:], indices[:], ranges)
 }
 
 triprim_destroy :: proc() {
@@ -57,7 +57,7 @@ triprim_render :: proc(projection: matrix[4, 4]f32, view: matrix[4, 4]f32, viewp
         data[type] = triprim_state.instances[type][:triprim_state.counts[type]]
     }
 
-    state.renderer.triprim_render(data, projection, view, viewport)
+    renderer.interface.triprim_render(data, projection, view, viewport)
 
     for type in Triprim_Type {
         triprim_state.counts[type] = 0

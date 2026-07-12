@@ -44,7 +44,7 @@ lineprim_init :: proc() {
         lineprim_state.instances[type] = make([dynamic]Lineprim_Instance, LINEPRIM_CAP, LINEPRIM_CAP)
     }
 
-    state.renderer.lineprim_init(vertices[:], indices[:], ranges)
+    renderer.interface.lineprim_init(vertices[:], indices[:], ranges)
 }
 
 lineprim_destroy :: proc() {
@@ -60,7 +60,7 @@ lineprim_render :: proc(projection: matrix[4, 4]f32, view: matrix[4, 4]f32, view
         data[type] = lineprim_state.instances[type][:lineprim_state.counts[type]]
     }
 
-    state.renderer.lineprim_render(data, projection, view, viewport)
+    renderer.interface.lineprim_render(data, projection, view, viewport)
 
     for type in Lineprim_Type {
         lineprim_state.counts[type] = 0

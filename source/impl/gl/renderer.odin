@@ -53,7 +53,7 @@ update_texture :: proc(handle: u32, x: i32, y: i32, w: i32, h: i32, data: []u8) 
     gl.BindTexture(gl.TEXTURE_2D, 0)
 }
 
-interface :: proc() -> imdd3.Renderer {
+interface :: proc() -> imdd3.Renderer_Interface {
     return {
         init = init,
         destroy = destroy,

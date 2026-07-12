@@ -108,11 +108,11 @@ load_font :: proc(data: []u8) -> Font {
 }
 
 load_fonts :: proc() {
-    state.fonts[0] = load_font(#load("../assets/atlas/fonts/regular.json"))
-    state.fonts[1] = load_font(#load("../assets/atlas/fonts/italic.json"))
-    state.fonts[2] = load_font(#load("../assets/atlas/fonts/bold.json"))
+    renderer.fonts[0] = load_font(#load("../assets/atlas/fonts/regular.json"))
+    renderer.fonts[1] = load_font(#load("../assets/atlas/fonts/italic.json"))
+    renderer.fonts[2] = load_font(#load("../assets/atlas/fonts/bold.json"))
 }
 
 font_weight :: proc(font_weight: Font_Weight) {
-    state.font_weight = font_weight
+    renderer.font_weight = font_weight
 }

@@ -20,7 +20,7 @@ Atlas :: struct {
 }
 
 atlas_create :: proc(width: i32, height: i32) -> Atlas {
-    handle := state.renderer.add_texture(width, height, nil)
+    handle := renderer.interface.add_texture(width, height, nil)
 
     return {
         width = width,
@@ -30,7 +30,7 @@ atlas_create :: proc(width: i32, height: i32) -> Atlas {
 }
 
 atlas_destroy :: proc(atlas: ^Atlas) {
-    state.renderer.remove_texture(atlas.handle)
+    renderer.interface.remove_texture(atlas.handle)
 }
 
 atlas_pack :: proc(atlas: ^Atlas, w: i32, h: i32, data: []u8) -> (Sprite, bool) {
@@ -52,7 +52,7 @@ atlas_pack :: proc(atlas: ^Atlas, w: i32, h: i32, data: []u8) -> (Sprite, bool) 
     atlas.cursor_y = y
     atlas.shelf_h = max(shelf_h, h)
 
-    state.renderer.update_texture(atlas.handle, x, y, w, h, data)
+    renderer.interface.update_texture(atlas.handle, x, y, w, h, data)
 
     fw := f32(atlas.width)
     fh := f32(atlas.height)
@@ -87,7 +87,7 @@ load_sprite_png :: proc(data: []u8) -> (Sprite, bool) {
 
     defer png.destroy(image)
 
-    handle := state.renderer.add_texture(i32(image.width), i32(image.height), image.pixels.buf[:])
+    handle := renderer.interface.add_texture(i32(image.width), i32(image.height), image.pixels.buf[:])
 
     return {
         handle,

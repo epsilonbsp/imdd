@@ -2,7 +2,7 @@ package imdd3
 
 import glm "core:math/linalg/glsl"
 
-Renderer :: struct {
+Renderer_Interface :: struct {
     init: proc(),
     destroy: proc(),
 
@@ -19,4 +19,56 @@ Renderer :: struct {
 
     triprim_init: proc(vertices: []Triprim_Vertex, indices: []u32, ranges: [Triprim_Type]Triprim_Range),
     triprim_render: proc(data: [Triprim_Type][]Triprim_Instance, projection: matrix[4, 4]f32, view: matrix[4, 4]f32, viewport: [2]f32),
+}
+
+Renderer :: struct {
+    // Implementation
+    interface: Renderer_Interface,
+
+    // Renderer data
+    fonts: [3]Font,
+    font_weight: Font_Weight,
+    icons: Icons,
+}
+
+renderer: Renderer
+
+init :: proc(interface: Renderer_Interface) {
+    // Implementation
+    renderer.interface = interface
+    renderer.interface.init()
+
+    // Renderer data
+    load_fonts()
+    load_icons()
+
+    // Pipelines
+    line_init()
+    curve_init()
+    triangle_init()
+    lineprim_init()
+    triprim_init()
+}
+
+destroy :: proc() {
+    // Implementation
+    renderer.interface.destroy()
+
+    // Renderer data
+    delete(renderer.icons.icons)
+
+    // Pipelines
+    line_destroy()
+    curve_destroy()
+    triangle_destroy()
+    lineprim_destroy()
+    triprim_destroy()
+}
+
+render :: proc(projection: matrix[4, 4]f32, view: matrix[4, 4]f32, viewport: [2]f32) {
+    line_render(projection, view)
+    curve_render(projection, view)
+    triangle_render(projection, view)
+    lineprim_render(projection, view, viewport)
+    triprim_render(projection, view, viewport)
 }

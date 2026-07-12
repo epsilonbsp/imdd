@@ -45,8 +45,8 @@ load_icons :: proc() {
     atlas_width := icons_json.atlas.width
     atlas_height := icons_json.atlas.height
 
-    state.icons.distance_range = icons_json.atlas.distanceRange
-    state.icons.icons = make(map[string]Icon)
+    renderer.icons.distance_range = icons_json.atlas.distanceRange
+    renderer.icons.icons = make(map[string]Icon)
 
     for icon_json in icons_json.icons {
         icon: Icon
@@ -56,6 +56,6 @@ load_icons :: proc() {
         icon.uv_top = icon_json.y / atlas_height
         icon.uv_bottom = (icon_json.y + icon_json.h) / atlas_height
 
-        state.icons.icons[icon_json.key] = icon
+        renderer.icons.icons[icon_json.key] = icon
     }
 }

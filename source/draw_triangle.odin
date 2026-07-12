@@ -32,7 +32,7 @@ triangle_destroy :: proc() {
 }
 
 triangle_render :: proc(projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
-    state.renderer.triangle_render(triangle_state.vertices[:], triangle_state.indices[:], projection, view)
+    renderer.interface.triangle_render(triangle_state.vertices[:], triangle_state.indices[:], projection, view)
 
     clear(&triangle_state.vertices)
     clear(&triangle_state.indices)
@@ -253,7 +253,7 @@ rect :: proc(pos: [3]f32, size: [2]f32, color: u32) {
 // }
 
 text :: proc(pos: [3]f32, normal: [3]f32, tangent: [3]f32, text: string, font_size: f32, line_height: f32, color: u32, clip_max_x: f32 = max(f32)) {
-    font := &state.fonts[state.font_weight]
+    font := &renderer.fonts[renderer.font_weight]
 
     x := pos.x
     baseline_y := pos.y + (line_height - font.line_height * font_size) / 2 + (font.line_height - font.ascender) * font_size
@@ -307,7 +307,7 @@ text :: proc(pos: [3]f32, normal: [3]f32, tangent: [3]f32, text: string, font_si
 }
 
 icon :: proc(pos: [3]f32, size: f32, key: string, color: u32) {
-    ic, ok := state.icons.icons[key]
+    ic, ok := renderer.icons.icons[key]
 
     if !ok {
         return
@@ -319,7 +319,7 @@ icon :: proc(pos: [3]f32, size: f32, key: string, color: u32) {
     c := pos + {hs, hs, pos.z}
     d := pos + {-hs, hs, pos.z}
 
-    px_range := state.icons.distance_range * (size / ic.px_size)
+    px_range := renderer.icons.distance_range * (size / ic.px_size)
 
     l := u32(len(triangle_state.vertices))
 
