@@ -2,29 +2,36 @@ package imdd3
 
 import glm "core:math/linalg/glsl"
 
-DEBUG_SHAPE_CAP :: 256
+LINEPRIM_CAP :: 256
 
-Shape_Type :: enum {
+Lineprim_Type :: enum {
     Box,
     Cylinder,
     Cone,
     Sphere,
 }
 
-Debug_Shape :: struct {
+Lineprim_Instance :: struct {
     translation: glm.vec3,
     rotation: glm.quat,
     scale: glm.vec3,
     color: u32,
 }
 
-Index_Offset :: struct {
-    pos: u32,
-    len: i32,
+Lineprim_Range :: struct {
+    first: u32,
+    count: i32,
 }
 
-geometry_lines_box :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u32, size: glm.vec3) -> (offset: Index_Offset) {
-    offset.pos = cast(u32) len(indices)
+Lineprim_State :: struct {
+    instances: [Lineprim_Type][dynamic]Lineprim_Instance,
+    counts: [Lineprim_Type]i32,
+}
+
+lineprim_state: Lineprim_State
+
+lineprim_generate_box :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u32, size: glm.vec3) -> (range: Lineprim_Range) {
+    range.first = cast(u32) len(indices)
 
     index := u32(len(vertices))
 
@@ -57,13 +64,13 @@ geometry_lines_box :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u32,
         index + 2, index + 7
     )
 
-    offset.len = cast(i32) len(indices) - i32(offset.pos)
+    range.count = cast(i32) len(indices) - i32(range.first)
 
-    return offset
+    return range
 }
 
-geometry_lines_cylinder :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u32, size: glm.vec2, segments: i32) -> (offset: Index_Offset) {
-    offset.pos = cast(u32) len(indices)
+lineprim_generate_cylinder :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u32, size: glm.vec2, segments: i32) -> (range: Lineprim_Range) {
+    range.first = cast(u32) len(indices)
 
     angle := glm.PI * 2 / f32(segments)
     index := u32(len(vertices))
@@ -96,13 +103,13 @@ geometry_lines_cylinder :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic
     append(indices, top_start + 0, top_start + half)
     append(indices, top_start + quarter, top_start + quarter + half)
 
-    offset.len = cast(i32) len(indices) - i32(offset.pos)
+    range.count = cast(i32) len(indices) - i32(range.first)
 
-    return offset
+    return range
 }
 
-geometry_lines_cone :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u32, size: glm.vec2, segments: i32) -> (offset: Index_Offset) {
-    offset.pos = cast(u32) len(indices)
+lineprim_generate_cone :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u32, size: glm.vec2, segments: i32) -> (range: Lineprim_Range) {
+    range.first = cast(u32) len(indices)
 
     angle := glm.PI * 2 / f32(segments)
     index := u32(len(vertices))
@@ -126,13 +133,13 @@ geometry_lines_cone :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u32
     append(indices, index + 0, index + half)
     append(indices, index + quarter, index + quarter + half)
 
-    offset.len = cast(i32) len(indices) - i32(offset.pos)
+    range.count = cast(i32) len(indices) - i32(range.first)
 
-    return offset
+    return range
 }
 
-geometry_lines_sphere :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u32, radius: f32, segments: i32) -> (offset: Index_Offset) {
-    offset.pos = cast(u32) len(indices)
+lineprim_generate_sphere :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u32, radius: f32, segments: i32) -> (range: Lineprim_Range) {
+    range.first = cast(u32) len(indices)
 
     rings := segments / 2
     start_index := u32(len(vertices))
@@ -195,137 +202,136 @@ geometry_lines_sphere :: proc(vertices: ^[dynamic]glm.vec3, indices: ^[dynamic]u
         append(indices, start_index, bottom_index)
     }
 
-    offset.len = cast(i32) len(indices) - i32(offset.pos)
+    range.count = cast(i32) len(indices) - i32(range.first)
 
-    return offset
+    return range
 }
 
-push_shape :: proc(type: Shape_Type) -> ^Debug_Shape {
-    shape := &state.shape_data[type][state.shape_data_len[type]]
-    state.shape_data_len[type] = (state.shape_data_len[type] + 1) % DEBUG_SHAPE_CAP
-    return shape
+lineprim_push :: proc(type: Lineprim_Type) -> ^Lineprim_Instance {
+    instance := &lineprim_state.instances[type][lineprim_state.counts[type]]
+    lineprim_state.counts[type] = (lineprim_state.counts[type] + 1) % LINEPRIM_CAP
+    return instance
 }
 
-debug_aabb :: proc(position: glm.vec3, size: glm.vec3, color: u32) {
-    shape := push_shape(.Box)
-    shape.translation = position
-    shape.rotation = {}
-    shape.scale = size / 2
-    shape.color = color
+draw_lineprim_aabb :: proc(position: glm.vec3, size: glm.vec3, color: u32) {
+    instance := lineprim_push(.Box)
+    instance.translation = position
+    instance.rotation = {}
+    instance.scale = size / 2
+    instance.color = color
 }
 
-debug_aabb_bounds :: proc(min: glm.vec3, max: glm.vec3, color: u32) {
-    shape := push_shape(.Box)
-    shape.translation = (min + max) / 2
-    shape.rotation = {}
-    shape.scale = glm.abs(max - min) / 2
-    shape.color = color
+draw_lineprim_aabb_bounds :: proc(min: glm.vec3, max: glm.vec3, color: u32) {
+    instance := lineprim_push(.Box)
+    instance.translation = (min + max) / 2
+    instance.rotation = {}
+    instance.scale = glm.abs(max - min) / 2
+    instance.color = color
 }
 
-debug_obb :: proc(position: glm.vec3, size: glm.vec3, rotation: glm.vec3, color: u32) {
-    shape := push_shape(.Box)
-    shape.translation = position
-    shape.rotation = quat_rotation_xyz(rotation)
-    shape.scale = size / 2
-    shape.color = color
+draw_lineprim_obb :: proc(position: glm.vec3, size: glm.vec3, rotation: glm.vec3, color: u32) {
+    instance := lineprim_push(.Box)
+    instance.translation = position
+    instance.rotation = quat_rotation_xyz(rotation)
+    instance.scale = size / 2
+    instance.color = color
 }
 
-debug_cylinder_aa :: proc(position: glm.vec3, size: glm.vec2, color: u32) {
-    shape := push_shape(.Cylinder)
-    shape.translation = position
-    shape.rotation = {}
-    shape.scale = {size.x, size.y / 2, size.x}
-    shape.color = color
+draw_lineprim_cylinder_aa :: proc(position: glm.vec3, size: glm.vec2, color: u32) {
+    instance := lineprim_push(.Cylinder)
+    instance.translation = position
+    instance.rotation = {}
+    instance.scale = {size.x, size.y / 2, size.x}
+    instance.color = color
 }
 
-debug_cylinder_o :: proc(position: glm.vec3, size: glm.vec2, rotation: glm.vec3, color: u32) {
-    shape := push_shape(.Cylinder)
-    shape.translation = position
-    shape.rotation = quat_rotation_xyz(rotation)
-    shape.scale = {size.x, size.y / 2, size.x}
-    shape.color = color
+draw_lineprim_cylinder_o :: proc(position: glm.vec3, size: glm.vec2, rotation: glm.vec3, color: u32) {
+    instance := lineprim_push(.Cylinder)
+    instance.translation = position
+    instance.rotation = quat_rotation_xyz(rotation)
+    instance.scale = {size.x, size.y / 2, size.x}
+    instance.color = color
 }
 
-debug_cylinder_ab :: proc(start: glm.vec3, end: glm.vec3, radius: f32, color: u32) {
+draw_lineprim_cylinder_ab :: proc(start: glm.vec3, end: glm.vec3, radius: f32, color: u32) {
     height := glm.distance(start, end) / 2
 
-    shape := push_shape(.Cylinder)
-    shape.translation = (start + end) / 2
-    shape.rotation = quat_rotation_dir(glm.normalize(end - start))
-    shape.scale = {radius, height, radius}
-    shape.color = color
+    instance := lineprim_push(.Cylinder)
+    instance.translation = (start + end) / 2
+    instance.rotation = quat_rotation_dir(glm.normalize(end - start))
+    instance.scale = {radius, height, radius}
+    instance.color = color
 }
 
-debug_cone_aa :: proc(position: glm.vec3, size: glm.vec2, color: u32) {
-    shape := push_shape(.Cone)
-    shape.translation = position
-    shape.rotation = {}
-    shape.scale = {size.x, size.y / 2, size.x}
-    shape.color = color
+draw_lineprim_cone_aa :: proc(position: glm.vec3, size: glm.vec2, color: u32) {
+    instance := lineprim_push(.Cone)
+    instance.translation = position
+    instance.rotation = {}
+    instance.scale = {size.x, size.y / 2, size.x}
+    instance.color = color
 }
 
-debug_cone_o :: proc(position: glm.vec3, size: glm.vec2, rotation: glm.vec3, color: u32) {
-    shape := push_shape(.Cone)
-    shape.translation = position
-    shape.rotation = quat_rotation_xyz(rotation)
-    shape.scale = {size.x, size.y / 2, size.x}
-    shape.color = color
+draw_lineprim_cone_o :: proc(position: glm.vec3, size: glm.vec2, rotation: glm.vec3, color: u32) {
+    instance := lineprim_push(.Cone)
+    instance.translation = position
+    instance.rotation = quat_rotation_xyz(rotation)
+    instance.scale = {size.x, size.y / 2, size.x}
+    instance.color = color
 }
 
-debug_cone_ab :: proc(start: glm.vec3, end: glm.vec3, radius: f32, color: u32) {
+draw_lineprim_cone_ab :: proc(start: glm.vec3, end: glm.vec3, radius: f32, color: u32) {
     height := glm.distance(start, end) / 2
 
-    shape := push_shape(.Cone)
-    shape.translation = (start + end) / 2
-    shape.rotation = quat_rotation_dir(glm.normalize(start - end))
-    shape.scale = {radius, height, radius}
-    shape.color = color
+    instance := lineprim_push(.Cone)
+    instance.translation = (start + end) / 2
+    instance.rotation = quat_rotation_dir(glm.normalize(start - end))
+    instance.scale = {radius, height, radius}
+    instance.color = color
 }
 
-debug_sphere :: proc(position: glm.vec3, radius: f32, color: u32) {
-    shape := push_shape(.Sphere)
-    shape.translation = position
-    shape.rotation = {}
-    shape.scale = {radius, radius, radius}
-    shape.color = color
+draw_lineprim_sphere :: proc(position: glm.vec3, radius: f32, color: u32) {
+    instance := lineprim_push(.Sphere)
+    instance.translation = position
+    instance.rotation = {}
+    instance.scale = {radius, radius, radius}
+    instance.color = color
 }
 
-// rendering
-init_shape_rdr :: proc() {
+lineprim_init :: proc() {
     vertices: [dynamic]glm.vec3; defer delete(vertices)
     indices: [dynamic]u32; defer delete(indices)
 
-    offset: [Shape_Type]Index_Offset
-    offset[.Box] = geometry_lines_box(&vertices, &indices, {1, 1, 1})
-    offset[.Cylinder] = geometry_lines_cylinder(&vertices, &indices, {1, 1}, 16)
-    offset[.Cone] = geometry_lines_cone(&vertices, &indices, {1, 1}, 16)
-    offset[.Sphere] = geometry_lines_sphere(&vertices, &indices, 1, 16)
+    ranges: [Lineprim_Type]Lineprim_Range
+    ranges[.Box] = lineprim_generate_box(&vertices, &indices, {1, 1, 1})
+    ranges[.Cylinder] = lineprim_generate_cylinder(&vertices, &indices, {1, 1}, 16)
+    ranges[.Cone] = lineprim_generate_cone(&vertices, &indices, {1, 1}, 16)
+    ranges[.Sphere] = lineprim_generate_sphere(&vertices, &indices, 1, 16)
 
-    for type in Shape_Type {
-        state.shape_data[type] = make([dynamic]Debug_Shape, DEBUG_SHAPE_CAP, DEBUG_SHAPE_CAP)
+    for type in Lineprim_Type {
+        lineprim_state.instances[type] = make([dynamic]Lineprim_Instance, LINEPRIM_CAP, LINEPRIM_CAP)
     }
 
-    state.renderer.shape_init(vertices[:], indices[:], offset)
+    state.renderer.lineprim_init(vertices[:], indices[:], ranges)
 }
 
-free_shape_rdr :: proc() {
-    for type in Shape_Type {
-        delete(state.shape_data[type])
+lineprim_destroy :: proc() {
+    for type in Lineprim_Type {
+        delete(lineprim_state.instances[type])
     }
 
-    state.renderer.shape_destroy()
+    state.renderer.lineprim_destroy()
 }
 
-render_shape_rdr :: proc(resolution: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
-    data: [Shape_Type][]Debug_Shape
+lineprim_render :: proc(resolution: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
+    data: [Lineprim_Type][]Lineprim_Instance
 
-    for type in Shape_Type {
-        data[type] = state.shape_data[type][:state.shape_data_len[type]]
+    for type in Lineprim_Type {
+        data[type] = lineprim_state.instances[type][:lineprim_state.counts[type]]
     }
 
-    state.renderer.shape_render(data, resolution, projection, view)
+    state.renderer.lineprim_render(data, resolution, projection, view)
 
-    for type in Shape_Type {
-        state.shape_data_len[type] = 0
+    for type in Lineprim_Type {
+        lineprim_state.counts[type] = 0
     }
 }

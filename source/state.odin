@@ -10,10 +10,6 @@ State :: struct {
     fonts: [3]Font,
     font_weight: Font_Weight,
     icons: Icons,
-
-    // Shape data (bucketed by type)
-    shape_data: [Shape_Type][dynamic]Debug_Shape,
-    shape_data_len: [Shape_Type]i32,
 }
 
 state: State
@@ -27,8 +23,8 @@ init :: proc(renderer: Renderer) {
     load_fonts()
     load_icons()
 
-    // Shape
-    init_shape_rdr()
+    // Lineprim
+    lineprim_init()
 
     // Triprim
     triprim_init()
@@ -41,8 +37,8 @@ destroy :: proc() {
     // Renderer data
     delete(state.icons.icons)
 
-    // Shape
-    free_shape_rdr()
+    // Lineprim
+    lineprim_destroy()
 
     // Triprim
     triprim_destroy()
@@ -53,6 +49,6 @@ render :: proc(projection: matrix[4, 4]f32, view: matrix[4, 4]f32, resolution: [
     triangle_render(projection, view)
     curve_render(projection, view)
 
-    render_shape_rdr(resolution, projection, view)
+    lineprim_render(resolution, projection, view)
     triprim_render(resolution, projection, view)
 }

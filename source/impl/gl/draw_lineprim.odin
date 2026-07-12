@@ -6,7 +6,7 @@ import gl "vendor:OpenGL"
 import imdd3 "../.."
 
 
-SHAPE_VS :: GLSL_VERSION + `
+LINEPRIM_VS :: GLSL_VERSION + `
     layout(location = 0) in vec3 i_position;
     layout(location = 1) in vec3 i_translation;
     layout(location = 2) in vec4 i_rotation;
@@ -39,7 +39,7 @@ SHAPE_VS :: GLSL_VERSION + `
     }
 `
 
-SHAPE_GS :: GLSL_VERSION + `
+LINEPRIM_GS :: GLSL_VERSION + `
     #define LINE_WIDTH 2.0
 
     layout (lines) in;
@@ -113,7 +113,7 @@ SHAPE_GS :: GLSL_VERSION + `
     }
 `
 
-SHAPE_FS :: GLSL_VERSION + `
+LINEPRIM_FS :: GLSL_VERSION + `
     precision highp float;
 
     #define AA_WIDTH 1.0
@@ -149,7 +149,7 @@ SHAPE_FS :: GLSL_VERSION + `
     }
 `
 
-Shape_Renderer :: struct {
+Lineprim_State :: struct {
     program: u32,
     uniforms: gl.Uniforms,
 
@@ -159,84 +159,84 @@ Shape_Renderer :: struct {
     ubo: u32,
     dibo: u32,
 
-    offset: [imdd3.Shape_Type]imdd3.Index_Offset,
+    ranges: [imdd3.Lineprim_Type]imdd3.Lineprim_Range,
 }
 
-shape_renderer: Shape_Renderer
+lineprim_state: Lineprim_State
 
-shape_init :: proc(vertices: []glm.vec3, indices: []u32, offset: [imdd3.Shape_Type]imdd3.Index_Offset) {
+lineprim_init :: proc(vertices: []glm.vec3, indices: []u32, ranges: [imdd3.Lineprim_Type]imdd3.Lineprim_Range) {
     ok: bool
-    shape_renderer.program, ok = load_shaders({
-        {.VERTEX_SHADER, SHAPE_VS},
-        {.GEOMETRY_SHADER, SHAPE_GS},
-        {.FRAGMENT_SHADER, SHAPE_FS},
+    lineprim_state.program, ok = load_shaders({
+        {.VERTEX_SHADER, LINEPRIM_VS},
+        {.GEOMETRY_SHADER, LINEPRIM_GS},
+        {.FRAGMENT_SHADER, LINEPRIM_FS},
     })
-    assert(ok, "ERROR: Failed to compile shape program")
-    shape_renderer.uniforms = gl.get_uniforms_from_program(shape_renderer.program)
+    assert(ok, "ERROR: Failed to compile lineprim program")
+    lineprim_state.uniforms = gl.get_uniforms_from_program(lineprim_state.program)
 
-    shape_renderer.offset = offset
+    lineprim_state.ranges = ranges
 
-    gl.GenVertexArrays(1, &shape_renderer.vao)
-    gl.BindVertexArray(shape_renderer.vao)
+    gl.GenVertexArrays(1, &lineprim_state.vao)
+    gl.BindVertexArray(lineprim_state.vao)
 
-    gl.GenBuffers(1, &shape_renderer.vbo)
-    gl.BindBuffer(gl.ARRAY_BUFFER, shape_renderer.vbo)
+    gl.GenBuffers(1, &lineprim_state.vbo)
+    gl.BindBuffer(gl.ARRAY_BUFFER, lineprim_state.vbo)
     gl.BufferData(gl.ARRAY_BUFFER, size_of(glm.vec3) * len(vertices), raw_data(vertices), gl.DYNAMIC_DRAW)
 
     gl.EnableVertexAttribArray(0)
     gl.VertexAttribPointer(0, 3, gl.FLOAT, false, size_of(glm.vec3), 0)
 
-    gl.GenBuffers(1, &shape_renderer.ibo)
-    gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, shape_renderer.ibo)
+    gl.GenBuffers(1, &lineprim_state.ibo)
+    gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, lineprim_state.ibo)
     gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, size_of(u32) * len(indices), raw_data(indices), gl.DYNAMIC_DRAW)
 
-    gl.GenBuffers(1, &shape_renderer.ubo)
-    gl.BindBuffer(gl.ARRAY_BUFFER, shape_renderer.ubo)
-    gl.BufferData(gl.ARRAY_BUFFER, size_of(imdd3.Debug_Shape) * imdd3.DEBUG_SHAPE_CAP * len(imdd3.Shape_Type), nil, gl.DYNAMIC_DRAW)
+    gl.GenBuffers(1, &lineprim_state.ubo)
+    gl.BindBuffer(gl.ARRAY_BUFFER, lineprim_state.ubo)
+    gl.BufferData(gl.ARRAY_BUFFER, size_of(imdd3.Lineprim_Instance) * imdd3.LINEPRIM_CAP * len(imdd3.Lineprim_Type), nil, gl.DYNAMIC_DRAW)
 
     attrib_offset: uintptr = 0
 
     gl.EnableVertexAttribArray(1)
-    gl.VertexAttribPointer(1, 3, gl.FLOAT, false, size_of(imdd3.Debug_Shape), attrib_offset)
+    gl.VertexAttribPointer(1, 3, gl.FLOAT, false, size_of(imdd3.Lineprim_Instance), attrib_offset)
     gl.VertexAttribDivisor(1, 1)
     attrib_offset += size_of(glm.vec3)
 
     gl.EnableVertexAttribArray(2)
-    gl.VertexAttribPointer(2, 4, gl.FLOAT, false, size_of(imdd3.Debug_Shape), attrib_offset)
+    gl.VertexAttribPointer(2, 4, gl.FLOAT, false, size_of(imdd3.Lineprim_Instance), attrib_offset)
     gl.VertexAttribDivisor(2, 1)
     attrib_offset += size_of(glm.vec4)
 
     gl.EnableVertexAttribArray(3)
-    gl.VertexAttribPointer(3, 3, gl.FLOAT, false, size_of(imdd3.Debug_Shape), attrib_offset)
+    gl.VertexAttribPointer(3, 3, gl.FLOAT, false, size_of(imdd3.Lineprim_Instance), attrib_offset)
     gl.VertexAttribDivisor(3, 1)
     attrib_offset += size_of(glm.vec3)
 
     gl.EnableVertexAttribArray(4)
-    gl.VertexAttribIPointer(4, 1, gl.UNSIGNED_INT, size_of(imdd3.Debug_Shape), attrib_offset)
+    gl.VertexAttribIPointer(4, 1, gl.UNSIGNED_INT, size_of(imdd3.Lineprim_Instance), attrib_offset)
     gl.VertexAttribDivisor(4, 1)
 
-    gl.GenBuffers(1, &shape_renderer.dibo)
+    gl.GenBuffers(1, &lineprim_state.dibo)
 }
 
-shape_destroy :: proc() {
-    gl.DeleteProgram(shape_renderer.program)
-    gl.destroy_uniforms(shape_renderer.uniforms)
+lineprim_destroy :: proc() {
+    gl.DeleteProgram(lineprim_state.program)
+    gl.destroy_uniforms(lineprim_state.uniforms)
 
-    gl.DeleteVertexArrays(1, &shape_renderer.vao)
-    gl.DeleteBuffers(1, &shape_renderer.vbo)
-    gl.DeleteBuffers(1, &shape_renderer.ibo)
-    gl.DeleteBuffers(1, &shape_renderer.ubo)
-    gl.DeleteBuffers(1, &shape_renderer.dibo)
+    gl.DeleteVertexArrays(1, &lineprim_state.vao)
+    gl.DeleteBuffers(1, &lineprim_state.vbo)
+    gl.DeleteBuffers(1, &lineprim_state.ibo)
+    gl.DeleteBuffers(1, &lineprim_state.ubo)
+    gl.DeleteBuffers(1, &lineprim_state.dibo)
 }
 
-shape_render :: proc(data: [imdd3.Shape_Type][]imdd3.Debug_Shape, resolution: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
+lineprim_render :: proc(data: [imdd3.Lineprim_Type][]imdd3.Lineprim_Instance, resolution: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
     gl.Enable(gl.DEPTH_TEST); defer gl.Disable(gl.DEPTH_TEST)
     gl.Enable(gl.BLEND); defer gl.Disable(gl.BLEND)
     gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
     total := 0
 
-    for type in imdd3.Shape_Type {
+    for type in imdd3.Lineprim_Type {
         total += len(data[type])
     }
 
@@ -247,37 +247,37 @@ shape_render :: proc(data: [imdd3.Shape_Type][]imdd3.Debug_Shape, resolution: [2
     projection := projection
     view := view
 
-    gl.UseProgram(shape_renderer.program)
-    gl.Uniform2f(shape_renderer.uniforms["u_resolution"].location, resolution[0], resolution[1])
-    gl.UniformMatrix4fv(shape_renderer.uniforms["u_projection"].location, 1, false, &projection[0][0])
-    gl.UniformMatrix4fv(shape_renderer.uniforms["u_view"].location, 1, false, &view[0][0])
+    gl.UseProgram(lineprim_state.program)
+    gl.Uniform2f(lineprim_state.uniforms["u_resolution"].location, resolution[0], resolution[1])
+    gl.UniformMatrix4fv(lineprim_state.uniforms["u_projection"].location, 1, false, &projection[0][0])
+    gl.UniformMatrix4fv(lineprim_state.uniforms["u_view"].location, 1, false, &view[0][0])
 
-    gl.BindVertexArray(shape_renderer.vao)
-    gl.BindBuffer(gl.ARRAY_BUFFER, shape_renderer.ubo)
+    gl.BindVertexArray(lineprim_state.vao)
+    gl.BindBuffer(gl.ARRAY_BUFFER, lineprim_state.ubo)
 
-    region_size :: size_of(imdd3.Debug_Shape) * imdd3.DEBUG_SHAPE_CAP
+    region_size :: size_of(imdd3.Lineprim_Instance) * imdd3.LINEPRIM_CAP
 
-    commands: [len(imdd3.Shape_Type)]gl.DrawElementsIndirectCommand
+    commands: [len(imdd3.Lineprim_Type)]gl.DrawElementsIndirectCommand
 
-    for type in imdd3.Shape_Type {
+    for type in imdd3.Lineprim_Type {
         i := int(type)
         instances := data[type]
 
         if len(instances) > 0 {
-            gl.BufferSubData(gl.ARRAY_BUFFER, i * region_size, len(instances) * size_of(imdd3.Debug_Shape), raw_data(instances))
+            gl.BufferSubData(gl.ARRAY_BUFFER, i * region_size, len(instances) * size_of(imdd3.Lineprim_Instance), raw_data(instances))
         }
 
         commands[i] = {
-            count = u32(shape_renderer.offset[type].len),
+            count = u32(lineprim_state.ranges[type].count),
             instanceCount = u32(len(instances)),
-            firstIndex = shape_renderer.offset[type].pos,
+            firstIndex = lineprim_state.ranges[type].first,
             baseVertex = 0,
-            baseInstance = u32(i) * imdd3.DEBUG_SHAPE_CAP,
+            baseInstance = u32(i) * imdd3.LINEPRIM_CAP,
         }
     }
 
-    gl.BindBuffer(gl.DRAW_INDIRECT_BUFFER, shape_renderer.dibo)
+    gl.BindBuffer(gl.DRAW_INDIRECT_BUFFER, lineprim_state.dibo)
     gl.BufferData(gl.DRAW_INDIRECT_BUFFER, size_of(commands), &commands[0], gl.STREAM_DRAW)
 
-    gl.MultiDrawElementsIndirect(gl.LINES, gl.UNSIGNED_INT, nil, i32(len(imdd3.Shape_Type)), 0)
+    gl.MultiDrawElementsIndirect(gl.LINES, gl.UNSIGNED_INT, nil, i32(len(imdd3.Lineprim_Type)), 0)
 }

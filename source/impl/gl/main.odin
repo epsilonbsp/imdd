@@ -74,9 +74,9 @@ interface :: proc() -> imdd3.Renderer {
         remove_texture = remove_texture,
         update_texture = update_texture,
 
-        shape_init = shape_init,
-        shape_destroy = shape_destroy,
-        shape_render = shape_render,
+        lineprim_init = lineprim_init,
+        lineprim_destroy = lineprim_destroy,
+        lineprim_render = lineprim_render,
 
         triprim_init = triprim_init,
         triprim_destroy = triprim_destroy,

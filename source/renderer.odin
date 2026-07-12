@@ -12,10 +12,10 @@ Renderer :: struct {
     remove_texture: proc(handle: u32),
     update_texture: proc(handle: u32, x: i32, y: i32, w: i32, h: i32, data: []u8),
 
-    // shape
-    shape_init: proc(vertices: []glm.vec3, indices: []u32, offset: [Shape_Type]Index_Offset),
-    shape_destroy: proc(),
-    shape_render: proc(data: [Shape_Type][]Debug_Shape, resolution: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
+    // lineprim
+    lineprim_init: proc(vertices: []glm.vec3, indices: []u32, ranges: [Lineprim_Type]Lineprim_Range),
+    lineprim_destroy: proc(),
+    lineprim_render: proc(data: [Lineprim_Type][]Lineprim_Instance, resolution: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
 
     // triprim
     triprim_init: proc(vertices: []Triprim_Vertex, indices: []u32, offset: [Triprim_Type]Triprim_Range),
