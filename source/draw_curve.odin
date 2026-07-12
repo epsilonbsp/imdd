@@ -42,8 +42,8 @@ draw_curve :: proc(point0: [3]f32, point1: [3]f32, point2: [3]f32, width: f32, c
     )
 }
 
-draw_arc :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, angle0: f32, angle1: f32, width: f32, color: u32) {
-    bitangent := glm.normalize(glm.cross(normal, tangent))
+draw_half_arc :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, angle0: f32, angle1: f32, width: f32, color: u32) {
+    bitangent := glm.normalize(glm.cross(tangent, normal))
     mid_angle := (angle0 + angle1) * 0.5
     half_angle := (angle1 - angle0) * 0.5
     weight := glm.cos(half_angle)
@@ -60,6 +60,19 @@ draw_arc :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, a
         Curve_Vertex{point1, line_radius, weight, color},
         Curve_Vertex{point2, line_radius, 1, color}
     )
+}
+
+draw_arc :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, angle0: f32, angle1: f32, width: f32, color: u32) {
+    ARC_SEGMENT_ANGLE_LIMIT :: glm.PI * 2 / 3
+
+    segment_count := max(int(glm.ceil(abs(angle1 - angle0) / ARC_SEGMENT_ANGLE_LIMIT)), 1)
+    segment_angle := (angle1 - angle0) / f32(segment_count)
+
+    for i in 0 ..< segment_count {
+        a0 := angle0 + segment_angle * f32(i)
+
+        draw_half_arc(center, normal, tangent, radius, a0, a0 + segment_angle, width, color)
+    }
 }
 
 draw_ring :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, width: f32, color: u32) {

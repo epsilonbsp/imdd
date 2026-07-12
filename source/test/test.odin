@@ -61,7 +61,7 @@ show_demo :: proc() {
 
     // imdd3.draw_image({}, {0, 0, -1}, {1, 0, 0}, {128, 128}, demo_state.sprite0)
     // imdd3.draw_image({}, forward, right, {128, 128}, demo_state.sprite0)
-    imdd3.draw_rimage({}, {0, 0, -1}, {1, 0, 0}, {128, 128}, demo_state.sprite1, 64)
+    // imdd3.draw_rimage({}, {0, 0, -1}, {1, 0, 0}, {128, 128}, demo_state.sprite1, 64)
 
     // imdd3.draw_line({}, {0, 128, 0}, 4, 0xff0000ff)
 
@@ -74,7 +74,9 @@ show_demo :: proc() {
 
     // imdd3.draw_curve({0, 0, 0}, {128, 0, 0}, {128, 128, 0}, 2, 0xff0000ff)
 
-    // imdd3.draw_arc({}, {0, 0, -1}, {1, 0, 0}, 64, 0, glm.PI, 2, 0xff0000ff)
+    // imdd3.draw_half_arc({}, {0, 0, -1}, {1, 0, 0}, 64, 0, glm.PI / 2, 2, 0xff0000ff)
+
+    // imdd3.draw_arc({}, {0, 0, -1}, {1, 0, 0}, 64, 0, glm.PI * 3 / 2, 2, 0xff0000ff)
 
     // imdd3.draw_ring({}, {0, 0, -1}, {1, 0, 0}, 64, 2, 0xff0000ff)
 
@@ -83,7 +85,7 @@ show_demo :: proc() {
     // imdd3.draw_wire_cone_aa({64, 32, -128}, {32, 64}, 0x4963e6_ff)
     // imdd3.draw_wire_sphere({192, 32, -128}, 32, 0xe68ac4_ff)
 
-    // imdd3.draw_aabb({-192, 32, -128}, {64, 64, 64}, 0xebbe60_ff)
+    imdd3.draw_aabb({-192, 32, -128}, {64, 64, 64}, 0xebbe60_ff)
 
     // projection := glm.mat4Perspective(glm.radians(f32(90)), 1920 / 1080, 8, 128)
     // view := glm.mat4LookAt({0, 0, 0}, {0, 0, -1}, {0, 1, 0})
