@@ -225,6 +225,7 @@ triangle_render :: proc(vertices: []imdd3.Triangle_Vertex, indices: []u32) {
     gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, renderer.tex_map.ssbo)
 
     gl.Enable(gl.DEPTH_TEST); defer gl.Disable(gl.DEPTH_TEST)
+    gl.DepthFunc(gl.LEQUAL); defer gl.DepthFunc(gl.LESS)
     gl.Enable(gl.BLEND); defer gl.Disable(gl.BLEND)
     gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
     gl.DrawElements(gl.TRIANGLES, i32(len(indices)), gl.UNSIGNED_INT, nil)

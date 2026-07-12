@@ -19,6 +19,13 @@ Stroke_Cap_Type :: enum {
     Round,
 }
 
+TEXT_LEFT :: -1
+TEXT_CENTER :: 0
+TEXT_RIGHT :: 1
+TEXT_BOTTOM :: -1
+TEXT_MIDDLE :: 0
+TEXT_TOP :: 1
+
 Triangle_Vertex :: struct {
     mode: u32,
     position: [3]f32,
@@ -70,7 +77,7 @@ draw_triangle :: proc(point0: [3]f32, point1: [3]f32, point2: [3]f32, color: u32
 }
 
 draw_rect :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, color: u32) {
-    bitangent := glm.normalize(glm.cross(normal, tangent))
+    bitangent := glm.normalize(glm.cross(tangent, normal))
     extent := size * 0.5
 
     point_a := center - tangent * extent.x - bitangent * extent.y
@@ -96,7 +103,7 @@ draw_rect :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32,
 }
 
 draw_circle :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, color: u32) {
-    bitangent := glm.normalize(glm.cross(normal, tangent))
+    bitangent := glm.normalize(glm.cross(tangent, normal))
 
     point_a := center - tangent * radius - bitangent * radius
     point_b := center + tangent * radius - bitangent * radius
@@ -121,7 +128,7 @@ draw_circle :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32
 }
 
 draw_rrect :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, fill_color: u32, radius: f32 = 0, stroke_width: f32 = 0, stroke_color: u32) {
-    bitangent := glm.normalize(glm.cross(normal, tangent))
+    bitangent := glm.normalize(glm.cross(tangent, normal))
     extent := size / 2
 
     point_a := center - tangent * extent.x - bitangent * extent.y
@@ -271,7 +278,7 @@ draw_stroke_arrow :: proc(point0: [3]f32, point1: [3]f32, normal: [3]f32, tangen
 }
 
 draw_grid :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32) {
-    bitangent := glm.normalize(glm.cross(normal, tangent))
+    bitangent := glm.normalize(glm.cross(tangent, normal))
     extent := size / 2
 
     point_a := center - tangent * extent.x - bitangent * extent.y
@@ -308,13 +315,31 @@ draw_grid_yz :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_width
     draw_grid(center, {1, 0, 0}, {0, 1, 0}, size, cell_size, line_width, color)
 }
 
-draw_text :: proc(position: [3]f32, normal: [3]f32, tangent: [3]f32, text: string, font_size: f32, line_height: f32, color: u32, clip_max_x: f32 = max(f32)) {
+draw_text :: proc(position: [3]f32, normal: [3]f32, tangent: [3]f32, text: string, font_size: f32, line_height: f32, color: u32, alignment: [2]f32 = {}, clip_max_x: f32 = max(f32)) {
     bitangent := glm.normalize(glm.cross(tangent, normal))
-    x := position.x
 
     font := &renderer.fonts[renderer.font_weight]
-    baseline_y := position.y + (line_height - font.line_height * font_size) / 2 + (font.line_height - font.ascender) * font_size
     px_range := font.distance_range * (font_size / font.em_size)
+
+    x := position.x
+
+    if alignment.x != -1 {
+        width: f32 = 0
+
+        for ch in text {
+            idx := int(ch) - 32
+
+            if idx < 0 || idx >= len(font.glyphs) {
+                continue
+            }
+
+            width += font.glyphs[idx].advance * font_size
+        }
+
+        x -= width * 0.5 * (alignment.x + 1)
+    }
+
+    baseline_y := position.y + font_size * (font.line_height * 0.5 - font.ascender) - line_height * alignment.y * 0.5
 
     for ch in text {
         idx := int(ch) - 32
@@ -335,25 +360,25 @@ draw_text :: proc(position: [3]f32, normal: [3]f32, tangent: [3]f32, text: strin
             quad_top := baseline_y + g.plane_top * font_size
             quad_bottom := baseline_y + g.plane_bottom * font_size
 
-            a := position + tangent * quad_left + bitangent * quad_bottom
-            b := position + tangent * quad_right + bitangent * quad_bottom
-            c := position + tangent * quad_right + bitangent * quad_top
-            d := position + tangent * quad_left + bitangent * quad_top
+            point_a := position + tangent * quad_left + bitangent * quad_bottom
+            point_b := position + tangent * quad_right + bitangent * quad_bottom
+            point_c := position + tangent * quad_right + bitangent * quad_top
+            point_d := position + tangent * quad_left + bitangent * quad_top
 
-            l := u32(len(triangle_state.vertices))
+            index := u32(len(triangle_state.vertices))
 
             append(
                 &triangle_state.vertices,
-                Triangle_Vertex{5, a, {g.uv_left,  g.uv_bottom}, 0, {color, 0}, {px_range, 0, 0, 0}},
-                Triangle_Vertex{5, b, {g.uv_right, g.uv_bottom}, 0, {color, 0}, {px_range, 0, 0, 0}},
-                Triangle_Vertex{5, c, {g.uv_right, g.uv_top}, 0, {color, 0}, {px_range, 0, 0, 0}},
-                Triangle_Vertex{5, d, {g.uv_left,  g.uv_top}, 0, {color, 0}, {px_range, 0, 0, 0}}
+                Triangle_Vertex{5, point_a, {g.uv_left,  g.uv_bottom}, 0, {color, 0}, {px_range, 0, 0, 0}},
+                Triangle_Vertex{5, point_b, {g.uv_right, g.uv_bottom}, 0, {color, 0}, {px_range, 0, 0, 0}},
+                Triangle_Vertex{5, point_c, {g.uv_right, g.uv_top}, 0, {color, 0}, {px_range, 0, 0, 0}},
+                Triangle_Vertex{5, point_d, {g.uv_left,  g.uv_top}, 0, {color, 0}, {px_range, 0, 0, 0}}
             )
 
             append(
                 &triangle_state.indices,
-                l, l + 1, l + 2,
-                l, l + 2, l + 3
+                index, index + 1, index + 2,
+                index, index + 2, index + 3
             )
         }
 
@@ -368,7 +393,7 @@ draw_icon :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: f32, ke
         return
     }
 
-    bitangent := glm.normalize(glm.cross(normal, tangent))
+    bitangent := glm.normalize(glm.cross(tangent, normal))
     extent := size / 2
 
     point_a := center - tangent * extent - bitangent * extent
@@ -396,7 +421,7 @@ draw_icon :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: f32, ke
 }
 
 draw_image :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, sprite: Sprite) {
-    bitangent := glm.normalize(glm.cross(normal, tangent))
+    bitangent := glm.normalize(glm.cross(tangent, normal))
     extent := size / 2
 
     point_a := center - tangent * extent.x - bitangent * extent.y
@@ -422,7 +447,7 @@ draw_image :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32
 }
 
 draw_rimage:: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, sprite: Sprite, radius: f32 = 0) {
-    bitangent := glm.normalize(glm.cross(normal, tangent))
+    bitangent := glm.normalize(glm.cross(tangent, normal))
     extent := size / 2
 
     point_a := center - tangent * extent.x - bitangent * extent.y
