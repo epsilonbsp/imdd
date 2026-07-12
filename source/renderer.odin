@@ -10,6 +10,10 @@ Renderer :: struct {
     remove_texture: proc(handle: u32),
     update_texture: proc(handle: u32, x: i32, y: i32, w: i32, h: i32, data: []u8),
 
+    line_render: proc(vertices: []Line_Vertex, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
+    triangle_render: proc(vertices: []Triangle_Vertex, indices: []u32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
+    curve_render: proc(vertices: []Curve_Vertex, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
+
     lineprim_init: proc(vertices: []glm.vec3, indices: []u32, ranges: [Lineprim_Type]Lineprim_Range),
     lineprim_destroy: proc(),
     lineprim_render: proc(data: [Lineprim_Type][]Lineprim_Instance, resolution: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
@@ -18,7 +22,4 @@ Renderer :: struct {
     triprim_destroy: proc(),
     triprim_render: proc(data: [Triprim_Type][]Triprim_Instance, viewport: [2]f32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
 
-    line_render: proc(vertices: []Line_Vertex, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
-    triangle_render: proc(vertices: []Triangle_Vertex, indices: []u32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
-    curve_render: proc(vertices: []Curve_Vertex, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
 }
