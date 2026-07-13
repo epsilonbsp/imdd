@@ -8,6 +8,8 @@ Line_Vertex :: struct {
     position: [3]f32,
     radius: f32,
     color: u32,
+    distance: f32,
+    dash_length: f32,
     is_rounded: b32,
 }
 
@@ -39,12 +41,13 @@ line_render :: proc() {
 }
 
 // API
-draw_line :: proc(point0: [3]f32, point1: [3]f32, width: f32, color: u32, is_rounded := false) {
+draw_line :: proc(point0: [3]f32, point1: [3]f32, width: f32, color: u32, dash_length: f32 = 0, start_distance: f32 = 0, is_rounded := false) {
     radius := width * 0.5
+    distance := start_distance + glm.distance(point0, point1)
 
     append(&line_state.vertices,
-        Line_Vertex{point0, radius, color, b32(is_rounded)},
-        Line_Vertex{point1, radius, color, b32(is_rounded)}
+        Line_Vertex{point0, radius, color, start_distance, dash_length, b32(is_rounded)},
+        Line_Vertex{point1, radius, color, distance, dash_length, b32(is_rounded)}
     )
 }
 
@@ -59,23 +62,23 @@ draw_line_cap :: proc(point0: [3]f32, dir: [3]f32, width: f32, color: u32, cap_t
     #partial switch cap_type {
     case .Square:
         append(&line_state.vertices,
-            Line_Vertex{point0, radius, color, b32(false)},
-            Line_Vertex{point1, radius, color, b32(false)}
+            Line_Vertex{point0, radius, color, 0, 0, b32(false)},
+            Line_Vertex{point1, radius, color, 0, 0, b32(false)}
         )
     case .Triangle:
         append(&line_state.vertices,
-            Line_Vertex{point0, radius, color, b32(false)},
-            Line_Vertex{point1, 0, color, b32(false)}
+            Line_Vertex{point0, radius, color, 0, 0, b32(false)},
+            Line_Vertex{point1, 0, color, 0, 0, b32(false)}
         )
     case .Circle:
         append(&line_state.vertices,
-            Line_Vertex{point0, radius, color, b32(true)},
-            Line_Vertex{point1, radius, color, b32(true)}
+            Line_Vertex{point0, radius, color, 0, 0, b32(true)},
+            Line_Vertex{point1, radius, color, 0, 0, b32(true)}
         )
     }
 }
 
-draw_line_strip :: proc(points: [][3]f32, width: f32, color: u32, cap_type: Line_Cap_Type = .None, is_looped := false) {
+draw_line_strip :: proc(points: [][3]f32, width: f32, color: u32, cap_type: Line_Cap_Type = .None, is_looped := false, dash_length: f32 = 0) {
     if len(points) < 2 {
         return
     }
@@ -90,6 +93,7 @@ draw_line_strip :: proc(points: [][3]f32, width: f32, color: u32, cap_type: Line
 
     prev_end: [3]f32
     first_start: [3]f32
+    total_distance: f32 = 0
 
     for i in 0 ..< segment_count {
         curr := points[i]
@@ -115,7 +119,8 @@ draw_line_strip :: proc(points: [][3]f32, width: f32, color: u32, cap_type: Line
             draw_curve(prev_end, curr, start, width, color)
         }
 
-        draw_line(start, end, width, color)
+        draw_line(start, end, width, color, dash_length, total_distance)
+        total_distance += glm.distance(start, end)
 
         prev_end = end
     }

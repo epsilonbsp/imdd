@@ -64,21 +64,24 @@ show_demo :: proc() {
     // imdd3.draw_rimage({}, {0, 0, -1}, {1, 0, 0}, {128, 128}, demo_state.sprite1, 64)
 
     // imdd3.draw_line({}, {0, 128, 0}, 4, 0xff0000ff)
+    // imdd3.draw_line({}, {0, 128, 0}, 4, 0xff0000ff, 4, 0)
 
     // imdd3.draw_line_strip({
     //     {0, 0, 0},
     //     {128, 0, 0},
     //     {128, 128, 0},
     //     {0, 128, 0},
-    // }, 2, 0xff0000ff, .Circle, true)
+    // }, 1, 0xff0000ff, .Circle, true, 4)
 
-    // imdd3.draw_curve({0, 0, 0}, {128, 0, 0}, {128, 128, 0}, 2, 0xff0000ff)
+    imdd3.draw_curve({0, 0, 0}, {128, 0, 0}, {128, 128, 0}, 2, 0xff0000ff, 4)
+    imdd3.draw_curve({128, 128, 0}, {128, 256, 0}, {256, 256, 0}, 2, 0xff0000ff, 4)
 
     // imdd3.draw_half_arc({}, {0, 0, -1}, {1, 0, 0}, 64, 0, glm.PI / 2, 2, 0xff0000ff)
 
     // imdd3.draw_arc({}, {0, 0, -1}, {1, 0, 0}, 64, 0, glm.PI * 3 / 2, 2, 0xff0000ff)
 
     // imdd3.draw_ring({}, {0, 0, -1}, {1, 0, 0}, 64, 2, 0xff0000ff)
+    // imdd3.draw_ring_dashed({}, {0, 0, -1}, {1, 0, 0}, 64, 2, 0xff0000ff, 16)
 
     imdd3.draw_wire_aabb({0, 32, 128}, {64, 64, 64}, 0xebbe60ff)
     imdd3.draw_wire_cylinder_aa({128, 32, 128}, {32, 64}, 0x9fe685ff)

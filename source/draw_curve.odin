@@ -9,6 +9,8 @@ Curve_Vertex :: struct {
     radius: f32,
     weight: f32,
     color: u32,
+    start_distance: f32,
+    dash_length: f32,
 }
 
 Curve_State :: struct {
@@ -32,17 +34,17 @@ curve_render :: proc() {
 }
 
 // API
-draw_curve :: proc(point0: [3]f32, point1: [3]f32, point2: [3]f32, width: f32, color: u32) {
+draw_curve :: proc(point0: [3]f32, point1: [3]f32, point2: [3]f32, width: f32, color: u32, dash_length: f32 = 0, start_distance: f32 = 0) {
     radius := width * 0.5
 
     append(&curve_state.vertices,
-        Curve_Vertex{point0, radius, 1, color},
-        Curve_Vertex{point1, radius, 1, color},
-        Curve_Vertex{point2, radius, 1, color}
+        Curve_Vertex{point0, radius, 1, color, start_distance, dash_length},
+        Curve_Vertex{point1, radius, 1, color, start_distance, dash_length},
+        Curve_Vertex{point2, radius, 1, color, start_distance, dash_length}
     )
 }
 
-draw_half_arc :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, angle0: f32, angle1: f32, width: f32, color: u32) {
+draw_half_arc :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, angle0: f32, angle1: f32, width: f32, color: u32, dash_length: f32 = 0, start_distance: f32 = 0) {
     bitangent := glm.normalize(glm.cross(tangent, normal))
     mid_angle := (angle0 + angle1) * 0.5
     half_angle := (angle1 - angle0) * 0.5
@@ -56,9 +58,9 @@ draw_half_arc :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f
     line_radius := width * 0.5
 
     append(&curve_state.vertices,
-        Curve_Vertex{point0, line_radius, 1, color},
-        Curve_Vertex{point1, line_radius, weight, color},
-        Curve_Vertex{point2, line_radius, 1, color}
+        Curve_Vertex{point0, line_radius, 1, color, start_distance, dash_length},
+        Curve_Vertex{point1, line_radius, weight, color, start_distance, dash_length},
+        Curve_Vertex{point2, line_radius, 1, color, start_distance, dash_length}
     )
 }
 
@@ -78,7 +80,15 @@ draw_arc :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, a
 draw_ring :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, width: f32, color: u32) {
     segment: f32 = glm.PI * 2 / 3
 
-    draw_arc(center, normal, tangent, radius, segment * 0, segment * 1, width, color)
-    draw_arc(center, normal, tangent, radius, segment * 1, segment * 2, width, color)
-    draw_arc(center, normal, tangent, radius, segment * 2, segment * 3, width, color)
+    draw_half_arc(center, normal, tangent, radius, segment * 0, segment * 1, width, color)
+    draw_half_arc(center, normal, tangent, radius, segment * 1, segment * 2, width, color)
+    draw_half_arc(center, normal, tangent, radius, segment * 2, segment * 3, width, color)
+}
+
+draw_ring_dashed :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, width: f32, color: u32, dash_length: f32 = 0) {
+    segment: f32 = glm.PI * 2 / 3
+
+    draw_half_arc(center, normal, tangent, radius, segment * 0, segment * 1, width, color, dash_length)
+    draw_half_arc(center, normal, tangent, radius, segment * 1, segment * 2, width, color, dash_length)
+    draw_half_arc(center, normal, tangent, radius, segment * 2, segment * 3, width, color, dash_length)
 }

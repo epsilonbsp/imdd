@@ -8,11 +8,15 @@ LINE_VS :: GLSL_VERSION + `
     layout(location = 0) in vec3 i_position;
     layout(location = 1) in float i_radius;
     layout(location = 2) in uint i_color;
-    layout(location = 3) in uint i_rounded;
+    layout(location = 3) in float i_distance;
+    layout(location = 4) in float i_dash_length;
+    layout(location = 5) in uint i_rounded;
 
     out Vertex_Data {
         float radius;
         uint color;
+        float distance;
+        float dash_length;
         uint rounded;
     } v_data;
 
@@ -20,6 +24,8 @@ LINE_VS :: GLSL_VERSION + `
         gl_Position = vec4(i_position, 1.0);
         v_data.radius = i_radius;
         v_data.color = i_color;
+        v_data.distance = i_distance;
+        v_data.dash_length = i_dash_length;
         v_data.rounded = i_rounded;
     }
 `
@@ -31,12 +37,16 @@ LINE_GS :: GLSL_VERSION + `
     in Vertex_Data {
         float radius;
         uint color;
+        float distance;
+        float dash_length;
         uint rounded;
     } v_data[];
 
     out vec4 v_color;
     out vec2 v_tex_coord;
     flat out uint v_round;
+    out float v_distance;
+    flat out float v_dash_length;
 
     uniform mat4 u_projection;
     uniform mat4 u_view;
@@ -66,20 +76,22 @@ LINE_GS :: GLSL_VERSION + `
         vec4 color0 = unpack_rgba(v_data[0].color);
         vec4 color1 = unpack_rgba(v_data[1].color);
 
+        v_dash_length = v_data[0].dash_length;
+
         gl_Position = u_projection * vec4(view0.xyz - view_perp * v_data[0].radius, 1.0);
-        v_color = color0; v_tex_coord = vec2(-1.0, 0.0); v_round = v_data[0].rounded;
+        v_color = color0; v_tex_coord = vec2(-1.0, 0.0); v_round = v_data[0].rounded; v_distance = v_data[0].distance;
         EmitVertex();
 
         gl_Position = u_projection * vec4(view0.xyz + view_perp * v_data[0].radius, 1.0);
-        v_color = color0; v_tex_coord = vec2(1.0, 0.0); v_round = v_data[0].rounded;
+        v_color = color0; v_tex_coord = vec2(1.0, 0.0); v_round = v_data[0].rounded; v_distance = v_data[0].distance;
         EmitVertex();
 
         gl_Position = u_projection * vec4(view1.xyz - view_perp * v_data[1].radius, 1.0);
-        v_color = color1; v_tex_coord = vec2(-1.0, 1.0); v_round = v_data[1].rounded;
+        v_color = color1; v_tex_coord = vec2(-1.0, 1.0); v_round = v_data[1].rounded; v_distance = v_data[1].distance;
         EmitVertex();
 
         gl_Position = u_projection * vec4(view1.xyz + view_perp * v_data[1].radius, 1.0);
-        v_color = color1; v_tex_coord = vec2(1.0, 1.0); v_round = v_data[1].rounded;
+        v_color = color1; v_tex_coord = vec2(1.0, 1.0); v_round = v_data[1].rounded; v_distance = v_data[1].distance;
         EmitVertex();
 
         EndPrimitive();
@@ -90,6 +102,8 @@ LINE_FS :: GLSL_VERSION + `
     in vec4 v_color;
     in vec2 v_tex_coord;
     flat in uint v_round;
+    in float v_distance;
+    flat in float v_dash_length;
 
     out vec4 o_frag_color;
 
@@ -100,6 +114,10 @@ LINE_FS :: GLSL_VERSION + `
             if (cp.x * cp.x + cp.y * cp.y > 1.0) {
                 discard;
             }
+        }
+
+        if (v_dash_length > 0.0 && mod(v_distance, v_dash_length * 2.0) > v_dash_length) {
+            discard;
         }
 
         o_frag_color = v_color;
@@ -143,7 +161,13 @@ line_init :: proc() {
     gl.VertexAttribIPointer(2, 1, gl.UNSIGNED_INT, size_of(imdd3.Line_Vertex), offset_of(imdd3.Line_Vertex, color))
 
     gl.EnableVertexAttribArray(3)
-    gl.VertexAttribIPointer(3, 1, gl.UNSIGNED_INT, size_of(imdd3.Line_Vertex), offset_of(imdd3.Line_Vertex, is_rounded))
+    gl.VertexAttribPointer(3, 1, gl.FLOAT, false, size_of(imdd3.Line_Vertex), offset_of(imdd3.Line_Vertex, distance))
+
+    gl.EnableVertexAttribArray(4)
+    gl.VertexAttribPointer(4, 1, gl.FLOAT, false, size_of(imdd3.Line_Vertex), offset_of(imdd3.Line_Vertex, dash_length))
+
+    gl.EnableVertexAttribArray(5)
+    gl.VertexAttribIPointer(5, 1, gl.UNSIGNED_INT, size_of(imdd3.Line_Vertex), offset_of(imdd3.Line_Vertex, is_rounded))
 }
 
 line_destroy :: proc() {
