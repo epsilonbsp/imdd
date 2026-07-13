@@ -82,52 +82,52 @@ triprim_generate_box :: proc(vertices: ^[dynamic]Triprim_Vertex) -> (range: Trip
 
     append(vertices,
         // Left
-        Triprim_Vertex{{-0.5, -0.5, -0.5}, {}, {-1, 0, 0}, {1, 1, 0}},
-        Triprim_Vertex{{-0.5, -0.5,  0.5}, {}, {-1, 0, 0}, {0, 2, 0}},
-        Triprim_Vertex{{-0.5,  0.5,  0.5}, {}, {-1, 0, 0}, {0, 1, 1}},
-        Triprim_Vertex{{-0.5, -0.5, -0.5}, {}, {-1, 0, 0}, {1, 0, 1}},
-        Triprim_Vertex{{-0.5,  0.5,  0.5}, {}, {-1, 0, 0}, {0, 1, 1}},
-        Triprim_Vertex{{-0.5,  0.5, -0.5}, {}, {-1, 0, 0}, {0, 0, 2}},
+        Triprim_Vertex{{-1, -1, -1}, {}, {-1, 0, 0}, {1, 1, 0}},
+        Triprim_Vertex{{-1, -1,  1}, {}, {-1, 0, 0}, {0, 2, 0}},
+        Triprim_Vertex{{-1,  1,  1}, {}, {-1, 0, 0}, {0, 1, 1}},
+        Triprim_Vertex{{-1, -1, -1}, {}, {-1, 0, 0}, {1, 0, 1}},
+        Triprim_Vertex{{-1,  1,  1}, {}, {-1, 0, 0}, {0, 1, 1}},
+        Triprim_Vertex{{-1,  1, -1}, {}, {-1, 0, 0}, {0, 0, 2}},
 
         // Right
-        Triprim_Vertex{{ 0.5, -0.5,  0.5}, {}, {1, 0, 0}, {1, 1, 0}},
-        Triprim_Vertex{{ 0.5, -0.5, -0.5}, {}, {1, 0, 0}, {0, 2, 0}},
-        Triprim_Vertex{{ 0.5,  0.5, -0.5}, {}, {1, 0, 0}, {0, 1, 1}},
-        Triprim_Vertex{{ 0.5, -0.5,  0.5}, {}, {1, 0, 0}, {1, 0, 1}},
-        Triprim_Vertex{{ 0.5,  0.5, -0.5}, {}, {1, 0, 0}, {0, 1, 1}},
-        Triprim_Vertex{{ 0.5,  0.5,  0.5}, {}, {1, 0, 0}, {0, 0, 2}},
+        Triprim_Vertex{{ 1, -1,  1}, {}, {1, 0, 0}, {1, 1, 0}},
+        Triprim_Vertex{{ 1, -1, -1}, {}, {1, 0, 0}, {0, 2, 0}},
+        Triprim_Vertex{{ 1,  1, -1}, {}, {1, 0, 0}, {0, 1, 1}},
+        Triprim_Vertex{{ 1, -1,  1}, {}, {1, 0, 0}, {1, 0, 1}},
+        Triprim_Vertex{{ 1,  1, -1}, {}, {1, 0, 0}, {0, 1, 1}},
+        Triprim_Vertex{{ 1,  1,  1}, {}, {1, 0, 0}, {0, 0, 2}},
 
         // Bottom
-        Triprim_Vertex{{-0.5, -0.5, -0.5}, {}, {0, -1, 0}, {1, 1, 0}},
-        Triprim_Vertex{{ 0.5, -0.5, -0.5}, {}, {0, -1, 0}, {0, 2, 0}},
-        Triprim_Vertex{{ 0.5, -0.5,  0.5}, {}, {0, -1, 0}, {0, 1, 1}},
-        Triprim_Vertex{{-0.5, -0.5, -0.5}, {}, {0, -1, 0}, {1, 0, 1}},
-        Triprim_Vertex{{ 0.5, -0.5,  0.5}, {}, {0, -1, 0}, {0, 1, 1}},
-        Triprim_Vertex{{-0.5, -0.5,  0.5}, {}, {0, -1, 0}, {0, 0, 2}},
+        Triprim_Vertex{{-1, -1, -1}, {}, {0, -1, 0}, {1, 1, 0}},
+        Triprim_Vertex{{ 1, -1, -1}, {}, {0, -1, 0}, {0, 2, 0}},
+        Triprim_Vertex{{ 1, -1,  1}, {}, {0, -1, 0}, {0, 1, 1}},
+        Triprim_Vertex{{-1, -1, -1}, {}, {0, -1, 0}, {1, 0, 1}},
+        Triprim_Vertex{{ 1, -1,  1}, {}, {0, -1, 0}, {0, 1, 1}},
+        Triprim_Vertex{{-1, -1,  1}, {}, {0, -1, 0}, {0, 0, 2}},
 
         // Top
-        Triprim_Vertex{{-0.5,  0.5,  0.5}, {}, {0, 1, 0}, {1, 1, 0}},
-        Triprim_Vertex{{ 0.5,  0.5,  0.5}, {}, {0, 1, 0}, {0, 2, 0}},
-        Triprim_Vertex{{ 0.5,  0.5, -0.5}, {}, {0, 1, 0}, {0, 1, 1}},
-        Triprim_Vertex{{-0.5,  0.5,  0.5}, {}, {0, 1, 0}, {1, 0, 1}},
-        Triprim_Vertex{{ 0.5,  0.5, -0.5}, {}, {0, 1, 0}, {0, 1, 1}},
-        Triprim_Vertex{{-0.5,  0.5, -0.5}, {}, {0, 1, 0}, {0, 0, 2}},
+        Triprim_Vertex{{-1,  1,  1}, {}, {0, 1, 0}, {1, 1, 0}},
+        Triprim_Vertex{{ 1,  1,  1}, {}, {0, 1, 0}, {0, 2, 0}},
+        Triprim_Vertex{{ 1,  1, -1}, {}, {0, 1, 0}, {0, 1, 1}},
+        Triprim_Vertex{{-1,  1,  1}, {}, {0, 1, 0}, {1, 0, 1}},
+        Triprim_Vertex{{ 1,  1, -1}, {}, {0, 1, 0}, {0, 1, 1}},
+        Triprim_Vertex{{-1,  1, -1}, {}, {0, 1, 0}, {0, 0, 2}},
 
         // Back
-        Triprim_Vertex{{-0.5, -0.5,  0.5}, {}, {0, 0, 1}, {1, 1, 0}},
-        Triprim_Vertex{{ 0.5, -0.5,  0.5}, {}, {0, 0, 1}, {0, 2, 0}},
-        Triprim_Vertex{{ 0.5,  0.5,  0.5}, {}, {0, 0, 1}, {0, 1, 1}},
-        Triprim_Vertex{{-0.5, -0.5,  0.5}, {}, {0, 0, 1}, {1, 0, 1}},
-        Triprim_Vertex{{ 0.5,  0.5,  0.5}, {}, {0, 0, 1}, {0, 1, 1}},
-        Triprim_Vertex{{-0.5,  0.5,  0.5}, {}, {0, 0, 1}, {0, 0, 2}},
+        Triprim_Vertex{{-1, -1,  1}, {}, {0, 0, 1}, {1, 1, 0}},
+        Triprim_Vertex{{ 1, -1,  1}, {}, {0, 0, 1}, {0, 2, 0}},
+        Triprim_Vertex{{ 1,  1,  1}, {}, {0, 0, 1}, {0, 1, 1}},
+        Triprim_Vertex{{-1, -1,  1}, {}, {0, 0, 1}, {1, 0, 1}},
+        Triprim_Vertex{{ 1,  1,  1}, {}, {0, 0, 1}, {0, 1, 1}},
+        Triprim_Vertex{{-1,  1,  1}, {}, {0, 0, 1}, {0, 0, 2}},
 
         // Front
-        Triprim_Vertex{{ 0.5, -0.5, -0.5}, {}, {0, 0, -1}, {1, 1, 0}},
-        Triprim_Vertex{{-0.5, -0.5, -0.5}, {}, {0, 0, -1}, {0, 2, 0}},
-        Triprim_Vertex{{-0.5,  0.5, -0.5}, {}, {0, 0, -1}, {0, 1, 1}},
-        Triprim_Vertex{{ 0.5, -0.5, -0.5}, {}, {0, 0, -1}, {1, 0, 1}},
-        Triprim_Vertex{{-0.5,  0.5, -0.5}, {}, {0, 0, -1}, {0, 1, 1}},
-        Triprim_Vertex{{ 0.5,  0.5, -0.5}, {}, {0, 0, -1}, {0, 0, 2}},
+        Triprim_Vertex{{ 1, -1, -1}, {}, {0, 0, -1}, {1, 1, 0}},
+        Triprim_Vertex{{-1, -1, -1}, {}, {0, 0, -1}, {0, 2, 0}},
+        Triprim_Vertex{{-1,  1, -1}, {}, {0, 0, -1}, {0, 1, 1}},
+        Triprim_Vertex{{ 1, -1, -1}, {}, {0, 0, -1}, {1, 0, 1}},
+        Triprim_Vertex{{-1,  1, -1}, {}, {0, 0, -1}, {0, 1, 1}},
+        Triprim_Vertex{{ 1,  1, -1}, {}, {0, 0, -1}, {0, 0, 2}},
     )
 
     range.count = i32(len(vertices)) - i32(range.first)
@@ -525,7 +525,7 @@ draw_aabb :: proc(position: [3]f32, size: [3]f32, color: u32) {
     instance := triprim_push(.Box)
     instance.translation = position
     instance.rotation = {}
-    instance.scale = size
+    instance.scale = size / 2
     instance.color = color
 }
 

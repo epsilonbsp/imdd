@@ -42,9 +42,9 @@ lineprim_init :: proc() {
     indices: [dynamic]u32; defer delete(indices)
 
     ranges: [Lineprim_Type]Lineprim_Range
-    ranges[.Box] = lineprim_generate_box(&vertices, &indices, {1, 1, 1})
-    ranges[.Cylinder] = lineprim_generate_cylinder(&vertices, &indices, {1, 1}, 16)
-    ranges[.Cone] = lineprim_generate_cone(&vertices, &indices, {1, 1}, 16)
+    ranges[.Box] = lineprim_generate_box(&vertices, &indices)
+    ranges[.Cylinder] = lineprim_generate_cylinder(&vertices, &indices, 16)
+    ranges[.Cone] = lineprim_generate_cone(&vertices, &indices, 16)
     ranges[.Cone_Frustum] = lineprim_generate_cone_frustum(&vertices, &indices, 16)
     ranges[.Sphere] = lineprim_generate_sphere(&vertices, &indices, 16)
     ranges[.Capsule] = lineprim_generate_capsule(&vertices, &indices, 16)
@@ -76,20 +76,20 @@ lineprim_render :: proc() {
     }
 }
 
-lineprim_generate_box :: proc(vertices: ^[dynamic]Lineprim_Vertex, indices: ^[dynamic]u32, size: glm.vec3) -> (range: Lineprim_Range) {
+lineprim_generate_box :: proc(vertices: ^[dynamic]Lineprim_Vertex, indices: ^[dynamic]u32) -> (range: Lineprim_Range) {
     range.first = cast(u32) len(indices)
 
     index := u32(len(vertices))
 
     append(vertices,
-        Lineprim_Vertex{{-size.x, -size.y,  size.z}, {}},
-        Lineprim_Vertex{{ size.x, -size.y,  size.z}, {}},
-        Lineprim_Vertex{{ size.x,  size.y,  size.z}, {}},
-        Lineprim_Vertex{{-size.x,  size.y,  size.z}, {}},
-        Lineprim_Vertex{{ size.x, -size.y, -size.z}, {}},
-        Lineprim_Vertex{{-size.x, -size.y, -size.z}, {}},
-        Lineprim_Vertex{{-size.x,  size.y, -size.z}, {}},
-        Lineprim_Vertex{{ size.x,  size.y, -size.z}, {}},
+        Lineprim_Vertex{{-1, -1,  1}, {}},
+        Lineprim_Vertex{{ 1, -1,  1}, {}},
+        Lineprim_Vertex{{ 1,  1,  1}, {}},
+        Lineprim_Vertex{{-1,  1,  1}, {}},
+        Lineprim_Vertex{{ 1, -1, -1}, {}},
+        Lineprim_Vertex{{-1, -1, -1}, {}},
+        Lineprim_Vertex{{-1,  1, -1}, {}},
+        Lineprim_Vertex{{ 1,  1, -1}, {}},
     )
 
     append(indices,
@@ -115,7 +115,7 @@ lineprim_generate_box :: proc(vertices: ^[dynamic]Lineprim_Vertex, indices: ^[dy
     return range
 }
 
-lineprim_generate_cylinder :: proc(vertices: ^[dynamic]Lineprim_Vertex, indices: ^[dynamic]u32, size: glm.vec2, segments: i32) -> (range: Lineprim_Range) {
+lineprim_generate_cylinder :: proc(vertices: ^[dynamic]Lineprim_Vertex, indices: ^[dynamic]u32, segments: i32) -> (range: Lineprim_Range) {
     range.first = cast(u32) len(indices)
 
     angle := glm.PI * 2 / f32(segments)
@@ -124,13 +124,13 @@ lineprim_generate_cylinder :: proc(vertices: ^[dynamic]Lineprim_Vertex, indices:
     for i in 0 ..< segments {
         x, z: f32 = glm.cos(angle * f32(i)), glm.sin(angle * f32(i))
 
-        append(vertices, Lineprim_Vertex{{x * size.x, -size.y, z * size.x}, {}})
+        append(vertices, Lineprim_Vertex{{x, -1, z}, {}})
     }
 
     for i in 0 ..< segments {
         x, z: f32 = glm.cos(angle * f32(i)), glm.sin(angle * f32(i))
 
-        append(vertices, Lineprim_Vertex{{x * size.x, size.y, z * size.x}, {}})
+        append(vertices, Lineprim_Vertex{{x, 1, z}, {}})
     }
 
     for i: u32 = 0; i < u32(segments); i += 1 {
@@ -154,7 +154,7 @@ lineprim_generate_cylinder :: proc(vertices: ^[dynamic]Lineprim_Vertex, indices:
     return range
 }
 
-lineprim_generate_cone :: proc(vertices: ^[dynamic]Lineprim_Vertex, indices: ^[dynamic]u32, size: glm.vec2, segments: i32) -> (range: Lineprim_Range) {
+lineprim_generate_cone :: proc(vertices: ^[dynamic]Lineprim_Vertex, indices: ^[dynamic]u32, segments: i32) -> (range: Lineprim_Range) {
     range.first = cast(u32) len(indices)
 
     angle := glm.PI * 2 / f32(segments)
@@ -163,10 +163,10 @@ lineprim_generate_cone :: proc(vertices: ^[dynamic]Lineprim_Vertex, indices: ^[d
     for i in 0 ..< segments {
         x, z: f32 = glm.cos(angle * f32(i)), glm.sin(angle * f32(i))
 
-        append(vertices, Lineprim_Vertex{{x * size.x, -size.y, z * size.x}, {}})
+        append(vertices, Lineprim_Vertex{{x, -1, z}, {}})
     }
 
-    append(vertices, Lineprim_Vertex{{0, size.y, 0}, {}})
+    append(vertices, Lineprim_Vertex{{0, 1, 0}, {}})
 
     for i: u32 = 0; i < u32(segments); i += 1 {
         append(indices, index + i, index + (i + 1) % u32(segments))
