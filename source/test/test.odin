@@ -90,7 +90,7 @@ show_demo :: proc() {
     imdd3.draw_aabb({-192, 32, -128}, {64, 64, 64}, 0xebbe60ff)
     imdd3.draw_cylinder_aa({-64, 32, -128}, {32, 64}, 0x9fe685ff)
     imdd3.draw_cone_aa({64, 32, -128}, {32, 64}, 0x4963e6ff)
-    imdd3.draw_cone_frustum_aa({192, 32, -128}, {32, 64}, 16, 0xe6c25e22)
+    imdd3.draw_cone_frustum_aa({192, 32, -128}, {32, 64}, 16, 0xe6c25eff)
     imdd3.draw_sphere({320, 32, -128}, 32, 0xe68ac4ff)
     imdd3.draw_capsule_aa({448, 32, -128}, {16, 32}, 0xc9a6e6ff)
 
