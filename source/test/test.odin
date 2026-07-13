@@ -37,15 +37,15 @@ show_demo :: proc() {
     // imdd3.draw_stroke({}, {0, 128, 0}, {0, 0, -1}, {1, 0, 0}, 4, 0xff0000ff)
     // imdd3.draw_stroke({}, {0, 128, 0}, forward, right, 4, 0xff0000ff)
 
-    // point0 := [3]f32{}
-    // point1 := [3]f32{0, 128, 0}
-    // point2 := [3]f32{128, 128, 0}
+    point0 := [3]f32{}
+    point1 := [3]f32{0, 128, 0}
+    point2 := [3]f32{128, 128, 0}
 
-    // imdd3.draw_stroke(point0, point1, {0, 0, -1}, {1, 0, 0}, 4, 0xff0000ff)
-    // imdd3.draw_stroke(point1, point2, {0, 0, -1}, {1, 0, 0}, 4, 0xff0000ff)
-    // imdd3.draw_stroke_cap(point1, point0, {0, 0, -1}, {1, 0, 0}, 4, 0xff0000ff, .Round)
-    // imdd3.draw_stroke_join(point0, point1, point2, {0, 0, -1}, {1, 0, 0}, 4, 0xff0000ff, .Round)
-    // imdd3.draw_stroke_cap(point1, point2, {0, 0, -1}, {1, 0, 0}, 4, 0xff0000ff, .Round)
+    imdd3.draw_stroke(point0, point1, {0, 0, -1}, {1, 0, 0}, 4, 0xff0000ff, 4)
+    imdd3.draw_stroke(point1, point2, {0, 0, -1}, {1, 0, 0}, 4, 0xff0000ff, 4)
+    imdd3.draw_stroke_cap(point1, point0, {0, 0, -1}, {1, 0, 0}, 4, 0xff0000ff, .Round)
+    imdd3.draw_stroke_join(point0, point1, point2, {0, 0, -1}, {1, 0, 0}, 4, 0xff0000ff, .Round)
+    imdd3.draw_stroke_cap(point1, point2, {0, 0, -1}, {1, 0, 0}, 4, 0xff0000ff, .Round)
 
     // imdd3.draw_stroke_arrow({}, {0, 128, 0}, {0, 0, -1}, {1, 0, 0}, 4, 8, 0xff0000ff)
 
@@ -73,8 +73,8 @@ show_demo :: proc() {
     //     {0, 128, 0},
     // }, 1, 0xff0000ff, .Circle, true, 4)
 
-    imdd3.draw_curve({0, 0, 0}, {128, 0, 0}, {128, 128, 0}, 2, 0xff0000ff, 4)
-    imdd3.draw_curve({128, 128, 0}, {128, 256, 0}, {256, 256, 0}, 2, 0xff0000ff, 4)
+    // imdd3.draw_curve({0, 0, 0}, {128, 0, 0}, {128, 128, 0}, 2, 0xff0000ff, 4)
+    // imdd3.draw_curve({128, 128, 0}, {128, 256, 0}, {256, 256, 0}, 2, 0xff0000ff, 4)
 
     // imdd3.draw_half_arc({}, {0, 0, -1}, {1, 0, 0}, 64, 0, glm.PI / 2, 2, 0xff0000ff)
 

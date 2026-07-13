@@ -124,6 +124,23 @@ MAIN_FS :: GLSL_VERSION + `
                 stroke_a
             );
         } else if (v_mode == 5) {
+            float distance = v_params.x;
+            float dash_length = v_params.y;
+
+            if (dash_length > 0.0 && mod(distance, dash_length * 2.0) > dash_length) {
+                discard;
+            }
+
+            o_frag_color = v_color0;
+        } else if (v_mode == 6) {
+            vec2 cell_size = v_params.xy;
+            float line_width = v_params.z;
+
+            vec2 uv = v_tex_coord / cell_size;
+            float alpha = grid(uv, vec2(line_width / cell_size.x, line_width / cell_size.y));
+
+            o_frag_color = vec4(v_color0.rgb, v_color0.a * alpha);
+        } else if (v_mode == 7) {
             vec2 unit_range = vec2(v_params.x) / vec2(textureSize(u_atlas_tex, 0));
             vec2 screen_tex_size = vec2(1.0) / fwidth(v_tex_coord);
             float px_range = max(0.5 * dot(unit_range, screen_tex_size), 1.0);
@@ -134,14 +151,6 @@ MAIN_FS :: GLSL_VERSION + `
             float opacity = clamp(screen_px_dist + 0.5, 0.0, 1.0);
 
             o_frag_color = vec4(v_color0.rgb, v_color0.a * opacity);
-        } else if (v_mode == 6) {
-            vec2 cell_size = v_params.xy;
-            float line_width = v_params.z;
-
-            vec2 uv = v_tex_coord / cell_size;
-            float alpha = grid(uv, vec2(line_width / cell_size.x, line_width / cell_size.y));
-
-            o_frag_color = vec4(v_color0.rgb, v_color0.a * alpha);
         }
     }
 `
