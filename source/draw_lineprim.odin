@@ -8,6 +8,7 @@ Lineprim_Type :: enum {
     Box,
     Cylinder,
     Cone,
+    Cone_Frustum,
     Sphere,
     Capsule,
 }
@@ -45,6 +46,7 @@ lineprim_init :: proc() {
     ranges[.Box] = lineprim_generate_box(&vertices, &indices, {1, 1, 1})
     ranges[.Cylinder] = lineprim_generate_cylinder(&vertices, &indices, {1, 1}, 16)
     ranges[.Cone] = lineprim_generate_cone(&vertices, &indices, {1, 1}, 16)
+    ranges[.Cone_Frustum] = lineprim_generate_cone_frustum(&vertices, &indices, 16)
     ranges[.Sphere] = lineprim_generate_sphere(&vertices, &indices, 16)
     ranges[.Capsule] = lineprim_generate_capsule(&vertices, &indices, 16)
 
@@ -177,6 +179,45 @@ lineprim_generate_cone :: proc(vertices: ^[dynamic]Lineprim_Vertex, indices: ^[d
 
     append(indices, index + 0, index + half)
     append(indices, index + quarter, index + quarter + half)
+
+    range.count = cast(i32) len(indices) - i32(range.first)
+
+    return range
+}
+
+lineprim_generate_cone_frustum :: proc(vertices: ^[dynamic]Lineprim_Vertex, indices: ^[dynamic]u32, segments: i32) -> (range: Lineprim_Range) {
+    range.first = cast(u32) len(indices)
+
+    angle := glm.PI * 2 / f32(segments)
+    index := u32(len(vertices))
+
+    for i in 0 ..< segments {
+        x, z: f32 = glm.cos(angle * f32(i)), glm.sin(angle * f32(i))
+
+        append(vertices, Lineprim_Vertex{{x, -1, z}, {}})
+    }
+
+    for i in 0 ..< segments {
+        x, z: f32 = glm.cos(angle * f32(i)), glm.sin(angle * f32(i))
+
+        append(vertices, Lineprim_Vertex{{0, 1, 0}, {x, 0, z}})
+    }
+
+    for i: u32 = 0; i < u32(segments); i += 1 {
+        append(indices, index + i, index + (i + 1) % u32(segments))
+        append(indices, index + u32(segments) + i, index + u32(segments) + (i + 1) % u32(segments))
+        append(indices, index + i, index + u32(segments) + i)
+    }
+
+    half := u32(segments / 2)
+    quarter := u32(segments / 4)
+    top_start := index + u32(segments)
+
+    append(indices, index + 0, index + half)
+    append(indices, index + quarter, index + quarter + half)
+
+    append(indices, top_start + 0, top_start + half)
+    append(indices, top_start + quarter, top_start + quarter + half)
 
     range.count = cast(i32) len(indices) - i32(range.first)
 
@@ -409,6 +450,35 @@ draw_wire_cone_ab :: proc(start: glm.vec3, end: glm.vec3, radius: f32, color: u3
     instance.translation = (start + end) / 2
     instance.rotation = quat_rotation_dir(glm.normalize(start - end))
     instance.scale = {radius, height, radius}
+    instance.color = color
+}
+
+draw_wire_cone_frustum_aa :: proc(position: glm.vec3, size: glm.vec2, top_radius: f32, color: u32) {
+    instance := lineprim_push(.Cone_Frustum)
+    instance.translation = position
+    instance.rotation = {}
+    instance.scale = {size.x, size.y / 2, size.x}
+    instance.radius = top_radius
+    instance.color = color
+}
+
+draw_wire_cone_frustum_o :: proc(position: glm.vec3, size: glm.vec2, top_radius: f32, rotation: glm.vec3, color: u32) {
+    instance := lineprim_push(.Cone_Frustum)
+    instance.translation = position
+    instance.rotation = quat_rotation_xyz(rotation)
+    instance.scale = {size.x, size.y / 2, size.x}
+    instance.radius = top_radius
+    instance.color = color
+}
+
+draw_wire_cone_frustum_ab :: proc(start: glm.vec3, end: glm.vec3, bottom_radius: f32, top_radius: f32, color: u32) {
+    height := glm.distance(start, end) / 2
+
+    instance := lineprim_push(.Cone_Frustum)
+    instance.translation = (start + end) / 2
+    instance.rotation = quat_rotation_dir(glm.normalize(end - start))
+    instance.scale = {bottom_radius, height, bottom_radius}
+    instance.radius = top_radius
     instance.color = color
 }
 

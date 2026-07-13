@@ -44,7 +44,7 @@ TRIPRIM_VS :: GLSL_VERSION + `
 `
 
 TRIPRIM_FS :: GLSL_VERSION + `
-#define EDGE_WIDTH 1.5
+#define EDGE_WIDTH 1
 
 in vec4 v_color;
 in vec3 v_barycentric;
@@ -181,5 +181,8 @@ triprim_render :: proc(data: [imdd3.Triprim_Type][]imdd3.Triprim_Instance) {
 
     gl.Enable(gl.DEPTH_TEST); defer gl.Disable(gl.DEPTH_TEST)
     gl.DepthFunc(gl.LEQUAL); defer gl.DepthFunc(gl.LESS)
+    gl.Enable(gl.BLEND); defer gl.Disable(gl.BLEND)
+    gl.Enable(gl.CULL_FACE); defer gl.Disable(gl.CULL_FACE)
+    gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
     gl.MultiDrawArraysIndirect(gl.TRIANGLES, nil, i32(len(imdd3.Triprim_Type)), 0)
 }
