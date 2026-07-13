@@ -68,9 +68,9 @@ destroy :: proc() {
 render :: proc(viewport: [2]i32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
     renderer.interface.prepare_renderer(viewport, projection, view)
 
+    triprim_render()
+    lineprim_render()
     line_render()
     curve_render()
     triangle_render()
-    lineprim_render()
-    triprim_render()
 }

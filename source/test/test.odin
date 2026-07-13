@@ -50,7 +50,7 @@ show_demo :: proc() {
     // imdd3.draw_stroke_arrow({}, {0, 128, 0}, {0, 0, -1}, {1, 0, 0}, 4, 8, 0xff0000ff)
 
     // imdd3.draw_grid_xy({}, {128, 128}, 16, 1, 0xff0000ff)
-    // imdd3.draw_grid_xz({}, {128, 128}, 16, 1, 0xff0000ff)
+    imdd3.draw_grid_xz({}, {1024, 1024}, 16, 1, 0xff0000ff)
     // imdd3.draw_grid_yz({}, {128, 128}, 16, 1, 0xff0000ff)
 
     // imdd3.draw_text({}, {0, 0, -1}, {1, 0, 0}, "Hello, World!", 16, 16, 0xff0000ff)

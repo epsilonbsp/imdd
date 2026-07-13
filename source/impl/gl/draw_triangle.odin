@@ -4,7 +4,7 @@ import gl "vendor:OpenGL"
 
 import imdd3 "../.."
 
-MAIN_VS :: GLSL_VERSION + `
+TRIANGLE_VS :: GLSL_VERSION + `
     layout(location = 0) in uint i_mode;
     layout(location = 1) in vec3 i_position;
     layout(location = 2) in vec2 i_tex_coord;
@@ -55,7 +55,7 @@ MAIN_VS :: GLSL_VERSION + `
     }
 `
 
-MAIN_FS :: GLSL_VERSION + `
+TRIANGLE_FS :: GLSL_VERSION + `
     #extension GL_ARB_bindless_texture : require
 
     flat in uint v_mode;
@@ -167,7 +167,7 @@ triangle_state: Triangle_State
 
 triangle_init :: proc() {
     ok: bool
-    triangle_state.program, ok = load_shaders({{.VERTEX_SHADER, MAIN_VS}, {.FRAGMENT_SHADER, MAIN_FS}})
+    triangle_state.program, ok = load_shaders({{.VERTEX_SHADER, TRIANGLE_VS}, {.FRAGMENT_SHADER, TRIANGLE_FS}})
     triangle_state.uniforms = gl.get_uniforms_from_program(triangle_state.program)
     assert(ok, "ERROR: Failed to compile triangle program")
 
