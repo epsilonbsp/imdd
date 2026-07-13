@@ -155,25 +155,28 @@ triprim_render :: proc(data: [imdd3.Triprim_Type][]imdd3.Triprim_Instance) {
 
     gl.BindVertexArray(triprim_state.vao)
     gl.BindBuffer(gl.ARRAY_BUFFER, triprim_state.ubo)
-
-    region_size :: size_of(imdd3.Triprim_Instance) * imdd3.TRIPRIM_CAP
+    gl.BufferData(gl.ARRAY_BUFFER, total * size_of(imdd3.Triprim_Instance), nil, gl.STREAM_DRAW)
 
     commands: [len(imdd3.Triprim_Type)]gl.DrawArraysIndirectCommand
+
+    offset := 0
 
     for type in imdd3.Triprim_Type {
         i := int(type)
         instances := data[type]
 
         if len(instances) > 0 {
-            gl.BufferSubData(gl.ARRAY_BUFFER, i * region_size, len(instances) * size_of(imdd3.Triprim_Instance), raw_data(instances))
+            gl.BufferSubData(gl.ARRAY_BUFFER, offset * size_of(imdd3.Triprim_Instance), len(instances) * size_of(imdd3.Triprim_Instance), raw_data(instances))
         }
 
         commands[i] = {
             count = u32(triprim_state.ranges[type].count),
             instanceCount = u32(len(instances)),
             first = triprim_state.ranges[type].first,
-            baseInstance = u32(i) * imdd3.TRIPRIM_CAP,
+            baseInstance = u32(offset),
         }
+
+        offset += len(instances)
     }
 
     gl.BindBuffer(gl.DRAW_INDIRECT_BUFFER, triprim_state.dibo)

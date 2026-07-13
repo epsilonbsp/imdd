@@ -248,17 +248,18 @@ lineprim_render :: proc(data: [imdd3.Lineprim_Type][]imdd3.Lineprim_Instance) {
 
     gl.BindVertexArray(lineprim_state.vao)
     gl.BindBuffer(gl.ARRAY_BUFFER, lineprim_state.ubo)
-
-    region_size :: size_of(imdd3.Lineprim_Instance) * imdd3.LINEPRIM_CAP
+    gl.BufferData(gl.ARRAY_BUFFER, total * size_of(imdd3.Lineprim_Instance), nil, gl.STREAM_DRAW)
 
     commands: [len(imdd3.Lineprim_Type)]gl.DrawElementsIndirectCommand
+
+    offset := 0
 
     for type in imdd3.Lineprim_Type {
         i := int(type)
         instances := data[type]
 
         if len(instances) > 0 {
-            gl.BufferSubData(gl.ARRAY_BUFFER, i * region_size, len(instances) * size_of(imdd3.Lineprim_Instance), raw_data(instances))
+            gl.BufferSubData(gl.ARRAY_BUFFER, offset * size_of(imdd3.Lineprim_Instance), len(instances) * size_of(imdd3.Lineprim_Instance), raw_data(instances))
         }
 
         commands[i] = {
@@ -266,8 +267,10 @@ lineprim_render :: proc(data: [imdd3.Lineprim_Type][]imdd3.Lineprim_Instance) {
             instanceCount = u32(len(instances)),
             firstIndex = lineprim_state.ranges[type].first,
             baseVertex = 0,
-            baseInstance = u32(i) * imdd3.LINEPRIM_CAP,
+            baseInstance = u32(offset),
         }
+
+        offset += len(instances)
     }
 
     gl.BindBuffer(gl.DRAW_INDIRECT_BUFFER, lineprim_state.dibo)

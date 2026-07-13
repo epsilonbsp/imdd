@@ -33,7 +33,6 @@ Lineprim_Range :: struct {
 
 Lineprim_State :: struct {
     instances: [Lineprim_Type][dynamic]Lineprim_Instance,
-    counts: [Lineprim_Type]i32,
 }
 
 lineprim_state: Lineprim_State
@@ -51,7 +50,7 @@ lineprim_init :: proc() {
     ranges[.Capsule] = lineprim_generate_capsule(&vertices, &indices, 16)
 
     for type in Lineprim_Type {
-        lineprim_state.instances[type] = make([dynamic]Lineprim_Instance, LINEPRIM_CAP, LINEPRIM_CAP)
+        lineprim_state.instances[type] = make([dynamic]Lineprim_Instance, 0, LINEPRIM_CAP)
     }
 
     renderer.interface.lineprim_init(vertices[:], indices[:], ranges)
@@ -67,13 +66,13 @@ lineprim_render :: proc() {
     data: [Lineprim_Type][]Lineprim_Instance
 
     for type in Lineprim_Type {
-        data[type] = lineprim_state.instances[type][:lineprim_state.counts[type]]
+        data[type] = lineprim_state.instances[type][:]
     }
 
     renderer.interface.lineprim_render(data)
 
     for type in Lineprim_Type {
-        lineprim_state.counts[type] = 0
+        clear(&lineprim_state.instances[type])
     }
 }
 
@@ -370,10 +369,9 @@ lineprim_generate_capsule :: proc(vertices: ^[dynamic]Lineprim_Vertex, indices: 
 }
 
 lineprim_push :: proc(type: Lineprim_Type) -> ^Lineprim_Instance {
-    instance := &lineprim_state.instances[type][lineprim_state.counts[type]]
-    lineprim_state.counts[type] = (lineprim_state.counts[type] + 1) % LINEPRIM_CAP
+    append(&lineprim_state.instances[type], Lineprim_Instance{})
 
-    return instance
+    return &lineprim_state.instances[type][len(lineprim_state.instances[type]) - 1]
 }
 
 // API

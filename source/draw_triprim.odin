@@ -35,7 +35,6 @@ Triprim_Instance :: struct {
 
 Triprim_State :: struct {
     instances: [Triprim_Type][dynamic]Triprim_Instance,
-    counts: [Triprim_Type]i32,
 }
 
 triprim_state: Triprim_State
@@ -52,7 +51,7 @@ triprim_init :: proc() {
     ranges[.Capsule] = triprim_generate_capsule(&vertices, 16)
 
     for type in Triprim_Type {
-        triprim_state.instances[type] = make([dynamic]Triprim_Instance, TRIPRIM_CAP, TRIPRIM_CAP)
+        triprim_state.instances[type] = make([dynamic]Triprim_Instance, 0, TRIPRIM_CAP)
     }
 
     renderer.interface.triprim_init(vertices[:], ranges)
@@ -68,13 +67,13 @@ triprim_render :: proc() {
     data: [Triprim_Type][]Triprim_Instance
 
     for type in Triprim_Type {
-        data[type] = triprim_state.instances[type][:triprim_state.counts[type]]
+        data[type] = triprim_state.instances[type][:]
     }
 
     renderer.interface.triprim_render(data)
 
     for type in Triprim_Type {
-        triprim_state.counts[type] = 0
+        clear(&triprim_state.instances[type])
     }
 }
 
@@ -516,10 +515,9 @@ triprim_generate_capsule :: proc(vertices: ^[dynamic]Triprim_Vertex, segments: i
 }
 
 triprim_push :: proc(type: Triprim_Type) -> ^Triprim_Instance {
-    instance := &triprim_state.instances[type][triprim_state.counts[type]]
-    triprim_state.counts[type] = (triprim_state.counts[type] + 1) % TRIPRIM_CAP
+    append(&triprim_state.instances[type], Triprim_Instance{})
 
-    return instance
+    return &triprim_state.instances[type][len(triprim_state.instances[type]) - 1]
 }
 
 // API
