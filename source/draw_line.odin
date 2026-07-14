@@ -181,3 +181,11 @@ draw_line_grid_xz :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_
 draw_line_grid_yz :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32) {
     draw_line_grid(center, {1, 0, 0}, {0, 1, 0}, size, cell_size, line_width, color)
 }
+
+draw_line_cross :: proc(center: [3]f32, size: f32, line_width: f32, color: u32) {
+    half := size * 0.5
+
+    draw_line(center - {half, 0, 0}, center + {half, 0, 0}, line_width, color)
+    draw_line(center - {0, half, 0}, center + {0, half, 0}, line_width, color)
+    draw_line(center - {0, 0, half}, center + {0, 0, half}, line_width, color)
+}

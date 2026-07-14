@@ -11,6 +11,7 @@ draw_line_grid :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2
 draw_line_grid_xy :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32)
 draw_line_grid_xz :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32)
 draw_line_grid_yz :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32)
+draw_line_cross :: proc(center: [3]f32, size: f32, line_width: f32, color: u32)
 
 draw_curve :: proc(point0: [3]f32, point1: [3]f32, point2: [3]f32, width: f32, color: u32, dash: [2]f32 = {}, plane_normal: [3]f32 = {})
 draw_half_arc :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, angle0: f32, angle1: f32, width: f32, color: u32, dash: [2]f32 = {}, plane_normal: [3]f32 = {})
