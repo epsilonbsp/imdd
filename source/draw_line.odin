@@ -17,18 +17,6 @@ Line_State :: struct {
     vertices: [dynamic]Line_Vertex,
 }
 
-Line_Join_Type :: enum {
-    None,
-    Round,
-}
-
-Line_Cap_Type :: enum {
-    None,
-    Square,
-    Triangle,
-    Round,
-}
-
 line_state: Line_State
 
 line_init :: proc() {
@@ -56,7 +44,7 @@ draw_line :: proc(point0: [3]f32, point1: [3]f32, width: f32, color: u32, dash: 
     )
 }
 
-draw_line_cap :: proc(point0: [3]f32, point1: [3]f32, width: f32, color: u32, cap_type: Line_Cap_Type = .None) {
+draw_line_cap :: proc(point0: [3]f32, point1: [3]f32, width: f32, color: u32, cap_type: Stroke_Cap_Type = .None) {
     if cap_type == .None {
         return
     }
@@ -85,7 +73,7 @@ draw_line_cap :: proc(point0: [3]f32, point1: [3]f32, width: f32, color: u32, ca
     }
 }
 
-draw_line_strip :: proc(points: [][3]f32, width: f32, color: u32, dash: f32 = 0, is_looped := false, join_type: Line_Join_Type = .None, cap_type: Line_Cap_Type = .None) {
+draw_line_strip :: proc(points: [][3]f32, width: f32, color: u32, dash: f32 = 0, is_looped := false, join_type: Stroke_Join_Type = .None, cap_type: Stroke_Cap_Type = .None) {
     if len(points) < 2 {
         return
     }
