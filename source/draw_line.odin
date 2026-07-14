@@ -10,7 +10,6 @@ Line_Vertex :: struct {
     color: u32,
     distance: f32,
     dash_length: f32,
-    plane_perp: [3]f32,
     is_rounded: b32,
 }
 
@@ -42,19 +41,13 @@ line_render :: proc() {
 }
 
 // API
-draw_line :: proc(point0: [3]f32, point1: [3]f32, width: f32, color: u32, normal: [3]f32 = {}, tangent: [3]f32 = {}, dash_length: f32 = 0, start_distance: f32 = 0, is_rounded := false) {
+draw_line :: proc(point0: [3]f32, point1: [3]f32, width: f32, color: u32, dash_length: f32 = 0, start_distance: f32 = 0, is_rounded := false) {
     radius := width * 0.5
     distance := start_distance + glm.distance(point0, point1)
 
-    plane_perp: [3]f32
-    if normal != {} {
-        dir := glm.normalize(point1 - point0)
-        plane_perp = glm.normalize(glm.cross(normal, dir))
-    }
-
     append(&line_state.vertices,
-        Line_Vertex{point0, radius, color, start_distance, dash_length, plane_perp, b32(is_rounded)},
-        Line_Vertex{point1, radius, color, distance, dash_length, plane_perp, b32(is_rounded)}
+        Line_Vertex{point0, radius, color, start_distance, dash_length, b32(is_rounded)},
+        Line_Vertex{point1, radius, color, distance, dash_length, b32(is_rounded)}
     )
 }
 
@@ -69,18 +62,18 @@ draw_line_cap :: proc(point0: [3]f32, dir: [3]f32, width: f32, color: u32, cap_t
     #partial switch cap_type {
     case .Square:
         append(&line_state.vertices,
-            Line_Vertex{point0, radius, color, 0, 0, {}, b32(false)},
-            Line_Vertex{point1, radius, color, 0, 0, {}, b32(false)}
+            Line_Vertex{point0, radius, color, 0, 0, b32(false)},
+            Line_Vertex{point1, radius, color, 0, 0, b32(false)}
         )
     case .Triangle:
         append(&line_state.vertices,
-            Line_Vertex{point0, radius, color, 0, 0, {}, b32(false)},
-            Line_Vertex{point1, 0, color, 0, 0, {}, b32(false)}
+            Line_Vertex{point0, radius, color, 0, 0, b32(false)},
+            Line_Vertex{point1, 0, color, 0, 0, b32(false)}
         )
     case .Circle:
         append(&line_state.vertices,
-            Line_Vertex{point0, radius, color, 0, 0, {}, b32(true)},
-            Line_Vertex{point1, radius, color, 0, 0, {}, b32(true)}
+            Line_Vertex{point0, radius, color, 0, 0, b32(true)},
+            Line_Vertex{point1, radius, color, 0, 0, b32(true)}
         )
     }
 }
