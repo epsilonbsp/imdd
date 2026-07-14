@@ -7,10 +7,10 @@ TRIANGLE_INDEX_CAP :: TRIANGLE_VERTEX_CAP * 3 / 2
 
 Triangle_Mode :: enum u32 {
     Default,
-    Sdf_0,
-    Sdf_1,
-    Sdf_2,
-    Sdf_3,
+    SDF_0,
+    SDF_1,
+    SDF_2,
+    SDF_3,
     Stroke,
     Grid,
     Text,
@@ -18,8 +18,8 @@ Triangle_Mode :: enum u32 {
 
 Stroke_Join_Type :: enum {
     None,
-    Bevel,
     Miter,
+    Bevel,
     Round,
 }
 
@@ -125,10 +125,10 @@ draw_circle :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32
 
     append(
         &triangle_state.vertices,
-        Triangle_Vertex{.Sdf_0, point_a, {}, 0, {color, 0}, {radius, radius, radius, 0}},
-        Triangle_Vertex{.Sdf_1, point_b, {}, 0, {color, 0}, {radius, radius, radius, 0}},
-        Triangle_Vertex{.Sdf_2, point_c, {}, 0, {color, 0}, {radius, radius, radius, 0}},
-        Triangle_Vertex{.Sdf_3, point_d, {}, 0, {color, 0}, {radius, radius, radius, 0}}
+        Triangle_Vertex{.SDF_0, point_a, {}, 0, {color, 0}, {radius, radius, radius, 0}},
+        Triangle_Vertex{.SDF_1, point_b, {}, 0, {color, 0}, {radius, radius, radius, 0}},
+        Triangle_Vertex{.SDF_2, point_c, {}, 0, {color, 0}, {radius, radius, radius, 0}},
+        Triangle_Vertex{.SDF_3, point_d, {}, 0, {color, 0}, {radius, radius, radius, 0}}
     )
 
     append(
@@ -151,10 +151,10 @@ draw_rrect :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32
 
     append(
         &triangle_state.vertices,
-        Triangle_Vertex{.Sdf_0, point_a, {}, 0, {fill_color, stroke_color}, {extent.x, extent.y, radius, stroke_width}},
-        Triangle_Vertex{.Sdf_1, point_b, {}, 0, {fill_color, stroke_color}, {extent.x, extent.y, radius, stroke_width}},
-        Triangle_Vertex{.Sdf_2, point_c, {}, 0, {fill_color, stroke_color}, {extent.x, extent.y, radius, stroke_width}},
-        Triangle_Vertex{.Sdf_3, point_d, {}, 0, {fill_color, stroke_color}, {extent.x, extent.y, radius, stroke_width}}
+        Triangle_Vertex{.SDF_0, point_a, {}, 0, {fill_color, stroke_color}, {extent.x, extent.y, radius, stroke_width}},
+        Triangle_Vertex{.SDF_1, point_b, {}, 0, {fill_color, stroke_color}, {extent.x, extent.y, radius, stroke_width}},
+        Triangle_Vertex{.SDF_2, point_c, {}, 0, {fill_color, stroke_color}, {extent.x, extent.y, radius, stroke_width}},
+        Triangle_Vertex{.SDF_3, point_d, {}, 0, {fill_color, stroke_color}, {extent.x, extent.y, radius, stroke_width}}
     )
 
     append(
@@ -164,7 +164,7 @@ draw_rrect :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32
     )
 }
 
-draw_stroke :: proc(point0: [3]f32, point1: [3]f32, normal: [3]f32, tangent: [3]f32, width: f32, color: u32, dash_length: f32 = 0, start_distance: f32 = 0) {
+draw_stroke :: proc(point0: [3]f32, point1: [3]f32, normal: [3]f32, tangent: [3]f32, width: f32, color: u32, dash: [2]f32 = {}) {
     diff := point1 - point0
     length := glm.length(diff)
 
@@ -175,16 +175,16 @@ draw_stroke :: proc(point0: [3]f32, point1: [3]f32, normal: [3]f32, tangent: [3]
     dir := diff / length
     perp := glm.normalize(glm.cross(normal, dir)) * (width * 0.5)
 
-    distance := start_distance + length
+    distance := dash[0] + length
 
     index := u32(len(triangle_state.vertices))
 
     append(
         &triangle_state.vertices,
-        Triangle_Vertex{.Stroke, point0 - perp, {}, 0, {color, 0}, {start_distance, dash_length, 0, 0}},
-        Triangle_Vertex{.Stroke, point1 - perp, {}, 0, {color, 0}, {distance, dash_length, 0, 0}},
-        Triangle_Vertex{.Stroke, point1 + perp, {}, 0, {color, 0}, {distance, dash_length, 0, 0}},
-        Triangle_Vertex{.Stroke, point0 + perp, {}, 0, {color, 0}, {start_distance, dash_length, 0, 0}}
+        Triangle_Vertex{.Stroke, point0 - perp, {}, 0, {color, 0}, {dash[0], dash[1], 0, 0}},
+        Triangle_Vertex{.Stroke, point1 - perp, {}, 0, {color, 0}, {distance, dash[1], 0, 0}},
+        Triangle_Vertex{.Stroke, point1 + perp, {}, 0, {color, 0}, {distance, dash[1], 0, 0}},
+        Triangle_Vertex{.Stroke, point0 + perp, {}, 0, {color, 0}, {dash[0], dash[1], 0, 0}}
     )
 
     append(
@@ -213,8 +213,6 @@ draw_stroke_join :: proc(point0: [3]f32, point1: [3]f32, point2: [3]f32, normal:
     point_out := point1 + perp_out * radius * sigma
 
     #partial switch type {
-    case .Bevel:
-        draw_triangle(point1, point_in, point_out, color)
     case .Miter:
         miter_dir := glm.normalize(dir_in - dir_out)
         denom := glm.dot(miter_dir, perp_in)
@@ -230,6 +228,8 @@ draw_stroke_join :: proc(point0: [3]f32, point1: [3]f32, point2: [3]f32, normal:
 
         draw_triangle(point1, point_in, miter, color)
         draw_triangle(point1, miter, point_out, color)
+    case .Bevel:
+        draw_triangle(point1, point_in, point_out, color)
     case .Round:
         draw_circle(point1, normal, tangent, radius, color)
     }
@@ -242,17 +242,51 @@ draw_stroke_cap :: proc(point0: [3]f32, point1: [3]f32, normal: [3]f32, tangent:
 
     dir := glm.normalize(point1 - point0)
     radius := width * 0.5
+    cap_start := point1
+    cap_end := cap_start + dir * radius
 
     #partial switch type {
     case .Square:
-        draw_stroke(point1, point1 + dir * radius, normal, tangent, width, color)
+        draw_stroke(cap_start, cap_end, normal, tangent, width, color)
     case .Triangle:
         perp := glm.normalize(glm.cross(normal, dir)) * radius
-        tip := point1 + dir * radius
 
-        draw_triangle(point1 - perp, point1 + perp, tip, color)
+        draw_triangle(cap_start - perp, cap_start + perp, cap_end, color)
     case .Round:
-        draw_circle(point1, normal, tangent, radius, color)
+        draw_circle(cap_start, normal, tangent, radius, color)
+    }
+}
+
+draw_stroke_strip :: proc(points: [][3]f32, normal: [3]f32, tangent: [3]f32, width: f32, color: u32, dash: f32 = 0, is_looped := false, join_type: Stroke_Join_Type = .None, cap_type: Stroke_Cap_Type = .None) {
+    if len(points) < 2 {
+        return
+    }
+
+    count := len(points)
+    segment_count := is_looped ? count : count - 1
+
+    if !is_looped {
+        draw_stroke_cap(points[1], points[0], normal, tangent, width, color, cap_type)
+    }
+
+    total_distance: f32 = 0
+
+    for i in 0 ..< segment_count {
+        curr := points[i]
+        next := points[(i + 1) % count]
+
+        draw_stroke(curr, next, normal, tangent, width, color, {total_distance, dash})
+        total_distance += glm.distance(curr, next)
+
+        if is_looped || i < segment_count - 1 {
+            join_next := points[(i + 2) % count]
+
+            draw_stroke_join(curr, next, join_next, normal, tangent, width, color, join_type)
+        }
+    }
+
+    if !is_looped {
+        draw_stroke_cap(points[count - 2], points[count - 1], normal, tangent, width, color, cap_type)
     }
 }
 
@@ -472,10 +506,10 @@ draw_rimage:: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32
 
     append(
         &triangle_state.vertices,
-        Triangle_Vertex{.Sdf_0, point_a, {sprite.left, sprite.bottom}, sprite.handle, {0xffffffff, 0}, {extent.x, extent.y, radius, 0}},
-        Triangle_Vertex{.Sdf_1, point_b, {sprite.right, sprite.bottom}, sprite.handle, {0xffffffff, 0}, {extent.x, extent.y, radius, 0}},
-        Triangle_Vertex{.Sdf_2, point_c, {sprite.right, sprite.top}, sprite.handle, {0xffffffff, 0}, {extent.x, extent.y, radius, 0}},
-        Triangle_Vertex{.Sdf_3, point_d, {sprite.left, sprite.top}, sprite.handle, {0xffffffff, 0}, {extent.x, extent.y, radius, 0}}
+        Triangle_Vertex{.SDF_0, point_a, {sprite.left, sprite.bottom}, sprite.handle, {0xffffffff, 0}, {extent.x, extent.y, radius, 0}},
+        Triangle_Vertex{.SDF_1, point_b, {sprite.right, sprite.bottom}, sprite.handle, {0xffffffff, 0}, {extent.x, extent.y, radius, 0}},
+        Triangle_Vertex{.SDF_2, point_c, {sprite.right, sprite.top}, sprite.handle, {0xffffffff, 0}, {extent.x, extent.y, radius, 0}},
+        Triangle_Vertex{.SDF_3, point_d, {sprite.left, sprite.top}, sprite.handle, {0xffffffff, 0}, {extent.x, extent.y, radius, 0}}
     )
 
     append(

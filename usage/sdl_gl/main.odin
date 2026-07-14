@@ -108,9 +108,6 @@ main :: proc() {
         gl.ClearColor(0.5, 0.5, 0.5, 1)
         gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-        imdd3_test.demo_state.forward = camera.forward
-        imdd3_test.demo_state.right = camera.right
-
         imdd3_test.show_demo()
         imdd3.render({viewport_x, viewport_y}, camera.projection, camera.view, )
 

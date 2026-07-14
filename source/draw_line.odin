@@ -17,11 +17,16 @@ Line_State :: struct {
     vertices: [dynamic]Line_Vertex,
 }
 
+Line_Join_Type :: enum {
+    None,
+    Round,
+}
+
 Line_Cap_Type :: enum {
     None,
     Square,
     Triangle,
-    Circle
+    Round,
 }
 
 line_state: Line_State
@@ -51,34 +56,36 @@ draw_line :: proc(point0: [3]f32, point1: [3]f32, width: f32, color: u32, dash: 
     )
 }
 
-draw_line_cap :: proc(point0: [3]f32, dir: [3]f32, width: f32, color: u32, cap_type: Line_Cap_Type = .None) {
+draw_line_cap :: proc(point0: [3]f32, point1: [3]f32, width: f32, color: u32, cap_type: Line_Cap_Type = .None) {
     if cap_type == .None {
         return
     }
 
+    dir := glm.normalize(point1 - point0)
     radius := width * 0.5
-    point1 := point0 + dir * radius
+    cap_start := point1
+    cap_end := cap_start + dir * radius
 
     #partial switch cap_type {
     case .Square:
         append(&line_state.vertices,
-            Line_Vertex{point0, radius, color, 0, 0, b32(false)},
-            Line_Vertex{point1, radius, color, 0, 0, b32(false)}
+            Line_Vertex{cap_start, radius, color, 0, 0, b32(false)},
+            Line_Vertex{cap_end, radius, color, 0, 0, b32(false)}
         )
     case .Triangle:
         append(&line_state.vertices,
-            Line_Vertex{point0, radius, color, 0, 0, b32(false)},
-            Line_Vertex{point1, 0, color, 0, 0, b32(false)}
+            Line_Vertex{cap_start, radius, color, 0, 0, b32(false)},
+            Line_Vertex{cap_end, 0, color, 0, 0, b32(false)}
         )
-    case .Circle:
+    case .Round:
         append(&line_state.vertices,
-            Line_Vertex{point0, radius, color, 0, 0, b32(true)},
-            Line_Vertex{point1, radius, color, 0, 0, b32(true)}
+            Line_Vertex{cap_start, radius, color, 0, 0, b32(true)},
+            Line_Vertex{cap_end, radius, color, 0, 0, b32(true)}
         )
     }
 }
 
-draw_line_strip :: proc(points: [][3]f32, width: f32, color: u32, dash: f32 = 0, is_looped := false, cap_type: Line_Cap_Type = .None) {
+draw_line_strip :: proc(points: [][3]f32, width: f32, color: u32, dash: f32 = 0, is_looped := false, join_type: Line_Join_Type = .None, cap_type: Line_Cap_Type = .None) {
     if len(points) < 2 {
         return
     }
@@ -87,9 +94,7 @@ draw_line_strip :: proc(points: [][3]f32, width: f32, color: u32, dash: f32 = 0,
     segment_count := is_looped ? count : count - 1
 
     if !is_looped {
-        dir := glm.normalize(points[0] - points[1])
-
-        draw_line_cap(points[0], dir, width, color, cap_type)
+        draw_line_cap(points[1], points[0], width, color, cap_type)
     }
 
     prev_end: [3]f32
@@ -99,24 +104,27 @@ draw_line_strip :: proc(points: [][3]f32, width: f32, color: u32, dash: f32 = 0,
     for i in 0 ..< segment_count {
         curr := points[i]
         next := points[(i + 1) % count]
-        seg_dir := glm.normalize(next - curr)
 
         start := curr
         end := next
 
-        if is_looped || i > 0 {
-            start = curr + seg_dir
-        }
+        if join_type != .None {
+            seg_dir := glm.normalize(next - curr)
 
-        if is_looped || i < segment_count - 1 {
-            end = next - seg_dir
+            if is_looped || i > 0 {
+                start = curr + seg_dir
+            }
+
+            if is_looped || i < segment_count - 1 {
+                end = next - seg_dir
+            }
         }
 
         if i == 0 {
             first_start = start
         }
 
-        if i > 0 {
+        if join_type != .None && i > 0 {
             draw_curve(prev_end, curr, start, width, color)
         }
 
@@ -127,10 +135,10 @@ draw_line_strip :: proc(points: [][3]f32, width: f32, color: u32, dash: f32 = 0,
     }
 
     if is_looped {
-        draw_curve(prev_end, points[0], first_start, width, color)
+        if join_type != .None {
+            draw_curve(prev_end, points[0], first_start, width, color)
+        }
     } else {
-        dir := glm.normalize(points[count - 1] - points[count - 2])
-
-        draw_line_cap(points[count - 1], dir, width, color, cap_type)
+        draw_line_cap(points[count - 2], points[count - 1], width, color, cap_type)
     }
 }
