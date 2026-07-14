@@ -11,6 +11,7 @@ Curve_Vertex :: struct {
     color: u32,
     start_distance: f32,
     dash_length: f32,
+    plane_normal: [3]f32,
 }
 
 Curve_State :: struct {
@@ -34,13 +35,13 @@ curve_render :: proc() {
 }
 
 // API
-draw_curve :: proc(point0: [3]f32, point1: [3]f32, point2: [3]f32, width: f32, color: u32, dash_length: f32 = 0, start_distance: f32 = 0) {
+draw_curve :: proc(point0: [3]f32, point1: [3]f32, point2: [3]f32, width: f32, color: u32, normal: [3]f32 = {}, dash_length: f32 = 0, start_distance: f32 = 0) {
     radius := width * 0.5
 
     append(&curve_state.vertices,
-        Curve_Vertex{point0, radius, 1, color, start_distance, dash_length},
-        Curve_Vertex{point1, radius, 1, color, start_distance, dash_length},
-        Curve_Vertex{point2, radius, 1, color, start_distance, dash_length}
+        Curve_Vertex{point0, radius, 1, color, start_distance, dash_length, normal},
+        Curve_Vertex{point1, radius, 1, color, start_distance, dash_length, normal},
+        Curve_Vertex{point2, radius, 1, color, start_distance, dash_length, normal}
     )
 }
 
@@ -58,9 +59,9 @@ draw_half_arc :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f
     line_radius := width * 0.5
 
     append(&curve_state.vertices,
-        Curve_Vertex{point0, line_radius, 1, color, start_distance, dash_length},
-        Curve_Vertex{point1, line_radius, weight, color, start_distance, dash_length},
-        Curve_Vertex{point2, line_radius, 1, color, start_distance, dash_length}
+        Curve_Vertex{point0, line_radius, 1, color, start_distance, dash_length, {}},
+        Curve_Vertex{point1, line_radius, weight, color, start_distance, dash_length, {}},
+        Curve_Vertex{point2, line_radius, 1, color, start_distance, dash_length, {}}
     )
 }
 

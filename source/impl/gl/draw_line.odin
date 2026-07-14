@@ -10,13 +10,15 @@ LINE_VS :: GLSL_VERSION + `
     layout(location = 2) in uint i_color;
     layout(location = 3) in float i_distance;
     layout(location = 4) in float i_dash_length;
-    layout(location = 5) in uint i_rounded;
+    layout(location = 5) in vec3 i_plane_perp;
+    layout(location = 6) in uint i_rounded;
 
     out Vertex_Data {
         float radius;
         uint color;
         float distance;
         float dash_length;
+        vec3 plane_perp;
         uint rounded;
     } v_data;
 
@@ -26,6 +28,7 @@ LINE_VS :: GLSL_VERSION + `
         v_data.color = i_color;
         v_data.distance = i_distance;
         v_data.dash_length = i_dash_length;
+        v_data.plane_perp = i_plane_perp;
         v_data.rounded = i_rounded;
     }
 `
@@ -39,6 +42,7 @@ LINE_GS :: GLSL_VERSION + `
         uint color;
         float distance;
         float dash_length;
+        vec3 plane_perp;
         uint rounded;
     } v_data[];
 
@@ -64,14 +68,20 @@ LINE_GS :: GLSL_VERSION + `
         vec4 view0 = u_view * gl_in[0].gl_Position;
         vec4 view1 = u_view * gl_in[1].gl_Position;
 
-        vec4 clip0 = u_projection * view0;
-        vec4 clip1 = u_projection * view1;
+        vec3 view_perp;
 
-        vec2 screen0 = clip0.xy / clip0.w;
-        vec2 screen1 = clip1.xy / clip1.w;
+        if (dot(v_data[0].plane_perp, v_data[0].plane_perp) > 0.0001) {
+            view_perp = normalize(mat3(u_view) * v_data[0].plane_perp);
+        } else {
+            vec4 clip0 = u_projection * view0;
+            vec4 clip1 = u_projection * view1;
 
-        vec2 screen_dir = normalize(screen1 - screen0);
-        vec3 view_perp = normalize(vec3(-screen_dir.y, screen_dir.x, 0.0));
+            vec2 screen0 = clip0.xy / clip0.w;
+            vec2 screen1 = clip1.xy / clip1.w;
+
+            vec2 screen_dir = normalize(screen1 - screen0);
+            view_perp = normalize(vec3(-screen_dir.y, screen_dir.x, 0.0));
+        }
 
         vec4 color0 = unpack_rgba(v_data[0].color);
         vec4 color1 = unpack_rgba(v_data[1].color);
@@ -167,7 +177,10 @@ line_init :: proc() {
     gl.VertexAttribPointer(4, 1, gl.FLOAT, false, size_of(imdd3.Line_Vertex), offset_of(imdd3.Line_Vertex, dash_length))
 
     gl.EnableVertexAttribArray(5)
-    gl.VertexAttribIPointer(5, 1, gl.UNSIGNED_INT, size_of(imdd3.Line_Vertex), offset_of(imdd3.Line_Vertex, is_rounded))
+    gl.VertexAttribPointer(5, 3, gl.FLOAT, false, size_of(imdd3.Line_Vertex), offset_of(imdd3.Line_Vertex, plane_perp))
+
+    gl.EnableVertexAttribArray(6)
+    gl.VertexAttribIPointer(6, 1, gl.UNSIGNED_INT, size_of(imdd3.Line_Vertex), offset_of(imdd3.Line_Vertex, is_rounded))
 }
 
 line_destroy :: proc() {
