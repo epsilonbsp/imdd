@@ -9,17 +9,17 @@ CURVE_VS :: GLSL_VERSION + `
     layout(location = 1) in float i_radius;
     layout(location = 2) in float i_weight;
     layout(location = 3) in uint i_color;
-    layout(location = 4) in float i_start_distance;
-    layout(location = 5) in float i_dash_length;
-    layout(location = 6) in vec3 i_plane_normal;
+    layout(location = 4) in float i_distance;
+    layout(location = 5) in float i_dash;
+    layout(location = 6) in vec3 i_normal;
 
     out Vertex_Data {
         float radius;
         float weight;
         uint color;
-        float start_distance;
-        float dash_length;
-        vec3 plane_normal;
+        float distance;
+        float dash;
+        vec3 normal;
     } v_data;
 
     void main() {
@@ -27,9 +27,9 @@ CURVE_VS :: GLSL_VERSION + `
         v_data.radius = i_radius;
         v_data.weight = i_weight;
         v_data.color = i_color;
-        v_data.start_distance = i_start_distance;
-        v_data.dash_length = i_dash_length;
-        v_data.plane_normal = i_plane_normal;
+        v_data.distance = i_distance;
+        v_data.dash = i_dash;
+        v_data.normal = i_normal;
     }
 `
 
@@ -40,18 +40,18 @@ CURVE_TCS :: GLSL_VERSION + `
         float radius;
         float weight;
         uint color;
-        float start_distance;
-        float dash_length;
-        vec3 plane_normal;
+        float distance;
+        float dash;
+        vec3 normal;
     } v_data_in[];
 
     out Vertex_Data {
         float radius;
         float weight;
         uint color;
-        float start_distance;
-        float dash_length;
-        vec3 plane_normal;
+        float distance;
+        float dash;
+        vec3 normal;
     } v_data_out[];
 
     #define CURVE_SEGMENTS 32.0
@@ -66,9 +66,9 @@ CURVE_TCS :: GLSL_VERSION + `
         v_data_out[gl_InvocationID].radius = v_data_in[gl_InvocationID].radius;
         v_data_out[gl_InvocationID].weight = v_data_in[gl_InvocationID].weight;
         v_data_out[gl_InvocationID].color = v_data_in[gl_InvocationID].color;
-        v_data_out[gl_InvocationID].start_distance = v_data_in[gl_InvocationID].start_distance;
-        v_data_out[gl_InvocationID].dash_length = v_data_in[gl_InvocationID].dash_length;
-        v_data_out[gl_InvocationID].plane_normal = v_data_in[gl_InvocationID].plane_normal;
+        v_data_out[gl_InvocationID].distance = v_data_in[gl_InvocationID].distance;
+        v_data_out[gl_InvocationID].dash = v_data_in[gl_InvocationID].dash;
+        v_data_out[gl_InvocationID].normal = v_data_in[gl_InvocationID].normal;
     }
 `
 
@@ -79,9 +79,9 @@ CURVE_TES :: GLSL_VERSION + `
         float radius;
         float weight;
         uint color;
-        float start_distance;
-        float dash_length;
-        vec3 plane_normal;
+        float distance;
+        float dash;
+        vec3 normal;
     } v_data[];
 
     out Geometry_Data {
@@ -89,8 +89,8 @@ CURVE_TES :: GLSL_VERSION + `
         vec4 color;
         vec3 tangent;
         float distance;
-        float dash_length;
-        vec3 plane_normal;
+        float dash;
+        vec3 normal;
     } v_gd;
 
     vec4 unpack_rgba(uint i) {
@@ -168,9 +168,9 @@ CURVE_TES :: GLSL_VERSION + `
         v_gd.radius = radius;
         v_gd.color = color;
         v_gd.tangent = tangent;
-        v_gd.distance = v_data[0].dash_length > 0.0 ? v_data[0].start_distance + arc_length(p0, p1, p2, w0, w1, w2, t) : 0.0;
-        v_gd.dash_length = v_data[0].dash_length;
-        v_gd.plane_normal = v_data[0].plane_normal;
+        v_gd.distance = v_data[0].dash > 0.0 ? v_data[0].distance + arc_length(p0, p1, p2, w0, w1, w2, t) : 0.0;
+        v_gd.dash = v_data[0].dash;
+        v_gd.normal = v_data[0].normal;
     }
 `
 
@@ -183,13 +183,13 @@ CURVE_GS :: GLSL_VERSION + `
         vec4 color;
         vec3 tangent;
         float distance;
-        float dash_length;
-        vec3 plane_normal;
+        float dash;
+        vec3 normal;
     } v_gd[];
 
     out vec4 v_color;
     out float v_distance;
-    flat out float v_dash_length;
+    flat out float v_dash;
 
     uniform mat4 u_projection;
     uniform mat4 u_view;
@@ -206,9 +206,10 @@ CURVE_GS :: GLSL_VERSION + `
         return normalize(vec3(-screen_dir.y, screen_dir.x, 0.0));
     }
 
-    vec3 compute_perp(vec3 view_pos, vec3 world_tangent, vec3 view_tangent, vec3 plane_normal) {
-        if (dot(plane_normal, plane_normal) > 0.0001) {
-            vec3 world_perp = normalize(cross(plane_normal, world_tangent));
+    vec3 compute_perp(vec3 view_pos, vec3 world_tangent, vec3 view_tangent, vec3 normal) {
+        if (dot(normal, normal) > 0.0001) {
+            vec3 world_perp = normalize(cross(normal, world_tangent));
+
             return normalize(mat3(u_view) * world_perp);
         }
 
@@ -222,13 +223,13 @@ CURVE_GS :: GLSL_VERSION + `
         vec3 tangent0 = normalize(mat3(u_view) * v_gd[0].tangent);
         vec3 tangent1 = normalize(mat3(u_view) * v_gd[1].tangent);
 
-        vec3 perp0 = compute_perp(view0.xyz, v_gd[0].tangent, tangent0, v_gd[0].plane_normal);
-        vec3 perp1 = compute_perp(view1.xyz, v_gd[1].tangent, tangent1, v_gd[1].plane_normal);
+        vec3 perp0 = compute_perp(view0.xyz, v_gd[0].tangent, tangent0, v_gd[0].normal);
+        vec3 perp1 = compute_perp(view1.xyz, v_gd[1].tangent, tangent1, v_gd[1].normal);
 
         vec3 offset0 = perp0 * v_gd[0].radius;
         vec3 offset1 = perp1 * v_gd[1].radius;
 
-        v_dash_length = v_gd[0].dash_length;
+        v_dash = v_gd[0].dash;
 
         gl_Position = u_projection * vec4(view0.xyz + offset0, 1.0);
         v_color = v_gd[0].color; v_distance = v_gd[0].distance;
@@ -253,12 +254,12 @@ CURVE_GS :: GLSL_VERSION + `
 CURVE_FS :: GLSL_VERSION + `
     in vec4 v_color;
     in float v_distance;
-    flat in float v_dash_length;
+    flat in float v_dash;
 
     out vec4 o_frag_color;
 
     void main() {
-        if (v_dash_length > 0.0 && mod(v_distance, v_dash_length * 2.0) > v_dash_length) {
+        if (v_dash > 0.0 && mod(v_distance, v_dash * 2.0) > v_dash) {
             discard;
         }
 
@@ -308,13 +309,13 @@ curve_init :: proc() {
     gl.VertexAttribIPointer(3, 1, gl.UNSIGNED_INT, size_of(imdd3.Curve_Vertex), offset_of(imdd3.Curve_Vertex, color))
 
     gl.EnableVertexAttribArray(4)
-    gl.VertexAttribPointer(4, 1, gl.FLOAT, false, size_of(imdd3.Curve_Vertex), offset_of(imdd3.Curve_Vertex, start_distance))
+    gl.VertexAttribPointer(4, 1, gl.FLOAT, false, size_of(imdd3.Curve_Vertex), offset_of(imdd3.Curve_Vertex, distance))
 
     gl.EnableVertexAttribArray(5)
-    gl.VertexAttribPointer(5, 1, gl.FLOAT, false, size_of(imdd3.Curve_Vertex), offset_of(imdd3.Curve_Vertex, dash_length))
+    gl.VertexAttribPointer(5, 1, gl.FLOAT, false, size_of(imdd3.Curve_Vertex), offset_of(imdd3.Curve_Vertex, dash))
 
     gl.EnableVertexAttribArray(6)
-    gl.VertexAttribPointer(6, 3, gl.FLOAT, false, size_of(imdd3.Curve_Vertex), offset_of(imdd3.Curve_Vertex, plane_normal))
+    gl.VertexAttribPointer(6, 3, gl.FLOAT, false, size_of(imdd3.Curve_Vertex), offset_of(imdd3.Curve_Vertex, normal))
 
     gl.PatchParameteri(gl.PATCH_VERTICES, 3)
 }
