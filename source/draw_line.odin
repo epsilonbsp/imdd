@@ -142,3 +142,34 @@ draw_line_strip :: proc(points: [][3]f32, width: f32, color: u32, dash: f32 = 0,
         draw_line_cap(points[count - 2], points[count - 1], width, color, cap_type)
     }
 }
+
+draw_line_grid :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32) {
+    bitangent := glm.normalize(glm.cross(tangent, normal))
+    extent := size / 2
+
+    for x := -extent.x; x <= extent.x + 0.001; x += cell_size.x {
+        point0 := center + tangent * x - bitangent * extent.y
+        point1 := center + tangent * x + bitangent * extent.y
+
+        draw_line(point0, point1, line_width, color)
+    }
+
+    for y := -extent.y; y <= extent.y + 0.001; y += cell_size.y {
+        point0 := center - tangent * extent.x + bitangent * y
+        point1 := center + tangent * extent.x + bitangent * y
+
+        draw_line(point0, point1, line_width, color)
+    }
+}
+
+draw_line_grid_xy :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32) {
+    draw_line_grid(center, {0, 0, -1}, {1, 0, 0}, size, cell_size, line_width, color)
+}
+
+draw_line_grid_xz :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32) {
+    draw_line_grid(center, {0, 1, 0}, {1, 0, 0}, size, cell_size, line_width, color)
+}
+
+draw_line_grid_yz :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32) {
+    draw_line_grid(center, {1, 0, 0}, {0, 1, 0}, size, cell_size, line_width, color)
+}
