@@ -189,3 +189,11 @@ draw_line_cross :: proc(center: [3]f32, size: f32, line_width: f32, color: u32) 
     draw_line(center - {0, half, 0}, center + {0, half, 0}, line_width, color)
     draw_line(center - {0, 0, half}, center + {0, 0, half}, line_width, color)
 }
+
+draw_line_gizmo :: proc(position: [3]f32, size: f32, line_width: f32) {
+    head_size := line_width * 3
+
+    draw_line_arrow(position, position + {size, 0, 0}, line_width, head_size, 0xff0000ff)
+    draw_line_arrow(position, position + {0, size, 0}, line_width, head_size, 0x00ff00ff)
+    draw_line_arrow(position, position + {0, 0, size}, line_width, head_size, 0x0000ffff)
+}

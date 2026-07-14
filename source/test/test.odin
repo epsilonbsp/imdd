@@ -70,6 +70,8 @@ show_demo :: proc() {
 
     // imdd3.draw_line_cross({}, 16, 0.5, 0xff0000ff)
 
+    imdd3.draw_line_gizmo({}, 16, 1)
+
     // imdd3.draw_curve({0, 0, 0}, {128, 0, 0}, {128, 128, 0}, 2, 0xff0000ff)
     // imdd3.draw_curve({128, 128, 0}, {128, 256, 0}, {256, 256, 0}, 2, 0xff0000ff)
 
