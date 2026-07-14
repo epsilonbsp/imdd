@@ -22,8 +22,10 @@ TRIPRIM_VS :: GLSL_VERSION + `
     layout(location = 6) in vec3 i_scale;
     layout(location = 7) in float i_radius;
     layout(location = 8) in uint i_color;
+    layout(location = 9) in uint i_wire_color;
 
     out vec4 v_color;
+    out vec4 v_wire_color;
     out vec3 v_barycentric;
     out vec3 v_normal;
     out vec3 v_world_pos;
@@ -49,6 +51,7 @@ TRIPRIM_VS :: GLSL_VERSION + `
         vec3 world_position = rotate(local_position, i_rotation) + i_translation;
         gl_Position = u_projection * u_view * vec4(world_position, 1.0);
         v_color = unpack_rgba(i_color);
+        v_wire_color = unpack_rgba(i_wire_color);
         v_barycentric = i_barycentric;
         v_normal = rotate(i_normal, i_rotation);
         v_world_pos = world_position;
@@ -59,6 +62,7 @@ TRIPRIM_FS :: GLSL_VERSION + `
 #define EDGE_WIDTH 1
 
 in vec4 v_color;
+in vec4 v_wire_color;
 in vec3 v_barycentric;
 in vec3 v_normal;
 in vec3 v_world_pos;
@@ -83,12 +87,17 @@ void main() {
     vec3 specular = u_light_color * pow(max(dot(normal, half_dir), 0.0), u_mat_specular_shine) * u_mat_specular_strength;
 
     vec3 shaded = pow(ambient + diffuse + specular, vec3(1.0 / 2.2));
+    vec4 fill_color = vec4(shaded, v_color.a);
 
-    vec3 d = fwidth(v_barycentric) * EDGE_WIDTH;
-    vec3 f = smoothstep(vec3(0.0), d, v_barycentric);
-    float edge = min(min(f.x, f.y), f.z);
+    if (v_wire_color.a > 0.0) {
+        vec3 d = fwidth(v_barycentric) * EDGE_WIDTH;
+        vec3 f = smoothstep(vec3(0.0), d, v_barycentric);
+        float edge = min(min(f.x, f.y), f.z);
 
-    o_frag_color = mix(vec4(0.0, 0.0, 0.0, v_color.a), vec4(shaded, v_color.a), edge);
+        o_frag_color = mix(vec4(v_wire_color.rgb, v_color.a), fill_color, edge);
+    } else {
+        o_frag_color = fill_color;
+    }
 }
 `
 
@@ -156,6 +165,10 @@ triprim_init :: proc(vertices: []imdd3.Triprim_Vertex, ranges: [imdd3.Triprim_Ty
     gl.EnableVertexAttribArray(8)
     gl.VertexAttribIPointer(8, 1, gl.UNSIGNED_INT, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, color))
     gl.VertexAttribDivisor(8, 1)
+
+    gl.EnableVertexAttribArray(9)
+    gl.VertexAttribIPointer(9, 1, gl.UNSIGNED_INT, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, wire_color))
+    gl.VertexAttribDivisor(9, 1)
 
     gl.GenBuffers(1, &triprim_state.dibo)
 }
