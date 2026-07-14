@@ -1,8 +1,16 @@
 package imdd3_impl_gl
 
+import glm "core:math/linalg/glsl"
 import gl "vendor:OpenGL"
 
 import imdd3 "../.."
+
+TRIPRIM_LIGHT_DIR :: glm.vec3{0.4, 0.8, 0.4}
+TRIPRIM_LIGHT_COLOR :: glm.vec3{1, 1, 1}
+TRIPRIM_AMBIENT_STRENGTH :: 0.3
+TRIPRIM_DIFFUSE_STRENGTH :: 0.7
+TRIPRIM_SPECULAR_STRENGTH :: 0.2
+TRIPRIM_SPECULAR_SHINE :: 32.0
 
 TRIPRIM_VS :: GLSL_VERSION + `
     layout(location = 0) in vec3 i_anchor;
@@ -17,6 +25,8 @@ TRIPRIM_VS :: GLSL_VERSION + `
 
     out vec4 v_color;
     out vec3 v_barycentric;
+    out vec3 v_normal;
+    out vec3 v_world_pos;
 
     uniform mat4 u_projection;
     uniform mat4 u_view;
@@ -40,6 +50,8 @@ TRIPRIM_VS :: GLSL_VERSION + `
         gl_Position = u_projection * u_view * vec4(world_position, 1.0);
         v_color = unpack_rgba(i_color);
         v_barycentric = i_barycentric;
+        v_normal = rotate(i_normal, i_rotation);
+        v_world_pos = world_position;
     }
 `
 
@@ -48,15 +60,35 @@ TRIPRIM_FS :: GLSL_VERSION + `
 
 in vec4 v_color;
 in vec3 v_barycentric;
+in vec3 v_normal;
+in vec3 v_world_pos;
 
 out vec4 o_frag_color;
 
+uniform vec3 u_view_pos;
+uniform vec3 u_light_dir;
+uniform vec3 u_light_color;
+uniform float u_mat_ambient_strength;
+uniform float u_mat_diffuse_strength;
+uniform float u_mat_specular_strength;
+uniform float u_mat_specular_shine;
+
 void main() {
+    vec3 normal = normalize(v_normal);
+    vec3 view_dir = normalize(u_view_pos - v_world_pos);
+    vec3 half_dir = normalize(u_light_dir + view_dir);
+
+    vec3 ambient = v_color.rgb * u_light_color * u_mat_ambient_strength;
+    vec3 diffuse = v_color.rgb * u_light_color * max(dot(normal, u_light_dir), 0.0) * u_mat_diffuse_strength;
+    vec3 specular = u_light_color * pow(max(dot(normal, half_dir), 0.0), u_mat_specular_shine) * u_mat_specular_strength;
+
+    vec3 shaded = pow(ambient + diffuse + specular, vec3(1.0 / 2.2));
+
     vec3 d = fwidth(v_barycentric) * EDGE_WIDTH;
     vec3 f = smoothstep(vec3(0.0), d, v_barycentric);
     float edge = min(min(f.x, f.y), f.z);
 
-    o_frag_color = mix(vec4(0.0, 0.0, 0.0, v_color.a), v_color, edge);
+    o_frag_color = mix(vec4(0.0, 0.0, 0.0, v_color.a), vec4(shaded, v_color.a), edge);
 }
 `
 
@@ -152,6 +184,18 @@ triprim_render :: proc(data: [imdd3.Triprim_Type][]imdd3.Triprim_Instance) {
     gl.UseProgram(triprim_state.program)
     gl.UniformMatrix4fv(triprim_state.uniforms["u_projection"].location, 1, false, &renderer.projection[0][0])
     gl.UniformMatrix4fv(triprim_state.uniforms["u_view"].location, 1, false, &renderer.view[0][0])
+
+    inv_view := glm.inverse(renderer.view)
+    view_pos := [3]f32{inv_view[3][0], inv_view[3][1], inv_view[3][2]}
+    light_dir := glm.normalize(TRIPRIM_LIGHT_DIR)
+
+    gl.Uniform3f(triprim_state.uniforms["u_view_pos"].location, view_pos.x, view_pos.y, view_pos.z)
+    gl.Uniform3f(triprim_state.uniforms["u_light_dir"].location, light_dir.x, light_dir.y, light_dir.z)
+    gl.Uniform3f(triprim_state.uniforms["u_light_color"].location, TRIPRIM_LIGHT_COLOR.x, TRIPRIM_LIGHT_COLOR.y, TRIPRIM_LIGHT_COLOR.z)
+    gl.Uniform1f(triprim_state.uniforms["u_mat_ambient_strength"].location, TRIPRIM_AMBIENT_STRENGTH)
+    gl.Uniform1f(triprim_state.uniforms["u_mat_diffuse_strength"].location, TRIPRIM_DIFFUSE_STRENGTH)
+    gl.Uniform1f(triprim_state.uniforms["u_mat_specular_strength"].location, TRIPRIM_SPECULAR_STRENGTH)
+    gl.Uniform1f(triprim_state.uniforms["u_mat_specular_shine"].location, TRIPRIM_SPECULAR_SHINE)
 
     gl.BindVertexArray(triprim_state.vao)
     gl.BindBuffer(gl.ARRAY_BUFFER, triprim_state.ubo)
