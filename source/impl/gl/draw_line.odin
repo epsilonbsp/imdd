@@ -9,15 +9,15 @@ LINE_VS :: GLSL_VERSION + `
     layout(location = 1) in float i_radius;
     layout(location = 2) in uint i_color;
     layout(location = 3) in float i_distance;
-    layout(location = 4) in float i_dash_length;
-    layout(location = 5) in uint i_rounded;
+    layout(location = 4) in float i_dash;
+    layout(location = 5) in uint i_is_rounded;
 
     out Vertex_Data {
         float radius;
         uint color;
         float distance;
-        float dash_length;
-        uint rounded;
+        float dash;
+        uint is_rounded;
     } v_data;
 
     void main() {
@@ -25,8 +25,8 @@ LINE_VS :: GLSL_VERSION + `
         v_data.radius = i_radius;
         v_data.color = i_color;
         v_data.distance = i_distance;
-        v_data.dash_length = i_dash_length;
-        v_data.rounded = i_rounded;
+        v_data.dash = i_dash;
+        v_data.is_rounded = i_is_rounded;
     }
 `
 
@@ -38,15 +38,15 @@ LINE_GS :: GLSL_VERSION + `
         float radius;
         uint color;
         float distance;
-        float dash_length;
-        uint rounded;
+        float dash;
+        uint is_rounded;
     } v_data[];
 
     out vec4 v_color;
-    out vec2 v_tex_coord;
-    flat out uint v_round;
     out float v_distance;
-    flat out float v_dash_length;
+    flat out float v_dash;
+    flat out uint v_is_rounded;
+    out vec2 v_tex_coord;
 
     uniform mat4 u_projection;
     uniform mat4 u_view;
@@ -76,22 +76,34 @@ LINE_GS :: GLSL_VERSION + `
         vec4 color0 = unpack_rgba(v_data[0].color);
         vec4 color1 = unpack_rgba(v_data[1].color);
 
-        v_dash_length = v_data[0].dash_length;
+        v_dash = v_data[0].dash;
 
         gl_Position = u_projection * vec4(view0.xyz - view_perp * v_data[0].radius, 1.0);
-        v_color = color0; v_tex_coord = vec2(-1.0, 0.0); v_round = v_data[0].rounded; v_distance = v_data[0].distance;
+        v_color = color0;
+        v_distance = v_data[0].distance;
+        v_is_rounded = v_data[0].is_rounded;
+        v_tex_coord = vec2(-1.0, 0.0);
         EmitVertex();
 
         gl_Position = u_projection * vec4(view0.xyz + view_perp * v_data[0].radius, 1.0);
-        v_color = color0; v_tex_coord = vec2(1.0, 0.0); v_round = v_data[0].rounded; v_distance = v_data[0].distance;
+        v_color = color0;
+        v_distance = v_data[0].distance;
+        v_is_rounded = v_data[0].is_rounded;
+        v_tex_coord = vec2(1.0, 0.0);
         EmitVertex();
 
         gl_Position = u_projection * vec4(view1.xyz - view_perp * v_data[1].radius, 1.0);
-        v_color = color1; v_tex_coord = vec2(-1.0, 1.0); v_round = v_data[1].rounded; v_distance = v_data[1].distance;
+        v_color = color1;
+        v_distance = v_data[1].distance;
+        v_is_rounded = v_data[1].is_rounded;
+        v_tex_coord = vec2(-1.0, 1.0);
         EmitVertex();
 
         gl_Position = u_projection * vec4(view1.xyz + view_perp * v_data[1].radius, 1.0);
-        v_color = color1; v_tex_coord = vec2(1.0, 1.0); v_round = v_data[1].rounded; v_distance = v_data[1].distance;
+        v_color = color1;
+        v_distance = v_data[1].distance;
+        v_is_rounded = v_data[1].is_rounded;
+        v_tex_coord = vec2(1.0, 1.0);
         EmitVertex();
 
         EndPrimitive();
@@ -100,24 +112,24 @@ LINE_GS :: GLSL_VERSION + `
 
 LINE_FS :: GLSL_VERSION + `
     in vec4 v_color;
-    in vec2 v_tex_coord;
-    flat in uint v_round;
     in float v_distance;
-    flat in float v_dash_length;
+    flat in float v_dash;
+    flat in uint v_is_rounded;
+    in vec2 v_tex_coord;
 
     out vec4 o_frag_color;
 
     void main() {
-        if (v_round == 1u) {
+        if (v_dash > 0.0 && mod(v_distance, v_dash * 2.0) > v_dash) {
+            discard;
+        }
+
+        if (v_is_rounded == 1u) {
             vec2 cp = v_tex_coord;
 
             if (cp.x * cp.x + cp.y * cp.y > 1.0) {
                 discard;
             }
-        }
-
-        if (v_dash_length > 0.0 && mod(v_distance, v_dash_length * 2.0) > v_dash_length) {
-            discard;
         }
 
         o_frag_color = v_color;
@@ -164,7 +176,7 @@ line_init :: proc() {
     gl.VertexAttribPointer(3, 1, gl.FLOAT, false, size_of(imdd3.Line_Vertex), offset_of(imdd3.Line_Vertex, distance))
 
     gl.EnableVertexAttribArray(4)
-    gl.VertexAttribPointer(4, 1, gl.FLOAT, false, size_of(imdd3.Line_Vertex), offset_of(imdd3.Line_Vertex, dash_length))
+    gl.VertexAttribPointer(4, 1, gl.FLOAT, false, size_of(imdd3.Line_Vertex), offset_of(imdd3.Line_Vertex, dash))
 
     gl.EnableVertexAttribArray(5)
     gl.VertexAttribIPointer(5, 1, gl.UNSIGNED_INT, size_of(imdd3.Line_Vertex), offset_of(imdd3.Line_Vertex, is_rounded))

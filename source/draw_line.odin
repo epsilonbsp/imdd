@@ -9,7 +9,7 @@ Line_Vertex :: struct {
     radius: f32,
     color: u32,
     distance: f32,
-    dash_length: f32,
+    dash: f32,
     is_rounded: b32,
 }
 
@@ -41,13 +41,13 @@ line_render :: proc() {
 }
 
 // API
-draw_line :: proc(point0: [3]f32, point1: [3]f32, width: f32, color: u32, dash_length: f32 = 0, start_distance: f32 = 0, is_rounded := false) {
+draw_line :: proc(point0: [3]f32, point1: [3]f32, width: f32, color: u32, dash: [2]f32 = {}, is_rounded := false) {
     radius := width * 0.5
-    distance := start_distance + glm.distance(point0, point1)
+    distance := dash[0] + glm.distance(point0, point1)
 
     append(&line_state.vertices,
-        Line_Vertex{point0, radius, color, start_distance, dash_length, b32(is_rounded)},
-        Line_Vertex{point1, radius, color, distance, dash_length, b32(is_rounded)}
+        Line_Vertex{point0, radius, color, dash[0], dash[1], b32(is_rounded)},
+        Line_Vertex{point1, radius, color, distance, dash[1], b32(is_rounded)}
     )
 }
 
@@ -78,7 +78,7 @@ draw_line_cap :: proc(point0: [3]f32, dir: [3]f32, width: f32, color: u32, cap_t
     }
 }
 
-draw_line_strip :: proc(points: [][3]f32, width: f32, color: u32, cap_type: Line_Cap_Type = .None, is_looped := false, dash_length: f32 = 0) {
+draw_line_strip :: proc(points: [][3]f32, width: f32, color: u32, dash: f32 = 0, is_looped := false, cap_type: Line_Cap_Type = .None) {
     if len(points) < 2 {
         return
     }
@@ -88,6 +88,7 @@ draw_line_strip :: proc(points: [][3]f32, width: f32, color: u32, cap_type: Line
 
     if !is_looped {
         dir := glm.normalize(points[0] - points[1])
+
         draw_line_cap(points[0], dir, width, color, cap_type)
     }
 
@@ -119,9 +120,9 @@ draw_line_strip :: proc(points: [][3]f32, width: f32, color: u32, cap_type: Line
             draw_curve(prev_end, curr, start, width, color)
         }
 
-        draw_line(start, end, width, color, dash_length = dash_length, start_distance = total_distance)
-        total_distance += glm.distance(start, end)
+        draw_line(start, end, width, color, dash = {total_distance, dash})
 
+        total_distance += glm.distance(start, end)
         prev_end = end
     }
 
@@ -129,6 +130,7 @@ draw_line_strip :: proc(points: [][3]f32, width: f32, color: u32, cap_type: Line
         draw_curve(prev_end, points[0], first_start, width, color)
     } else {
         dir := glm.normalize(points[count - 1] - points[count - 2])
+
         draw_line_cap(points[count - 1], dir, width, color, cap_type)
     }
 }
