@@ -62,6 +62,8 @@ show_demo :: proc() {
     //     {0, 128, 0},
     // }, 1, 0xff0000ff, 4, false, .Round, .Round)
 
+    // imdd3.draw_line_arrow({}, {128, 0, 0}, 4, 8, 0xff0000ff)
+
     // imdd3.draw_line_grid_xy({}, {128, 128}, 16, 1, 0xff0000ff)
     // imdd3.draw_line_grid_xz({}, {128, 128}, 16, 1, 0xff0000ff)
     // imdd3.draw_line_grid_yz({}, {128, 128}, 16, 1, 0xff0000ff)

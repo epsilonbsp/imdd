@@ -6,6 +6,7 @@ Immediate mode debug draw for 3D
 draw_line :: proc(point0: [3]f32, point1: [3]f32, width: f32, color: u32, dash: [2]f32 = {}, is_rounded := false)
 draw_line_cap :: proc(point0: [3]f32, point1: [3]f32, width: f32, color: u32, cap_type: Line_Cap_Type = .None)
 draw_line_strip :: proc(points: [][3]f32, width: f32, color: u32, dash: f32 = 0, is_looped := false, join_type: Line_Join_Type = .None, cap_type: Line_Cap_Type = .None)
+draw_line_arrow :: proc(point0: [3]f32, point1: [3]f32, width: f32, head_size: f32, color: u32)
 draw_line_grid :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32)
 draw_line_grid_xy :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32)
 draw_line_grid_xz :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32)

@@ -131,6 +131,26 @@ draw_line_strip :: proc(points: [][3]f32, width: f32, color: u32, dash: f32 = 0,
     }
 }
 
+
+draw_line_arrow :: proc(point0: [3]f32, point1: [3]f32, width: f32, head_size: f32, color: u32) {
+    diff := point1 - point0
+    length := glm.length(diff)
+
+    if length == 0 {
+        return
+    }
+
+    dir := diff / length
+    body_end := point1 - dir * head_size
+
+    draw_line(point0, body_end, width, color)
+
+    append(&line_state.vertices,
+        Line_Vertex{body_end, head_size * 0.5, color, 0, 0, b32(false)},
+        Line_Vertex{point1, 0, color, 0, 0, b32(false)}
+    )
+}
+
 draw_line_grid :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32) {
     bitangent := glm.normalize(glm.cross(tangent, normal))
     extent := size / 2
