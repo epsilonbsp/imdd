@@ -43,7 +43,7 @@ show_demo :: proc() {
     // imdd3.draw_stroke_arrow({}, {0, 128, 0}, {0, 0, -1}, {1, 0, 0}, 4, 8, 0xff0000ff)
 
     // imdd3.draw_grid_xy({}, {128, 128}, 16, 1, 0xff0000ff)
-    // imdd3.draw_grid_xz({}, {128, 128}, 16, 1, 0xff0000ff)
+    imdd3.draw_grid_xz({}, {2048, 2048}, 16, 1, 0xaaaaaaff)
     // imdd3.draw_grid_yz({}, {128, 128}, 16, 1, 0xff0000ff)
 
     // imdd3.draw_text({}, {0, 0, -1}, {1, 0, 0}, "Hello, World!", 16, 16, 0xff0000ff)
@@ -70,7 +70,7 @@ show_demo :: proc() {
 
     // imdd3.draw_line_cross({}, 16, 0.5, 0xff0000ff)
 
-    imdd3.draw_line_gizmo({}, 16, 1)
+    // imdd3.draw_line_gizmo({}, 16, 1)
 
     // imdd3.draw_curve({0, 0, 0}, {128, 0, 0}, {128, 128, 0}, 2, 0xff0000ff)
     // imdd3.draw_curve({128, 128, 0}, {128, 256, 0}, {256, 256, 0}, 2, 0xff0000ff)
@@ -100,4 +100,6 @@ show_demo :: proc() {
     // view := glm.mat4LookAt({0, 0, 0}, {0, 0, -1}, {0, 1, 0})
 
     // imdd3.draw_frustum(projection * view, 0.5, 0xd1496b_ff)
+
+    imdd3.draw_gizmo({}, 32, 1)
 }

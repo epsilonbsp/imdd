@@ -42,3 +42,11 @@ draw_frustum :: proc(proj_view: matrix[4, 4]f32, line_width: f32, color: u32) {
     draw_line(corners[2], corners[6], line_width, color)
     draw_line(corners[3], corners[7], line_width, color)
 }
+
+draw_gizmo :: proc(position: [3]f32, size: f32, width: f32) {
+    head_size := width * 3
+
+    draw_arrow(position, position + {size, 0, 0}, width, head_size, 0xff0000ff)
+    draw_arrow(position, position + {0, size, 0}, width, head_size, 0x00ff00ff)
+    draw_arrow(position, position + {0, 0, size}, width, head_size, 0x0000ffff)
+}

@@ -661,3 +661,18 @@ draw_capsule_ab :: proc(start: [3]f32, end: [3]f32, radius: f32, color: u32, wir
     instance.color = color
     instance.wire_color = wire_color
 }
+
+draw_arrow :: proc(point0: [3]f32, point1: [3]f32, width: f32, head_size: f32, color: u32, wire_color: u32 = 0) {
+    diff := point1 - point0
+    length := glm.length(diff)
+
+    if length == 0 {
+        return
+    }
+
+    dir := diff / length
+    body_end := point1 - dir * head_size
+
+    draw_cylinder_ab(point0, body_end, width * 0.5, color, wire_color)
+    draw_cone_ab(point1, body_end, head_size * 0.5, color, wire_color)
+}
