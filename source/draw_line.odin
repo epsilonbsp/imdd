@@ -131,7 +131,6 @@ draw_line_strip :: proc(points: [][3]f32, width: f32, color: u32, dash: f32 = 0,
     }
 }
 
-
 draw_line_arrow :: proc(point0: [3]f32, point1: [3]f32, width: f32, head_size: f32, color: u32) {
     diff := point1 - point0
     length := glm.length(diff)
@@ -180,20 +179,4 @@ draw_line_grid_xz :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_
 
 draw_line_grid_yz :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32) {
     draw_line_grid(center, {1, 0, 0}, {0, 1, 0}, size, cell_size, line_width, color)
-}
-
-draw_line_cross :: proc(center: [3]f32, size: f32, line_width: f32, color: u32) {
-    half := size * 0.5
-
-    draw_line(center - {half, 0, 0}, center + {half, 0, 0}, line_width, color)
-    draw_line(center - {0, half, 0}, center + {0, half, 0}, line_width, color)
-    draw_line(center - {0, 0, half}, center + {0, 0, half}, line_width, color)
-}
-
-draw_line_gizmo :: proc(position: [3]f32, size: f32, line_width: f32) {
-    head_size := line_width * 3
-
-    draw_line_arrow(position, position + {size, 0, 0}, line_width, head_size, 0xff0000ff)
-    draw_line_arrow(position, position + {0, size, 0}, line_width, head_size, 0x00ff00ff)
-    draw_line_arrow(position, position + {0, 0, size}, line_width, head_size, 0x0000ffff)
 }

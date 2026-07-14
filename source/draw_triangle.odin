@@ -324,6 +324,37 @@ draw_stroke_arrow :: proc(point0: [3]f32, point1: [3]f32, normal: [3]f32, tangen
     )
 }
 
+draw_stroke_grid :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32) {
+    bitangent := glm.normalize(glm.cross(tangent, normal))
+    extent := size / 2
+
+    for x := -extent.x; x <= extent.x + 0.001; x += cell_size.x {
+        point0 := center + tangent * x - bitangent * extent.y
+        point1 := center + tangent * x + bitangent * extent.y
+
+        draw_stroke(point0, point1, normal, tangent, line_width, color)
+    }
+
+    for y := -extent.y; y <= extent.y + 0.001; y += cell_size.y {
+        point0 := center - tangent * extent.x + bitangent * y
+        point1 := center + tangent * extent.x + bitangent * y
+
+        draw_stroke(point0, point1, normal, tangent, line_width, color)
+    }
+}
+
+draw_stroke_grid_xy :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32) {
+    draw_stroke_grid(center, {0, 0, -1}, {1, 0, 0}, size, cell_size, line_width, color)
+}
+
+draw_stroke_grid_xz :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32) {
+    draw_stroke_grid(center, {0, 1, 0}, {1, 0, 0}, size, cell_size, line_width, color)
+}
+
+draw_stroke_grid_yz :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32) {
+    draw_stroke_grid(center, {1, 0, 0}, {0, 1, 0}, size, cell_size, line_width, color)
+}
+
 draw_grid :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32) {
     bitangent := glm.normalize(glm.cross(tangent, normal))
     extent := size / 2
