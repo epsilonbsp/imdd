@@ -14,14 +14,14 @@ Lineprim_Type :: enum {
 }
 
 Lineprim_Vertex :: struct {
-    anchor: glm.vec3,
-    direction: glm.vec3,
+    anchor: [3]f32,
+    direction: [3]f32,
 }
 
 Lineprim_Instance :: struct {
-    translation: glm.vec3,
-    rotation: glm.quat,
-    scale: glm.vec3,
+    translation: [3]f32,
+    rotation: quaternion128,
+    scale: [3]f32,
     radius: f32,
     color: u32,
 }
@@ -375,7 +375,7 @@ lineprim_push :: proc(type: Lineprim_Type) -> ^Lineprim_Instance {
 }
 
 // API
-draw_wire_aabb :: proc(position: glm.vec3, size: glm.vec3, color: u32) {
+draw_wire_aabb :: proc(position: [3]f32, size: [3]f32, color: u32) {
     instance := lineprim_push(.Box)
     instance.translation = position
     instance.rotation = {}
@@ -383,7 +383,7 @@ draw_wire_aabb :: proc(position: glm.vec3, size: glm.vec3, color: u32) {
     instance.color = color
 }
 
-draw_wire_aabb_bounds :: proc(min: glm.vec3, max: glm.vec3, color: u32) {
+draw_wire_aabb_bounds :: proc(min: [3]f32, max: [3]f32, color: u32) {
     instance := lineprim_push(.Box)
     instance.translation = (min + max) / 2
     instance.rotation = {}
@@ -391,15 +391,15 @@ draw_wire_aabb_bounds :: proc(min: glm.vec3, max: glm.vec3, color: u32) {
     instance.color = color
 }
 
-draw_wire_obb :: proc(position: glm.vec3, size: glm.vec3, rotation: glm.vec3, color: u32) {
+draw_wire_obb :: proc(position: [3]f32, size: [3]f32, rotation: quaternion128, color: u32) {
     instance := lineprim_push(.Box)
     instance.translation = position
-    instance.rotation = quat_rotation_xyz(rotation)
+    instance.rotation = rotation
     instance.scale = size / 2
     instance.color = color
 }
 
-draw_wire_cylinder_aa :: proc(position: glm.vec3, size: glm.vec2, color: u32) {
+draw_wire_cylinder_aa :: proc(position: [3]f32, size: [2]f32, color: u32) {
     instance := lineprim_push(.Cylinder)
     instance.translation = position
     instance.rotation = {}
@@ -407,15 +407,15 @@ draw_wire_cylinder_aa :: proc(position: glm.vec3, size: glm.vec2, color: u32) {
     instance.color = color
 }
 
-draw_wire_cylinder_o :: proc(position: glm.vec3, size: glm.vec2, rotation: glm.vec3, color: u32) {
+draw_wire_cylinder_o :: proc(position: [3]f32, size: [2]f32, rotation: quaternion128, color: u32) {
     instance := lineprim_push(.Cylinder)
     instance.translation = position
-    instance.rotation = quat_rotation_xyz(rotation)
+    instance.rotation = rotation
     instance.scale = {size.x, size.y / 2, size.x}
     instance.color = color
 }
 
-draw_wire_cylinder_ab :: proc(start: glm.vec3, end: glm.vec3, radius: f32, color: u32) {
+draw_wire_cylinder_ab :: proc(start: [3]f32, end: [3]f32, radius: f32, color: u32) {
     height := glm.distance(start, end) / 2
 
     instance := lineprim_push(.Cylinder)
@@ -425,7 +425,7 @@ draw_wire_cylinder_ab :: proc(start: glm.vec3, end: glm.vec3, radius: f32, color
     instance.color = color
 }
 
-draw_wire_cone_aa :: proc(position: glm.vec3, size: glm.vec2, color: u32) {
+draw_wire_cone_aa :: proc(position: [3]f32, size: [2]f32, color: u32) {
     instance := lineprim_push(.Cone)
     instance.translation = position
     instance.rotation = {}
@@ -433,15 +433,15 @@ draw_wire_cone_aa :: proc(position: glm.vec3, size: glm.vec2, color: u32) {
     instance.color = color
 }
 
-draw_wire_cone_o :: proc(position: glm.vec3, size: glm.vec2, rotation: glm.vec3, color: u32) {
+draw_wire_cone_o :: proc(position: [3]f32, size: [2]f32, rotation: quaternion128, color: u32) {
     instance := lineprim_push(.Cone)
     instance.translation = position
-    instance.rotation = quat_rotation_xyz(rotation)
+    instance.rotation = rotation
     instance.scale = {size.x, size.y / 2, size.x}
     instance.color = color
 }
 
-draw_wire_cone_ab :: proc(start: glm.vec3, end: glm.vec3, radius: f32, color: u32) {
+draw_wire_cone_ab :: proc(start: [3]f32, end: [3]f32, radius: f32, color: u32) {
     height := glm.distance(start, end) / 2
 
     instance := lineprim_push(.Cone)
@@ -451,7 +451,7 @@ draw_wire_cone_ab :: proc(start: glm.vec3, end: glm.vec3, radius: f32, color: u3
     instance.color = color
 }
 
-draw_wire_cone_frustum_aa :: proc(position: glm.vec3, size: glm.vec2, top_radius: f32, color: u32) {
+draw_wire_cone_frustum_aa :: proc(position: [3]f32, size: [2]f32, top_radius: f32, color: u32) {
     instance := lineprim_push(.Cone_Frustum)
     instance.translation = position
     instance.rotation = {}
@@ -460,16 +460,16 @@ draw_wire_cone_frustum_aa :: proc(position: glm.vec3, size: glm.vec2, top_radius
     instance.color = color
 }
 
-draw_wire_cone_frustum_o :: proc(position: glm.vec3, size: glm.vec2, top_radius: f32, rotation: glm.vec3, color: u32) {
+draw_wire_cone_frustum_o :: proc(position: [3]f32, size: [2]f32, top_radius: f32, rotation: quaternion128, color: u32) {
     instance := lineprim_push(.Cone_Frustum)
     instance.translation = position
-    instance.rotation = quat_rotation_xyz(rotation)
+    instance.rotation = rotation
     instance.scale = {size.x, size.y / 2, size.x}
     instance.radius = top_radius
     instance.color = color
 }
 
-draw_wire_cone_frustum_ab :: proc(start: glm.vec3, end: glm.vec3, bottom_radius: f32, top_radius: f32, color: u32) {
+draw_wire_cone_frustum_ab :: proc(start: [3]f32, end: [3]f32, bottom_radius: f32, top_radius: f32, color: u32) {
     height := glm.distance(start, end) / 2
 
     instance := lineprim_push(.Cone_Frustum)
@@ -480,7 +480,7 @@ draw_wire_cone_frustum_ab :: proc(start: glm.vec3, end: glm.vec3, bottom_radius:
     instance.color = color
 }
 
-draw_wire_sphere :: proc(position: glm.vec3, radius: f32, color: u32) {
+draw_wire_sphere :: proc(position: [3]f32, radius: f32, color: u32) {
     instance := lineprim_push(.Sphere)
     instance.translation = position
     instance.rotation = {}
@@ -488,7 +488,7 @@ draw_wire_sphere :: proc(position: glm.vec3, radius: f32, color: u32) {
     instance.color = color
 }
 
-draw_wire_capsule_aa :: proc(position: glm.vec3, size: glm.vec2, color: u32) {
+draw_wire_capsule_aa :: proc(position: [3]f32, size: [2]f32, color: u32) {
     instance := lineprim_push(.Capsule)
     instance.translation = position
     instance.rotation = {}
@@ -497,16 +497,16 @@ draw_wire_capsule_aa :: proc(position: glm.vec3, size: glm.vec2, color: u32) {
     instance.color = color
 }
 
-draw_wire_capsule_o :: proc(position: glm.vec3, size: glm.vec2, rotation: glm.vec3, color: u32) {
+draw_wire_capsule_o :: proc(position: [3]f32, size: [2]f32, rotation: quaternion128, color: u32) {
     instance := lineprim_push(.Capsule)
     instance.translation = position
-    instance.rotation = quat_rotation_xyz(rotation)
+    instance.rotation = rotation
     instance.scale = {0, size.y / 2, 0}
     instance.radius = size.x
     instance.color = color
 }
 
-draw_wire_capsule_ab :: proc(start: glm.vec3, end: glm.vec3, radius: f32, color: u32) {
+draw_wire_capsule_ab :: proc(start: [3]f32, end: [3]f32, radius: f32, color: u32) {
     half_height := glm.distance(start, end) / 2
 
     instance := lineprim_push(.Capsule)

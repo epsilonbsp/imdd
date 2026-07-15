@@ -3,18 +3,18 @@ package example
 import glm "core:math/linalg/glsl"
 
 Camera :: struct {
-    position: glm.vec3,
-    forward: glm.vec3,
-    right: glm.vec3,
-    up: glm.vec3,
-    world_up: glm.vec3,
+    position: [3]f32,
+    forward: [3]f32,
+    right: [3]f32,
+    up: [3]f32,
+    world_up: [3]f32,
     is_locked: bool,
 
     near: f32,
     far: f32,
     fov: f32,
-    projection: glm.mat4,
-    view: glm.mat4,
+    projection: matrix[4, 4]f32,
+    view: matrix[4, 4]f32,
 }
 
 init_camera :: proc(camera: ^Camera) {
@@ -27,7 +27,7 @@ init_camera :: proc(camera: ^Camera) {
     rotate_camera(camera, 0, 0, 0)
 }
 
-move_camera :: proc(camera: ^Camera, direction: glm.vec3) {
+move_camera :: proc(camera: ^Camera, direction: [3]f32) {
     camera.position += camera.forward * direction.z
     camera.position += camera.right * direction.x
     camera.position += camera.up * direction.y
@@ -64,7 +64,7 @@ zoom_camera :: proc(camera: ^Camera, direction: f32) {
     camera.fov = glm.clamp(camera.fov + direction, 0.01, 179.99)
 }
 
-point_camera_at :: proc(camera: ^Camera, point: glm.vec3) {
+point_camera_at :: proc(camera: ^Camera, point: [3]f32) {
     if glm.distance(camera.position, point) < glm.F32_EPSILON {
         return
     }

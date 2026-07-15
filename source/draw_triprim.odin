@@ -540,10 +540,10 @@ draw_cylinder_aa :: proc(position: [3]f32, size: [2]f32, color: u32, wire_color:
     instance.wire_color = wire_color
 }
 
-draw_cylinder_o :: proc(position: [3]f32, size: [2]f32, rotation: [3]f32, color: u32, wire_color: u32 = 0) {
+draw_cylinder_o :: proc(position: [3]f32, size: [2]f32, rotation: quaternion128, color: u32, wire_color: u32 = 0) {
     instance := triprim_push(.Cylinder)
     instance.translation = position
-    instance.rotation = quat_rotation_xyz(rotation)
+    instance.rotation = rotation
     instance.scale = {size.x, size.y / 2, size.x}
     instance.color = color
     instance.wire_color = wire_color
@@ -569,10 +569,10 @@ draw_cone_aa :: proc(position: [3]f32, size: [2]f32, color: u32, wire_color: u32
     instance.wire_color = wire_color
 }
 
-draw_cone_o :: proc(position: [3]f32, size: [2]f32, rotation: [3]f32, color: u32, wire_color: u32 = 0) {
+draw_cone_o :: proc(position: [3]f32, size: [2]f32, rotation: quaternion128, color: u32, wire_color: u32 = 0) {
     instance := triprim_push(.Cone)
     instance.translation = position
-    instance.rotation = quat_rotation_xyz(rotation)
+    instance.rotation = rotation
     instance.scale = {size.x, size.y / 2, size.x}
     instance.color = color
     instance.wire_color = wire_color
@@ -599,10 +599,10 @@ draw_cone_frustum_aa :: proc(position: [3]f32, size: [2]f32, top_radius: f32, co
     instance.wire_color = wire_color
 }
 
-draw_cone_frustum_o :: proc(position: [3]f32, size: [2]f32, top_radius: f32, rotation: [3]f32, color: u32, wire_color: u32 = 0) {
+draw_cone_frustum_o :: proc(position: [3]f32, size: [2]f32, top_radius: f32, rotation: quaternion128, color: u32, wire_color: u32 = 0) {
     instance := triprim_push(.Cone_Frustum)
     instance.translation = position
-    instance.rotation = quat_rotation_xyz(rotation)
+    instance.rotation = rotation
     instance.scale = {size.x, size.y / 2, size.x}
     instance.radius = top_radius
     instance.color = color
@@ -640,10 +640,10 @@ draw_capsule_aa :: proc(position: [3]f32, size: [2]f32, color: u32, wire_color: 
     instance.wire_color = wire_color
 }
 
-draw_capsule_o :: proc(position: [3]f32, size: [2]f32, rotation: [3]f32, color: u32, wire_color: u32 = 0) {
+draw_capsule_o :: proc(position: [3]f32, size: [2]f32, rotation: quaternion128, color: u32, wire_color: u32 = 0) {
     instance := triprim_push(.Capsule)
     instance.translation = position
-    instance.rotation = quat_rotation_xyz(rotation)
+    instance.rotation = rotation
     instance.scale = {0, size.y / 2, 0}
     instance.radius = size.x
     instance.color = color
