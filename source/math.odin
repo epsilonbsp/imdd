@@ -7,5 +7,9 @@ quat_rotation_xyz :: proc(rotation: [3]f32) -> glm.quat {
 }
 
 quat_rotation_dir :: proc(dir: [3]f32) -> glm.quat {
+    if glm.dot(dir, [3]f32{0, 1, 0}) < -0.9999 {
+        return glm.quatAxisAngle({1, 0, 0}, glm.PI)
+    }
+
     return glm.quatFromMat4(glm.mat4Orientation(dir, {0, 1, 0}))
 }
