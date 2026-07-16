@@ -82,14 +82,14 @@ show_demo :: proc() {
     // imdd3.draw_ring({}, {0, 0, -1}, {1, 0, 0}, 64, 2, 0xff0000ff)
     // imdd3.draw_ring({}, {0, 0, -1}, {1, 0, 0}, 64, 2, 0xff0000ff, {0, 33.51})
 
-    imdd3.draw_wire_aabb({0, 32, 128}, {64, 64, 64}, 0xebbe60ff)
+    imdd3.draw_wire_box_aa({0, 32, 128}, {64, 64, 64}, 0xebbe60ff)
     imdd3.draw_wire_cylinder_aa({128, 32, 128}, {32, 64}, 0x9fe685ff)
     imdd3.draw_wire_cone_aa({256, 32, 128}, {32, 64}, 0x4963e6ff)
     imdd3.draw_wire_cone_frustum_aa({384, 32, 128}, {32, 64}, 16, 0xe6c25eff)
     imdd3.draw_wire_sphere({512, 32, 128}, 32, 0xe68ac4ff)
     imdd3.draw_wire_capsule_aa({640, 32, 128}, {16, 32}, 0xc9a6e6ff)
 
-    imdd3.draw_aabb({0, 32, -128}, {64, 64, 64}, 0xebbe60ff)
+    imdd3.draw_box_aa({0, 32, -128}, {64, 64, 64}, 0xebbe60ff)
     imdd3.draw_cylinder_aa({128, 32, -128}, {32, 64}, 0x9fe685ff)
     imdd3.draw_cone_aa({256, 32, -128}, {32, 64}, 0x4963e6ff)
     imdd3.draw_cone_frustum_aa({384, 32, -128}, {32, 64}, 16, 0xe6c25eff)
