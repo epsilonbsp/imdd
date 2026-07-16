@@ -43,6 +43,8 @@ draw_arc :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, a
 draw_ring :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, width: f32, color: u32, dash: [2]f32 = {}, plane_normal: [3]f32 = {})
 
 draw_aabb :: proc(position: [3]f32, size: [3]f32, color: u32)
+draw_aabb_bounds :: proc(min: [3]f32, max: [3]f32, color: u32)
+draw_obb :: proc(position: [3]f32, size: [3]f32, rotation: quaternion128, color: u32)
 draw_cylinder_aa :: proc(position: [3]f32, size: [2]f32, color: u32)
 draw_cylinder_o :: proc(position: [3]f32, size: [2]f32, rotation: quaternion128, color: u32)
 draw_cylinder_ab :: proc(start: [3]f32, end: [3]f32, radius: f32, color: u32)
