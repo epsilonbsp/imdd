@@ -375,15 +375,7 @@ lineprim_push :: proc(type: Lineprim_Type) -> ^Lineprim_Instance {
 }
 
 // API
-draw_wire_aabb :: proc(position: [3]f32, size: [3]f32, color: u32) {
-    instance := lineprim_push(.Box)
-    instance.translation = position
-    instance.rotation = {}
-    instance.scale = size / 2
-    instance.color = color
-}
-
-draw_wire_aabb_bounds :: proc(min: [3]f32, max: [3]f32, color: u32) {
+draw_wire_aabb :: proc(min: [3]f32, max: [3]f32, color: u32) {
     instance := lineprim_push(.Box)
     instance.translation = (min + max) / 2
     instance.rotation = {}
@@ -391,7 +383,25 @@ draw_wire_aabb_bounds :: proc(min: [3]f32, max: [3]f32, color: u32) {
     instance.color = color
 }
 
-draw_wire_obb :: proc(position: [3]f32, size: [3]f32, rotation: quaternion128, color: u32) {
+draw_wire_box_aa :: proc(position: [3]f32, size: [3]f32, color: u32) {
+    instance := lineprim_push(.Box)
+    instance.translation = position
+    instance.rotation = {}
+    instance.scale = size / 2
+    instance.color = color
+}
+
+draw_wire_box_ab :: proc(start: [3]f32, end: [3]f32, size: [2]f32, color: u32) {
+    height := glm.distance(start, end) / 2
+
+    instance := lineprim_push(.Box)
+    instance.translation = (start + end) / 2
+    instance.rotation = quat_rotation_dir(glm.normalize(end - start))
+    instance.scale = {size[0] / 2, height, size[1] / 2}
+    instance.color = color
+}
+
+draw_wire_box_o :: proc(position: [3]f32, size: [3]f32, rotation: quaternion128, color: u32) {
     instance := lineprim_push(.Box)
     instance.translation = position
     instance.rotation = rotation

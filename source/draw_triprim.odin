@@ -522,7 +522,15 @@ triprim_push :: proc(type: Triprim_Type) -> ^Triprim_Instance {
 }
 
 // API
-draw_aabb :: proc(position: [3]f32, size: [3]f32, color: u32, wire_color: u32 = 0) {
+draw_aabb :: proc(min: [3]f32, max: [3]f32, color: u32) {
+    instance := triprim_push(.Box)
+    instance.translation = (min + max) / 2
+    instance.rotation = {}
+    instance.scale = glm.abs(max - min) / 2
+    instance.color = color
+}
+
+draw_box_aa :: proc(position: [3]f32, size: [3]f32, color: u32, wire_color: u32 = 0) {
     instance := triprim_push(.Box)
     instance.translation = position
     instance.rotation = {}
@@ -531,20 +539,23 @@ draw_aabb :: proc(position: [3]f32, size: [3]f32, color: u32, wire_color: u32 = 
     instance.wire_color = wire_color
 }
 
-draw_aabb_bounds :: proc(min: [3]f32, max: [3]f32, color: u32) {
-    instance := triprim_push(.Box)
-    instance.translation = (min + max) / 2
-    instance.rotation = {}
-    instance.scale = glm.abs(max - min) / 2
-    instance.color = color
-}
-
-draw_obb :: proc(position: [3]f32, size: [3]f32, rotation: quaternion128, color: u32) {
+draw_box_o :: proc(position: [3]f32, size: [3]f32, rotation: quaternion128, color: u32) {
     instance := triprim_push(.Box)
     instance.translation = position
     instance.rotation = rotation
     instance.scale = size / 2
     instance.color = color
+}
+
+draw_box_ab :: proc(start: [3]f32, end: [3]f32, size: [2]f32, color: u32, wire_color: u32 = 0) {
+    height := glm.distance(start, end) / 2
+
+    instance := triprim_push(.Box)
+    instance.translation = (start + end) / 2
+    instance.rotation = quat_rotation_dir(glm.normalize(end - start))
+    instance.scale = {size[0] / 2, height, size[1] / 2}
+    instance.color = color
+    instance.wire_color = wire_color
 }
 
 draw_cylinder_aa :: proc(position: [3]f32, size: [2]f32, color: u32, wire_color: u32 = 0) {
