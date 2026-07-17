@@ -46,7 +46,7 @@ draw_curve :: proc(point0: [3]f32, point1: [3]f32, point2: [3]f32, width: f32, c
 }
 
 draw_half_arc :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, angle0: f32, angle1: f32, width: f32, color: u32, dash: [2]f32 = {}, plane_normal: [3]f32 = {}) {
-    bitangent := glm.normalize(glm.cross(tangent, normal))
+    bitangent := glm.normalize(glm.cross(normal, tangent))
     mid_angle := (angle0 + angle1) * 0.5
     half_angle := (angle1 - angle0) * 0.5
     weight := glm.cos(half_angle)

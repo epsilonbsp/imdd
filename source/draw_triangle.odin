@@ -88,7 +88,7 @@ draw_triangle :: proc(point0: [3]f32, point1: [3]f32, point2: [3]f32, color: u32
 }
 
 draw_rect :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, color: u32) {
-    bitangent := glm.normalize(glm.cross(tangent, normal))
+    bitangent := glm.normalize(glm.cross(normal, tangent))
     extent := size * 0.5
 
     point_a := center - tangent * extent.x - bitangent * extent.y
@@ -114,7 +114,7 @@ draw_rect :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32,
 }
 
 draw_circle :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32, color: u32) {
-    bitangent := glm.normalize(glm.cross(tangent, normal))
+    bitangent := glm.normalize(glm.cross(normal, tangent))
 
     point_a := center - tangent * radius - bitangent * radius
     point_b := center + tangent * radius - bitangent * radius
@@ -139,7 +139,7 @@ draw_circle :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32
 }
 
 draw_rrect :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, fill_color: u32, radius: f32 = 0, stroke_width: f32 = 0, stroke_color: u32) {
-    bitangent := glm.normalize(glm.cross(tangent, normal))
+    bitangent := glm.normalize(glm.cross(normal, tangent))
     extent := size / 2
 
     point_a := center - tangent * extent.x - bitangent * extent.y
@@ -325,7 +325,7 @@ draw_stroke_arrow :: proc(point0: [3]f32, point1: [3]f32, normal: [3]f32, tangen
 }
 
 draw_stroke_grid :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32) {
-    bitangent := glm.normalize(glm.cross(tangent, normal))
+    bitangent := glm.normalize(glm.cross(normal, tangent))
     extent := size / 2
 
     for x := -extent.x; x <= extent.x + 0.001; x += cell_size.x {
@@ -344,7 +344,7 @@ draw_stroke_grid :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: 
 }
 
 draw_stroke_grid_xy :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32) {
-    draw_stroke_grid(center, {0, 0, -1}, {1, 0, 0}, size, cell_size, line_width, color)
+    draw_stroke_grid(center, {0, 0, 1}, {1, 0, 0}, size, cell_size, line_width, color)
 }
 
 draw_stroke_grid_xz :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32) {
@@ -356,7 +356,7 @@ draw_stroke_grid_yz :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, lin
 }
 
 draw_grid :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32) {
-    bitangent := glm.normalize(glm.cross(tangent, normal))
+    bitangent := glm.normalize(glm.cross(normal, tangent))
     extent := size / 2
 
     point_a := center - tangent * extent.x - bitangent * extent.y
@@ -382,7 +382,7 @@ draw_grid :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32,
 }
 
 draw_grid_xy :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32) {
-    draw_grid(center, {0, 0, -1}, {1, 0, 0}, size, cell_size, line_width, color)
+    draw_grid(center, {0, 0, 1}, {1, 0, 0}, size, cell_size, line_width, color)
 }
 
 draw_grid_xz :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32) {
@@ -394,7 +394,7 @@ draw_grid_yz :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_width
 }
 
 draw_text :: proc(position: [3]f32, normal: [3]f32, tangent: [3]f32, text: string, font_size: f32, line_height: f32, color: u32, alignment: [2]f32 = {}, clip_max_x: f32 = max(f32)) {
-    bitangent := glm.normalize(glm.cross(tangent, normal))
+    bitangent := glm.normalize(glm.cross(normal, tangent))
 
     font := &renderer.fonts[renderer.font_weight]
     px_range := font.distance_range
@@ -471,7 +471,7 @@ draw_icon :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: f32, ke
         return
     }
 
-    bitangent := glm.normalize(glm.cross(tangent, normal))
+    bitangent := glm.normalize(glm.cross(normal, tangent))
     extent := size / 2
 
     point_a := center - tangent * extent - bitangent * extent
@@ -499,7 +499,7 @@ draw_icon :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: f32, ke
 }
 
 draw_image :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, sprite: Sprite) {
-    bitangent := glm.normalize(glm.cross(tangent, normal))
+    bitangent := glm.normalize(glm.cross(normal, tangent))
     extent := size / 2
 
     point_a := center - tangent * extent.x - bitangent * extent.y
@@ -525,7 +525,7 @@ draw_image :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32
 }
 
 draw_rimage:: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, sprite: Sprite, radius: f32 = 0) {
-    bitangent := glm.normalize(glm.cross(tangent, normal))
+    bitangent := glm.normalize(glm.cross(normal, tangent))
     extent := size / 2
 
     point_a := center - tangent * extent.x - bitangent * extent.y

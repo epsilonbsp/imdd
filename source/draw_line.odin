@@ -151,7 +151,7 @@ draw_line_arrow :: proc(point0: [3]f32, point1: [3]f32, width: f32, head_size: f
 }
 
 draw_line_grid :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32) {
-    bitangent := glm.normalize(glm.cross(tangent, normal))
+    bitangent := glm.normalize(glm.cross(normal, tangent))
     extent := size / 2
 
     for x := -extent.x; x <= extent.x + 0.001; x += cell_size.x {
@@ -170,7 +170,7 @@ draw_line_grid :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2
 }
 
 draw_line_grid_xy :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32) {
-    draw_line_grid(center, {0, 0, -1}, {1, 0, 0}, size, cell_size, line_width, color)
+    draw_line_grid(center, {0, 0, 1}, {1, 0, 0}, size, cell_size, line_width, color)
 }
 
 draw_line_grid_xz :: proc(center: [3]f32, size: [2]f32, cell_size: [2]f32, line_width: f32, color: u32) {

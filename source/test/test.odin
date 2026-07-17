@@ -25,33 +25,38 @@ destroy_demo :: proc() {
 show_demo :: proc() {
     // imdd3.draw_triangle({}, {128, 0, 0}, {128, 128, 0}, 0xff0000ff)
 
-    // imdd3.draw_rect({}, {0, 0, -1}, {1, 0, 0}, {128, 128}, 0xff0000ff)
+    // imdd3.draw_rect({0, 0, 32}, {0, 0, 1}, {1, 0, 0}, {64, 64}, 0xff0000ff)
+    // imdd3.draw_rect({0, 0, -32}, {0, 0, -1}, {1, 0, 0}, {64, 64}, 0xff0000ff)
+    // imdd3.draw_rect({-32, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {64, 64}, 0xff0000ff)
+    // imdd3.draw_rect({32, 0, 0}, {1, 0, 0}, {0, 1, 0}, {64, 64}, 0xff0000ff)
+    // imdd3.draw_rect({0, -32, 0}, {0, -1, 0}, {0, 0, 1}, {64, 64}, 0xff0000ff)
+    // imdd3.draw_rect({0, 32, 0}, {0, 1, 0}, {0, 0, 1}, {64, 64}, 0xff0000ff)
 
-    // imdd3.draw_circle({}, {0, 0, -1}, {1, 0, 0}, 4, 0xff0000ff)
+    // imdd3.draw_circle({}, {0, 0, 1}, {1, 0, 0}, 4, 0xff0000ff)
 
-    // imdd3.draw_rrect({}, {0, 0, -1}, {1, 0, 0}, {128, 128}, 0xff0000ff, 4, 0, 0)
+    // imdd3.draw_rrect({}, {0, 0, 1}, {1, 0, 0}, {128, 128}, 0xff0000ff, 4, 0, 0)
 
-    // imdd3.draw_stroke({}, {0, 128, 0}, {0, 0, -1}, {1, 0, 0}, 4, 0xff0000ff)
+    // imdd3.draw_stroke({}, {0, 128, 0}, {0, 0, 1}, {1, 0, 0}, 4, 0xff0000ff)
 
     // imdd3.draw_stroke_strip({
     //     {0, 0, 0},
     //     {128, 0, 0},
     //     {128, 128, 0},
     //     {0, 128, 0},
-    // }, {0, 0, -1}, {1, 0, 0}, 2, 0xff0000ff, 4, false, .Round, .Round)
+    // }, {0, 0, 1}, {1, 0, 0}, 2, 0xff0000ff, 4, false, .Round, .Round)
 
-    // imdd3.draw_stroke_arrow({}, {0, 128, 0}, {0, 0, -1}, {1, 0, 0}, 4, 8, 0xff0000ff)
+    // imdd3.draw_stroke_arrow({}, {0, 128, 0}, {0, 0, 1}, {1, 0, 0}, 4, 8, 0xff0000ff)
 
     // imdd3.draw_grid_xy({}, {128, 128}, 16, 1, 0xff0000ff)
-    imdd3.draw_grid_xz({}, {2048, 2048}, 16, 1, 0xaaaaaaff)
+    // imdd3.draw_grid_xz({}, {2048, 2048}, 16, 1, 0xaaaaaaff)
     // imdd3.draw_grid_yz({}, {128, 128}, 16, 1, 0xff0000ff)
 
-    // imdd3.draw_text({}, {0, 0, -1}, {1, 0, 0}, "Hello, World!", 16, 16, 0xff0000ff)
+    // imdd3.draw_text({}, {0, 0, 1}, {1, 0, 0}, "Hello, World!", 16, 16, 0xff0000ff)
 
-    // imdd3.draw_icon({}, {0, 0, -1}, {1, 0, 0}, 16, "close", 0xff0000ff)
+    // imdd3.draw_icon({}, {0, 0, 1}, {1, 0, 0}, 16, "close", 0xff0000ff)
 
-    // imdd3.draw_image({}, {0, 0, -1}, {1, 0, 0}, {128, 128}, demo_state.sprite0)
-    // imdd3.draw_rimage({}, {0, 0, -1}, {1, 0, 0}, {128, 128}, demo_state.sprite1, 64)
+    // imdd3.draw_image({}, {0, 0, 1}, {1, 0, 0}, {128, 128}, demo_state.sprite0)
+    // imdd3.draw_rimage({}, {0, 0, 1}, {1, 0, 0}, {128, 128}, demo_state.sprite1, 64)
 
     // imdd3.draw_line({}, {0, 128, 0}, 4, 0xff0000ff)
 
