@@ -3,29 +3,22 @@ package imdd3
 Renderer_Interface :: struct {
     init: proc(),
     destroy: proc(),
+    prepare_renderer: proc(viewport: [2]i32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
 
     add_texture: proc(width: i32, height: i32, data: []u8) -> u32,
     remove_texture: proc(handle: u32),
     update_texture: proc(handle: u32, x: i32, y: i32, w: i32, h: i32, data: []u8),
-
-    prepare_renderer: proc(viewport: [2]i32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32),
-
     line_render: proc(vertices: []Line_Vertex),
     triangle_render: proc(vertices: []Triangle_Vertex, indices: []u32),
     curve_render: proc(vertices: []Curve_Vertex),
-
     lineprim_init: proc(vertices: []Lineprim_Vertex, indices: []u32, ranges: [Lineprim_Type]Lineprim_Range),
     lineprim_render: proc(data: [Lineprim_Type][]Lineprim_Instance),
-
     triprim_init: proc(vertices: []Triprim_Vertex, ranges: [Triprim_Type]Triprim_Range),
     triprim_render: proc(data: [Triprim_Type][]Triprim_Instance),
 }
 
 Renderer :: struct {
-    // Implementation
     interface: Renderer_Interface,
-
-    // Renderer data
     fonts: [3]Font,
     font_weight: Font_Weight,
     icons: Icons,
@@ -34,15 +27,12 @@ Renderer :: struct {
 renderer: Renderer
 
 init :: proc(interface: Renderer_Interface) {
-    // Implementation
     renderer.interface = interface
     renderer.interface.init()
 
-    // Renderer data
     load_fonts()
     load_icons()
 
-    // Pipelines
     line_init()
     curve_init()
     triangle_init()
@@ -51,13 +41,10 @@ init :: proc(interface: Renderer_Interface) {
 }
 
 destroy :: proc() {
-    // Implementation
     renderer.interface.destroy()
 
-    // Renderer data
     delete(renderer.icons.icons)
 
-    // Pipelines
     line_destroy()
     curve_destroy()
     triangle_destroy()

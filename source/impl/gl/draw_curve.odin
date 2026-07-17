@@ -270,7 +270,6 @@ CURVE_FS :: GLSL_VERSION + `
 Curve_State :: struct {
     program: u32,
     uniforms: gl.Uniforms,
-
     vao: u32,
     vbo: u32,
 }

@@ -104,12 +104,10 @@ void main() {
 Triprim_State :: struct {
     program: u32,
     uniforms: gl.Uniforms,
-
     vao: u32,
     vbo: u32,
     ubo: u32,
     dibo: u32,
-
     ranges: [imdd3.Triprim_Type]imdd3.Triprim_Range,
 }
 

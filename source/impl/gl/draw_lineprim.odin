@@ -151,13 +151,11 @@ LINEPRIM_FS :: GLSL_VERSION + `
 Lineprim_State :: struct {
     program: u32,
     uniforms: gl.Uniforms,
-
     vao: u32,
     vbo: u32,
     ibo: u32,
     ubo: u32,
     dibo: u32,
-
     ranges: [imdd3.Lineprim_Type]imdd3.Lineprim_Range,
 }
 

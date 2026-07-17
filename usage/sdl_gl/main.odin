@@ -45,11 +45,11 @@ main :: proc() {
     time_last := time
 
     camera: Camera; init_camera(&camera)
-
-    movement_speed: f32 = 64
-    yaw_speed: f32 = 0.002
-    pitch_speed: f32 = 0.002
-    zoom_speed: f32 = 20
+    camera_movement := Camera_Movement{
+        movement_speed = 64,
+        yaw_speed = 0.002,
+        pitch_speed = 0.002,
+    }
 
     imdd3.init(imdd3_impl_gl.interface())
     defer imdd3.destroy()
@@ -76,29 +76,18 @@ main :: proc() {
                     }
                 case .MOUSE_MOTION:
                     if sdl.GetWindowRelativeMouseMode(window) {
-                        rotate_camera(&camera, event.motion.xrel * yaw_speed, event.motion.yrel * pitch_speed, 0)
+                        rotate_camera(&camera, event.motion.xrel * camera_movement.yaw_speed, event.motion.yrel * camera_movement.pitch_speed)
                     }
             }
         }
 
         if (sdl.GetWindowRelativeMouseMode(window)) {
-            speed := time_delta * movement_speed
-
-            if key_state[sdl.Scancode.A] {
-                move_camera(&camera, {-speed, 0, 0})
-            }
-
-            if key_state[sdl.Scancode.D] {
-                move_camera(&camera, {speed, 0, 0})
-            }
-
-            if key_state[sdl.Scancode.S] {
-                move_camera(&camera, {0, 0, -speed})
-            }
-
-            if key_state[sdl.Scancode.W] {
-                move_camera(&camera, {0, 0, speed})
-            }
+            input_move_camera(&camera, {
+                left = key_state[sdl.Scancode.A],
+                right = key_state[sdl.Scancode.D],
+                back = key_state[sdl.Scancode.S],
+                forward = key_state[sdl.Scancode.W],
+            }, camera_movement.movement_speed * time_delta)
         }
 
         compute_camera_projection(&camera, f32(viewport_x), f32(viewport_y))
@@ -109,7 +98,7 @@ main :: proc() {
         gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
         imdd3_test.show_demo()
-        imdd3.render({viewport_x, viewport_y}, camera.projection, camera.view, )
+        imdd3.render({viewport_x, viewport_y}, camera.projection, camera.view)
 
         sdl.GL_SwapWindow(window)
     }
