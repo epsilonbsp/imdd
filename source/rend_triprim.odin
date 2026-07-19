@@ -22,7 +22,7 @@ Triprim_Type :: enum {
 
 Triprim_Range :: struct {
     first: u32,
-    count: i32,
+    count: u32,
 }
 
 Triprim_Instance :: struct {
@@ -32,10 +32,13 @@ Triprim_Instance :: struct {
     radius: f32,
     color: u32,
     wire_color: u32,
+    range: [2]u32,
 }
 
 Triprim_State :: struct {
-    instances: [Triprim_Type][dynamic]Triprim_Instance,
+    instances: [dynamic]Triprim_Instance,
+    ranges: [Triprim_Type]Triprim_Range,
+    max_vertex_count: u32,
 }
 
 triprim_state: Triprim_State
@@ -51,31 +54,24 @@ triprim_init :: proc() {
     ranges[.Sphere] = triprim_generate_sphere(&vertices, 16)
     ranges[.Capsule] = triprim_generate_capsule(&vertices, 16)
 
+    triprim_state.instances = make([dynamic]Triprim_Instance, 0, TRIPRIM_CAP)
+    triprim_state.ranges = ranges
+
     for type in Triprim_Type {
-        triprim_state.instances[type] = make([dynamic]Triprim_Instance, 0, TRIPRIM_CAP)
+        triprim_state.max_vertex_count = max(triprim_state.max_vertex_count, ranges[type].count)
     }
 
     renderer.interface.triprim_init(vertices[:], ranges)
 }
 
 triprim_destroy :: proc() {
-    for type in Triprim_Type {
-        delete(triprim_state.instances[type])
-    }
+    delete(triprim_state.instances)
 }
 
 triprim_render :: proc() {
-    data: [Triprim_Type][]Triprim_Instance
+    renderer.interface.triprim_render(triprim_state.instances[:], triprim_state.max_vertex_count)
 
-    for type in Triprim_Type {
-        data[type] = triprim_state.instances[type][:]
-    }
-
-    renderer.interface.triprim_render(data)
-
-    for type in Triprim_Type {
-        clear(&triprim_state.instances[type])
-    }
+    clear(&triprim_state.instances)
 }
 
 triprim_generate_box :: proc(vertices: ^[dynamic]Triprim_Vertex) -> (range: Triprim_Range) {
@@ -131,7 +127,7 @@ triprim_generate_box :: proc(vertices: ^[dynamic]Triprim_Vertex) -> (range: Trip
         Triprim_Vertex{{ 1,  1, -1}, {}, {0, 0, -1}, {0, 0, 2}},
     )
 
-    range.count = i32(len(vertices)) - i32(range.first)
+    range.count = u32(len(vertices)) - range.first
 
     return range
 }
@@ -198,7 +194,7 @@ triprim_generate_cylinder :: proc(vertices: ^[dynamic]Triprim_Vertex, segments: 
         )
     }
 
-    range.count = i32(len(vertices)) - i32(range.first)
+    range.count = u32(len(vertices)) - range.first
 
     return range
 }
@@ -242,7 +238,7 @@ triprim_generate_cone :: proc(vertices: ^[dynamic]Triprim_Vertex, segments: i32)
         )
     }
 
-    range.count = i32(len(vertices)) - i32(range.first)
+    range.count = u32(len(vertices)) - range.first
 
     return range
 }
@@ -307,7 +303,7 @@ triprim_generate_cone_frustum :: proc(vertices: ^[dynamic]Triprim_Vertex, segmen
         )
     }
 
-    range.count = i32(len(vertices)) - i32(range.first)
+    range.count = u32(len(vertices)) - range.first
 
     return range
 }
@@ -384,7 +380,7 @@ triprim_generate_sphere :: proc(vertices: ^[dynamic]Triprim_Vertex, segments: i3
         )
     }
 
-    range.count = i32(len(vertices)) - i32(range.first)
+    range.count = u32(len(vertices)) - range.first
 
     return range
 }
@@ -510,24 +506,27 @@ triprim_generate_capsule :: proc(vertices: ^[dynamic]Triprim_Vertex, segments: i
         )
     }
 
-    range.count = i32(len(vertices)) - i32(range.first)
+    range.count = u32(len(vertices)) - range.first
 
     return range
 }
 
 triprim_push :: proc(type: Triprim_Type) -> ^Triprim_Instance {
-    append(&triprim_state.instances[type], Triprim_Instance{})
+    range := triprim_state.ranges[type]
 
-    return &triprim_state.instances[type][len(triprim_state.instances[type]) - 1]
+    append(&triprim_state.instances, Triprim_Instance{range = {range.first, range.count}})
+
+    return &triprim_state.instances[len(triprim_state.instances) - 1]
 }
 
 // API
-draw_aabb :: proc(min: [3]f32, max: [3]f32, color: u32) {
+draw_aabb :: proc(min: [3]f32, max: [3]f32, color: u32, wire_color: u32 = 0) {
     instance := triprim_push(.Box)
     instance.translation = (min + max) / 2
     instance.rotation = {}
     instance.scale = glm.abs(max - min) / 2
     instance.color = color
+    instance.wire_color = wire_color
 }
 
 draw_box_aa :: proc(position: [3]f32, size: [3]f32, color: u32, wire_color: u32 = 0) {
@@ -539,12 +538,13 @@ draw_box_aa :: proc(position: [3]f32, size: [3]f32, color: u32, wire_color: u32 
     instance.wire_color = wire_color
 }
 
-draw_box_o :: proc(position: [3]f32, size: [3]f32, rotation: quaternion128, color: u32) {
+draw_box_o :: proc(position: [3]f32, size: [3]f32, rotation: quaternion128, color: u32, wire_color: u32 = 0) {
     instance := triprim_push(.Box)
     instance.translation = position
     instance.rotation = rotation
     instance.scale = size / 2
     instance.color = color
+    instance.wire_color = wire_color
 }
 
 draw_box_ab :: proc(start: [3]f32, end: [3]f32, size: [2]f32, color: u32, wire_color: u32 = 0) {

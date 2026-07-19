@@ -13,16 +13,24 @@ TRIPRIM_SPECULAR_STRENGTH :: 0.2
 TRIPRIM_SPECULAR_SHINE :: 32.0
 
 TRIPRIM_VS :: GLSL_VERSION + `
-    layout(location = 0) in vec3 i_anchor;
-    layout(location = 1) in vec3 i_direction;
-    layout(location = 2) in vec3 i_normal;
-    layout(location = 3) in vec3 i_barycentric;
-    layout(location = 4) in vec3 i_translation;
-    layout(location = 5) in vec4 i_rotation;
-    layout(location = 6) in vec3 i_scale;
-    layout(location = 7) in float i_radius;
-    layout(location = 8) in uint i_color;
-    layout(location = 9) in uint i_wire_color;
+    layout(location = 0) in vec3 i_translation;
+    layout(location = 1) in vec4 i_rotation;
+    layout(location = 2) in vec3 i_scale;
+    layout(location = 3) in float i_radius;
+    layout(location = 4) in uint i_color;
+    layout(location = 5) in uint i_wire_color;
+    layout(location = 6) in uvec2 i_range;
+
+    struct Vertex {
+        vec4 anchor;
+        vec4 direction;
+        vec4 normal;
+        vec4 barycentric;
+    };
+
+    layout(std430, binding = 0) readonly buffer MeshBuffer {
+        Vertex vertex_data[];
+    };
 
     out vec4 v_color;
     out vec4 v_wire_color;
@@ -47,13 +55,21 @@ TRIPRIM_VS :: GLSL_VERSION + `
     }
 
     void main() {
-        vec3 local_position = i_anchor * i_scale + i_direction * i_radius;
+        if (uint(gl_VertexID) >= i_range.y) {
+            gl_Position = vec4(0.0);
+
+            return;
+        }
+
+        Vertex v = vertex_data[i_range.x + uint(gl_VertexID)];
+
+        vec3 local_position = v.anchor.xyz * i_scale + v.direction.xyz * i_radius;
         vec3 world_position = rotate(local_position, i_rotation) + i_translation;
         gl_Position = u_projection * u_view * vec4(world_position, 1.0);
         v_color = unpack_rgba(i_color);
         v_wire_color = unpack_rgba(i_wire_color);
-        v_barycentric = i_barycentric;
-        v_normal = rotate(i_normal, i_rotation);
+        v_barycentric = v.barycentric.xyz;
+        v_normal = rotate(v.normal.xyz, i_rotation);
         v_world_pos = world_position;
     }
 `
@@ -101,74 +117,77 @@ void main() {
 }
 `
 
+Triprim_Vertex_GL :: struct {
+    anchor: [4]f32,
+    direction: [4]f32,
+    normal: [4]f32,
+    barycentric: [4]f32,
+}
+
 Triprim_State :: struct {
     program: u32,
     uniforms: gl.Uniforms,
     vao: u32,
-    vbo: u32,
-    ubo: u32,
-    dibo: u32,
-    ranges: [imdd3.Triprim_Type]imdd3.Triprim_Range,
+    ibo: u32,
+    ssbo: u32,
 }
 
 triprim_state: Triprim_State
 
 triprim_init :: proc(vertices: []imdd3.Triprim_Vertex, ranges: [imdd3.Triprim_Type]imdd3.Triprim_Range) {
-    triprim_state.ranges = ranges
-
     ok: bool
     triprim_state.program, ok = load_shaders({{.VERTEX_SHADER, TRIPRIM_VS}, {.FRAGMENT_SHADER, TRIPRIM_FS}})
     assert(ok, "ERROR: Failed to compile triprim program")
     triprim_state.uniforms = gl.get_uniforms_from_program(triprim_state.program)
 
+    vertices_gl := make([]Triprim_Vertex_GL, len(vertices)); defer delete(vertices_gl)
+
+    for vertex, i in vertices {
+        vertices_gl[i] = {
+            anchor = {vertex.anchor.x, vertex.anchor.y, vertex.anchor.z, 0},
+            direction = {vertex.direction.x, vertex.direction.y, vertex.direction.z, 0},
+            normal = {vertex.normal.x, vertex.normal.y, vertex.normal.z, 0},
+            barycentric = {vertex.barycentric.x, vertex.barycentric.y, vertex.barycentric.z, 0},
+        }
+    }
+
+    gl.GenBuffers(1, &triprim_state.ssbo)
+    gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, triprim_state.ssbo)
+    gl.BufferData(gl.SHADER_STORAGE_BUFFER, size_of(Triprim_Vertex_GL) * len(vertices_gl), raw_data(vertices_gl), gl.STATIC_DRAW)
+
     gl.GenVertexArrays(1, &triprim_state.vao)
     gl.BindVertexArray(triprim_state.vao)
 
-    gl.GenBuffers(1, &triprim_state.vbo)
-    gl.BindBuffer(gl.ARRAY_BUFFER, triprim_state.vbo)
-    gl.BufferData(gl.ARRAY_BUFFER, size_of(imdd3.Triprim_Vertex) * len(vertices), raw_data(vertices), gl.STATIC_DRAW)
+    gl.GenBuffers(1, &triprim_state.ibo)
+    gl.BindBuffer(gl.ARRAY_BUFFER, triprim_state.ibo)
 
     gl.EnableVertexAttribArray(0)
-    gl.VertexAttribPointer(0, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Vertex), offset_of(imdd3.Triprim_Vertex, anchor))
+    gl.VertexAttribPointer(0, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, translation))
+    gl.VertexAttribDivisor(0, 1)
 
     gl.EnableVertexAttribArray(1)
-    gl.VertexAttribPointer(1, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Vertex), offset_of(imdd3.Triprim_Vertex, direction))
+    gl.VertexAttribPointer(1, 4, gl.FLOAT, false, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, rotation))
+    gl.VertexAttribDivisor(1, 1)
 
     gl.EnableVertexAttribArray(2)
-    gl.VertexAttribPointer(2, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Vertex), offset_of(imdd3.Triprim_Vertex, normal))
+    gl.VertexAttribPointer(2, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, scale))
+    gl.VertexAttribDivisor(2, 1)
 
     gl.EnableVertexAttribArray(3)
-    gl.VertexAttribPointer(3, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Vertex), offset_of(imdd3.Triprim_Vertex, barycentric))
-
-    gl.GenBuffers(1, &triprim_state.ubo)
-    gl.BindBuffer(gl.ARRAY_BUFFER, triprim_state.ubo)
-    gl.BufferData(gl.ARRAY_BUFFER, size_of(imdd3.Triprim_Instance) * imdd3.TRIPRIM_CAP * len(imdd3.Triprim_Type), nil, gl.DYNAMIC_DRAW)
+    gl.VertexAttribPointer(3, 1, gl.FLOAT, false, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, radius))
+    gl.VertexAttribDivisor(3, 1)
 
     gl.EnableVertexAttribArray(4)
-    gl.VertexAttribPointer(4, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, translation))
+    gl.VertexAttribIPointer(4, 1, gl.UNSIGNED_INT, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, color))
     gl.VertexAttribDivisor(4, 1)
 
     gl.EnableVertexAttribArray(5)
-    gl.VertexAttribPointer(5, 4, gl.FLOAT, false, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, rotation))
+    gl.VertexAttribIPointer(5, 1, gl.UNSIGNED_INT, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, wire_color))
     gl.VertexAttribDivisor(5, 1)
 
     gl.EnableVertexAttribArray(6)
-    gl.VertexAttribPointer(6, 3, gl.FLOAT, false, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, scale))
+    gl.VertexAttribIPointer(6, 2, gl.UNSIGNED_INT, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, range))
     gl.VertexAttribDivisor(6, 1)
-
-    gl.EnableVertexAttribArray(7)
-    gl.VertexAttribPointer(7, 1, gl.FLOAT, false, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, radius))
-    gl.VertexAttribDivisor(7, 1)
-
-    gl.EnableVertexAttribArray(8)
-    gl.VertexAttribIPointer(8, 1, gl.UNSIGNED_INT, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, color))
-    gl.VertexAttribDivisor(8, 1)
-
-    gl.EnableVertexAttribArray(9)
-    gl.VertexAttribIPointer(9, 1, gl.UNSIGNED_INT, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, wire_color))
-    gl.VertexAttribDivisor(9, 1)
-
-    gl.GenBuffers(1, &triprim_state.dibo)
 }
 
 triprim_destroy :: proc() {
@@ -176,19 +195,12 @@ triprim_destroy :: proc() {
     gl.destroy_uniforms(triprim_state.uniforms)
 
     gl.DeleteVertexArrays(1, &triprim_state.vao)
-    gl.DeleteBuffers(1, &triprim_state.vbo)
-    gl.DeleteBuffers(1, &triprim_state.ubo)
-    gl.DeleteBuffers(1, &triprim_state.dibo)
+    gl.DeleteBuffers(1, &triprim_state.ibo)
+    gl.DeleteBuffers(1, &triprim_state.ssbo)
 }
 
-triprim_render :: proc(data: [imdd3.Triprim_Type][]imdd3.Triprim_Instance) {
-    total := 0
-
-    for type in imdd3.Triprim_Type {
-        total += len(data[type])
-    }
-
-    if total == 0 {
+triprim_render :: proc(data: []imdd3.Triprim_Instance, max_vertex_count: u32) {
+    if len(data) == 0 {
         return
     }
 
@@ -209,38 +221,14 @@ triprim_render :: proc(data: [imdd3.Triprim_Type][]imdd3.Triprim_Instance) {
     gl.Uniform1f(triprim_state.uniforms["u_mat_specular_shine"].location, TRIPRIM_SPECULAR_SHINE)
 
     gl.BindVertexArray(triprim_state.vao)
-    gl.BindBuffer(gl.ARRAY_BUFFER, triprim_state.ubo)
-    gl.BufferData(gl.ARRAY_BUFFER, total * size_of(imdd3.Triprim_Instance), nil, gl.STREAM_DRAW)
-
-    commands: [len(imdd3.Triprim_Type)]gl.DrawArraysIndirectCommand
-
-    offset := 0
-
-    for type in imdd3.Triprim_Type {
-        i := int(type)
-        instances := data[type]
-
-        if len(instances) > 0 {
-            gl.BufferSubData(gl.ARRAY_BUFFER, offset * size_of(imdd3.Triprim_Instance), len(instances) * size_of(imdd3.Triprim_Instance), raw_data(instances))
-        }
-
-        commands[i] = {
-            count = u32(triprim_state.ranges[type].count),
-            instanceCount = u32(len(instances)),
-            first = triprim_state.ranges[type].first,
-            baseInstance = u32(offset),
-        }
-
-        offset += len(instances)
-    }
-
-    gl.BindBuffer(gl.DRAW_INDIRECT_BUFFER, triprim_state.dibo)
-    gl.BufferData(gl.DRAW_INDIRECT_BUFFER, size_of(commands), &commands[0], gl.STREAM_DRAW)
+    gl.BindBuffer(gl.ARRAY_BUFFER, triprim_state.ibo)
+    gl.BufferData(gl.ARRAY_BUFFER, len(data) * size_of(imdd3.Triprim_Instance), raw_data(data), gl.STREAM_DRAW)
+    gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, triprim_state.ssbo)
 
     gl.Enable(gl.DEPTH_TEST); defer gl.Disable(gl.DEPTH_TEST)
     gl.DepthFunc(gl.LEQUAL); defer gl.DepthFunc(gl.LESS)
     gl.Enable(gl.BLEND); defer gl.Disable(gl.BLEND)
     gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
     gl.Enable(gl.CULL_FACE); defer gl.Disable(gl.CULL_FACE)
-    gl.MultiDrawArraysIndirect(gl.TRIANGLES, nil, i32(len(imdd3.Triprim_Type)), 0)
+    gl.DrawArraysInstanced(gl.TRIANGLES, 0, i32(max_vertex_count), i32(len(data)))
 }
