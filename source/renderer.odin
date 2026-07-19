@@ -53,8 +53,8 @@ destroy_renderer :: proc() {
     triprim_destroy()
 }
 
-render :: proc(viewport: [2]i32, projection: matrix[4, 4]f32, view: matrix[4, 4]f32) {
-    renderer.interface.prepare_renderer(viewport, projection, view)
+flush_renderer :: proc() {
+    renderer.interface.prepare_renderer(get_viewport(), state.camera.projection, state.camera.view)
 
     triprim_render()
     lineprim_render()

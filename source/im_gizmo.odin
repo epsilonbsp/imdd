@@ -20,9 +20,9 @@ GIZMO_HOVER_COLOR :: u32(0xffffffff)
 GIZMO_SCREEN_SIZE :: f32(0.1)
 
 gizmo_screen_scale :: proc(position: [3]f32) -> f32 {
-    distance := glm.dot(position - camera.ray_origin, camera.forward)
+    distance := glm.dot(position - state.camera.position, state.camera.forward)
 
-    return distance * glm.tan(glm.radians(camera.fov) * 0.5) * 2 * GIZMO_SCREEN_SIZE
+    return distance * glm.tan(glm.radians(state.camera.fov) * 0.5) * 2 * GIZMO_SCREEN_SIZE
 }
 
 Gizmo_Handle :: enum {
@@ -237,8 +237,8 @@ gizmo_draw_scale :: proc(position: [3]f32, scale: f32) {
 
 // API
 gizmo_translate :: proc(position: [3]f32, grid: f32) -> (delta: [3]f32, active: bool) {
-    ray_origin := camera.ray_origin
-    ray_direction := camera.ray_direction
+    ray_origin := state.camera.position
+    ray_direction := state.camera.ray_direction
 
     mouse_down := get_mouse_down(0)
     pressed := mouse_down && !gizmo.mouse_down_prev
@@ -270,8 +270,8 @@ gizmo_translate :: proc(position: [3]f32, grid: f32) -> (delta: [3]f32, active: 
 }
 
 gizmo_rotate :: proc(position: [3]f32, grid_degrees: f32) -> (origin: [3]f32, rotation: glm.quat, active: bool) {
-    ray_origin := camera.ray_origin
-    ray_direction := camera.ray_direction
+    ray_origin := state.camera.position
+    ray_direction := state.camera.ray_direction
 
     rotation = 1
 
@@ -315,8 +315,8 @@ gizmo_rotate :: proc(position: [3]f32, grid_degrees: f32) -> (origin: [3]f32, ro
 }
 
 gizmo_scale :: proc(position: [3]f32) -> (origin: [3]f32, axis: [3]f32, factor: f32, active: bool) {
-    ray_origin := camera.ray_origin
-    ray_direction := camera.ray_direction
+    ray_origin := state.camera.position
+    ray_direction := state.camera.ray_direction
 
     factor = 1
 
