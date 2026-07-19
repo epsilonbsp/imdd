@@ -3,6 +3,7 @@ package imdd3
 Camera_Info :: struct {
     ray_origin: [3]f32,
     ray_direction: [3]f32,
+    forward: [3]f32,
     fov: f32,
 }
 

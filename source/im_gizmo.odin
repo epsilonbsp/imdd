@@ -20,7 +20,10 @@ GIZMO_HOVER_COLOR :: u32(0xffffffff)
 GIZMO_SCREEN_SIZE :: f32(0.1)
 
 gizmo_screen_scale :: proc(position: [3]f32) -> f32 {
-    distance := glm.length(position - camera.ray_origin)
+    // Depth along the view direction, not straight-line distance -- otherwise
+    // a gizmo off-center on screen (radial distance > depth) gets scaled up
+    // too much the further it sits from the screen center.
+    distance := glm.dot(position - camera.ray_origin, camera.forward)
 
     return distance * glm.tan(glm.radians(camera.fov) * 0.5) * 2 * GIZMO_SCREEN_SIZE
 }
