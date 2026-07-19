@@ -5,13 +5,25 @@ import gl "vendor:OpenGL"
 import imdd3 "../.."
 
 LINEPRIM_VS :: GLSL_VERSION + `
-    layout(location = 0) in vec3 i_anchor;
-    layout(location = 1) in vec3 i_direction;
-    layout(location = 2) in vec3 i_translation;
-    layout(location = 3) in vec4 i_rotation;
-    layout(location = 4) in vec3 i_scale;
-    layout(location = 5) in float i_radius;
-    layout(location = 6) in uint i_color;
+    layout(location = 0) in vec3 i_translation;
+    layout(location = 1) in vec4 i_rotation;
+    layout(location = 2) in vec3 i_scale;
+    layout(location = 3) in float i_radius;
+    layout(location = 4) in uint i_color;
+    layout(location = 5) in uvec2 i_range;
+
+    struct Vertex {
+        vec4 anchor;
+        vec4 direction;
+    };
+
+    layout(std430, binding = 0) readonly buffer VertexBuffer {
+        Vertex vertex_data[];
+    };
+
+    layout(std430, binding = 1) readonly buffer IndexBuffer {
+        uint index_data[];
+    };
 
     out Geometry_Data {
         vec4 color;
@@ -34,7 +46,17 @@ LINEPRIM_VS :: GLSL_VERSION + `
     }
 
     void main() {
-        vec3 local_pos = i_anchor * i_scale + i_direction * i_radius;
+        if (uint(gl_VertexID) >= i_range.y) {
+            gl_Position = vec4(0.0);
+            v_gd.color = vec4(0.0);
+
+            return;
+        }
+
+        uint vertex_index = index_data[i_range.x + uint(gl_VertexID)];
+        Vertex v = vertex_data[vertex_index];
+
+        vec3 local_pos = v.anchor.xyz * i_scale + v.direction.xyz * i_radius;
         gl_Position = vec4(rotate(local_pos, i_rotation) + i_translation, 1.0);
         v_gd.color = unpack_rgba(i_color);
     }
@@ -68,6 +90,10 @@ LINEPRIM_GS :: GLSL_VERSION + `
 
         vec4 p0_clip = u_projection * p0_view;
         vec4 p1_clip = u_projection * p1_view;
+
+        if (p0_clip.w == 0.0 || p1_clip.w == 0.0) {
+            return;
+        }
 
         vec2 p0_ndc = p0_clip.xy / p0_clip.w;
         vec2 p1_ndc = p1_clip.xy / p1_clip.w;
@@ -148,22 +174,23 @@ LINEPRIM_FS :: GLSL_VERSION + `
     }
 `
 
+Lineprim_Vertex_GL :: struct {
+    anchor: [4]f32,
+    direction: [4]f32,
+}
+
 Lineprim_State :: struct {
     program: u32,
     uniforms: gl.Uniforms,
     vao: u32,
-    vbo: u32,
     ibo: u32,
-    ubo: u32,
-    dibo: u32,
-    ranges: [imdd3.Lineprim_Type]imdd3.Lineprim_Range,
+    vertex_ssbo: u32,
+    index_ssbo: u32,
 }
 
 lineprim_state: Lineprim_State
 
 lineprim_init :: proc(vertices: []imdd3.Lineprim_Vertex, indices: []u32, ranges: [imdd3.Lineprim_Type]imdd3.Lineprim_Range) {
-    lineprim_state.ranges = ranges
-
     ok: bool
     lineprim_state.program, ok = load_shaders({
         {.VERTEX_SHADER, LINEPRIM_VS},
@@ -173,48 +200,52 @@ lineprim_init :: proc(vertices: []imdd3.Lineprim_Vertex, indices: []u32, ranges:
     assert(ok, "ERROR: Failed to compile lineprim program")
     lineprim_state.uniforms = gl.get_uniforms_from_program(lineprim_state.program)
 
+    vertices_gl := make([]Lineprim_Vertex_GL, len(vertices)); defer delete(vertices_gl)
+
+    for vertex, i in vertices {
+        vertices_gl[i] = {
+            anchor = {vertex.anchor.x, vertex.anchor.y, vertex.anchor.z, 0},
+            direction = {vertex.direction.x, vertex.direction.y, vertex.direction.z, 0},
+        }
+    }
+
+    gl.GenBuffers(1, &lineprim_state.vertex_ssbo)
+    gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, lineprim_state.vertex_ssbo)
+    gl.BufferData(gl.SHADER_STORAGE_BUFFER, size_of(Lineprim_Vertex_GL) * len(vertices_gl), raw_data(vertices_gl), gl.STATIC_DRAW)
+
+    gl.GenBuffers(1, &lineprim_state.index_ssbo)
+    gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, lineprim_state.index_ssbo)
+    gl.BufferData(gl.SHADER_STORAGE_BUFFER, size_of(u32) * len(indices), raw_data(indices), gl.STATIC_DRAW)
+
     gl.GenVertexArrays(1, &lineprim_state.vao)
     gl.BindVertexArray(lineprim_state.vao)
 
-    gl.GenBuffers(1, &lineprim_state.vbo)
-    gl.BindBuffer(gl.ARRAY_BUFFER, lineprim_state.vbo)
-    gl.BufferData(gl.ARRAY_BUFFER, size_of(imdd3.Lineprim_Vertex) * len(vertices), raw_data(vertices), gl.DYNAMIC_DRAW)
+    gl.GenBuffers(1, &lineprim_state.ibo)
+    gl.BindBuffer(gl.ARRAY_BUFFER, lineprim_state.ibo)
 
     gl.EnableVertexAttribArray(0)
-    gl.VertexAttribPointer(0, 3, gl.FLOAT, false, size_of(imdd3.Lineprim_Vertex), offset_of(imdd3.Lineprim_Vertex, anchor))
+    gl.VertexAttribPointer(0, 3, gl.FLOAT, false, size_of(imdd3.Lineprim_Instance), offset_of(imdd3.Lineprim_Instance, translation))
+    gl.VertexAttribDivisor(0, 1)
 
     gl.EnableVertexAttribArray(1)
-    gl.VertexAttribPointer(1, 3, gl.FLOAT, false, size_of(imdd3.Lineprim_Vertex), offset_of(imdd3.Lineprim_Vertex, direction))
-
-    gl.GenBuffers(1, &lineprim_state.ibo)
-    gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, lineprim_state.ibo)
-    gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, size_of(u32) * len(indices), raw_data(indices), gl.DYNAMIC_DRAW)
-
-    gl.GenBuffers(1, &lineprim_state.ubo)
-    gl.BindBuffer(gl.ARRAY_BUFFER, lineprim_state.ubo)
-    gl.BufferData(gl.ARRAY_BUFFER, size_of(imdd3.Lineprim_Instance) * imdd3.LINEPRIM_CAP * len(imdd3.Lineprim_Type), nil, gl.DYNAMIC_DRAW)
+    gl.VertexAttribPointer(1, 4, gl.FLOAT, false, size_of(imdd3.Lineprim_Instance), offset_of(imdd3.Lineprim_Instance, rotation))
+    gl.VertexAttribDivisor(1, 1)
 
     gl.EnableVertexAttribArray(2)
-    gl.VertexAttribPointer(2, 3, gl.FLOAT, false, size_of(imdd3.Lineprim_Instance), offset_of(imdd3.Lineprim_Instance, translation))
+    gl.VertexAttribPointer(2, 3, gl.FLOAT, false, size_of(imdd3.Lineprim_Instance), offset_of(imdd3.Lineprim_Instance, scale))
     gl.VertexAttribDivisor(2, 1)
 
     gl.EnableVertexAttribArray(3)
-    gl.VertexAttribPointer(3, 4, gl.FLOAT, false, size_of(imdd3.Lineprim_Instance), offset_of(imdd3.Lineprim_Instance, rotation))
+    gl.VertexAttribPointer(3, 1, gl.FLOAT, false, size_of(imdd3.Lineprim_Instance), offset_of(imdd3.Lineprim_Instance, radius))
     gl.VertexAttribDivisor(3, 1)
 
     gl.EnableVertexAttribArray(4)
-    gl.VertexAttribPointer(4, 3, gl.FLOAT, false, size_of(imdd3.Lineprim_Instance), offset_of(imdd3.Lineprim_Instance, scale))
+    gl.VertexAttribIPointer(4, 1, gl.UNSIGNED_INT, size_of(imdd3.Lineprim_Instance), offset_of(imdd3.Lineprim_Instance, color))
     gl.VertexAttribDivisor(4, 1)
 
     gl.EnableVertexAttribArray(5)
-    gl.VertexAttribPointer(5, 1, gl.FLOAT, false, size_of(imdd3.Lineprim_Instance), offset_of(imdd3.Lineprim_Instance, radius))
+    gl.VertexAttribIPointer(5, 2, gl.UNSIGNED_INT, size_of(imdd3.Lineprim_Instance), offset_of(imdd3.Lineprim_Instance, range))
     gl.VertexAttribDivisor(5, 1)
-
-    gl.EnableVertexAttribArray(6)
-    gl.VertexAttribIPointer(6, 1, gl.UNSIGNED_INT, size_of(imdd3.Lineprim_Instance), offset_of(imdd3.Lineprim_Instance, color))
-    gl.VertexAttribDivisor(6, 1)
-
-    gl.GenBuffers(1, &lineprim_state.dibo)
 }
 
 lineprim_destroy :: proc() {
@@ -222,20 +253,13 @@ lineprim_destroy :: proc() {
     gl.destroy_uniforms(lineprim_state.uniforms)
 
     gl.DeleteVertexArrays(1, &lineprim_state.vao)
-    gl.DeleteBuffers(1, &lineprim_state.vbo)
     gl.DeleteBuffers(1, &lineprim_state.ibo)
-    gl.DeleteBuffers(1, &lineprim_state.ubo)
-    gl.DeleteBuffers(1, &lineprim_state.dibo)
+    gl.DeleteBuffers(1, &lineprim_state.vertex_ssbo)
+    gl.DeleteBuffers(1, &lineprim_state.index_ssbo)
 }
 
-lineprim_render :: proc(data: [imdd3.Lineprim_Type][]imdd3.Lineprim_Instance) {
-    total := 0
-
-    for type in imdd3.Lineprim_Type {
-        total += len(data[type])
-    }
-
-    if total == 0 {
+lineprim_render :: proc(data: []imdd3.Lineprim_Instance, max_index_count: u32) {
+    if len(data) == 0 {
         return
     }
 
@@ -245,38 +269,14 @@ lineprim_render :: proc(data: [imdd3.Lineprim_Type][]imdd3.Lineprim_Instance) {
     gl.UniformMatrix4fv(lineprim_state.uniforms["u_view"].location, 1, false, &renderer.view[0][0])
 
     gl.BindVertexArray(lineprim_state.vao)
-    gl.BindBuffer(gl.ARRAY_BUFFER, lineprim_state.ubo)
-    gl.BufferData(gl.ARRAY_BUFFER, total * size_of(imdd3.Lineprim_Instance), nil, gl.STREAM_DRAW)
-
-    commands: [len(imdd3.Lineprim_Type)]gl.DrawElementsIndirectCommand
-
-    offset := 0
-
-    for type in imdd3.Lineprim_Type {
-        i := int(type)
-        instances := data[type]
-
-        if len(instances) > 0 {
-            gl.BufferSubData(gl.ARRAY_BUFFER, offset * size_of(imdd3.Lineprim_Instance), len(instances) * size_of(imdd3.Lineprim_Instance), raw_data(instances))
-        }
-
-        commands[i] = {
-            count = u32(lineprim_state.ranges[type].count),
-            instanceCount = u32(len(instances)),
-            firstIndex = lineprim_state.ranges[type].first,
-            baseVertex = 0,
-            baseInstance = u32(offset),
-        }
-
-        offset += len(instances)
-    }
-
-    gl.BindBuffer(gl.DRAW_INDIRECT_BUFFER, lineprim_state.dibo)
-    gl.BufferData(gl.DRAW_INDIRECT_BUFFER, size_of(commands), &commands[0], gl.STREAM_DRAW)
+    gl.BindBuffer(gl.ARRAY_BUFFER, lineprim_state.ibo)
+    gl.BufferData(gl.ARRAY_BUFFER, len(data) * size_of(imdd3.Lineprim_Instance), raw_data(data), gl.STREAM_DRAW)
+    gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, lineprim_state.vertex_ssbo)
+    gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 1, lineprim_state.index_ssbo)
 
     gl.Enable(gl.DEPTH_TEST); defer gl.Disable(gl.DEPTH_TEST)
     gl.DepthFunc(gl.LEQUAL); defer gl.DepthFunc(gl.LESS)
     gl.Enable(gl.BLEND); defer gl.Disable(gl.BLEND)
     gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-    gl.MultiDrawElementsIndirect(gl.LINES, gl.UNSIGNED_INT, nil, i32(len(imdd3.Lineprim_Type)), 0)
+    gl.DrawArraysInstanced(gl.LINES, 0, i32(max_index_count), i32(len(data)))
 }

@@ -12,7 +12,7 @@ Renderer_Interface :: struct {
     triangle_render: proc(vertices: []Triangle_Vertex, indices: []u32),
     curve_render: proc(vertices: []Curve_Vertex),
     lineprim_init: proc(vertices: []Lineprim_Vertex, indices: []u32, ranges: [Lineprim_Type]Lineprim_Range),
-    lineprim_render: proc(data: [Lineprim_Type][]Lineprim_Instance),
+    lineprim_render: proc(data: []Lineprim_Instance, max_index_count: u32),
     triprim_init: proc(vertices: []Triprim_Vertex, ranges: [Triprim_Type]Triprim_Range),
     triprim_render: proc(data: []Triprim_Instance, max_vertex_count: u32),
 }

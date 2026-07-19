@@ -24,6 +24,7 @@ Lineprim_Instance :: struct {
     scale: [3]f32,
     radius: f32,
     color: u32,
+    range: [2]u32,
 }
 
 Lineprim_Range :: struct {
@@ -32,7 +33,9 @@ Lineprim_Range :: struct {
 }
 
 Lineprim_State :: struct {
-    instances: [Lineprim_Type][dynamic]Lineprim_Instance,
+    instances: [dynamic]Lineprim_Instance,
+    ranges: [Lineprim_Type]Lineprim_Range,
+    max_index_count: u32,
 }
 
 lineprim_state: Lineprim_State
@@ -49,31 +52,24 @@ lineprim_init :: proc() {
     ranges[.Sphere] = lineprim_generate_sphere(&vertices, &indices, 16)
     ranges[.Capsule] = lineprim_generate_capsule(&vertices, &indices, 16)
 
+    lineprim_state.instances = make([dynamic]Lineprim_Instance, 0, LINEPRIM_CAP)
+    lineprim_state.ranges = ranges
+
     for type in Lineprim_Type {
-        lineprim_state.instances[type] = make([dynamic]Lineprim_Instance, 0, LINEPRIM_CAP)
+        lineprim_state.max_index_count = max(lineprim_state.max_index_count, u32(ranges[type].count))
     }
 
     renderer.interface.lineprim_init(vertices[:], indices[:], ranges)
 }
 
 lineprim_destroy :: proc() {
-    for type in Lineprim_Type {
-        delete(lineprim_state.instances[type])
-    }
+    delete(lineprim_state.instances)
 }
 
 lineprim_render :: proc() {
-    data: [Lineprim_Type][]Lineprim_Instance
+    renderer.interface.lineprim_render(lineprim_state.instances[:], lineprim_state.max_index_count)
 
-    for type in Lineprim_Type {
-        data[type] = lineprim_state.instances[type][:]
-    }
-
-    renderer.interface.lineprim_render(data)
-
-    for type in Lineprim_Type {
-        clear(&lineprim_state.instances[type])
-    }
+    clear(&lineprim_state.instances)
 }
 
 lineprim_generate_box :: proc(vertices: ^[dynamic]Lineprim_Vertex, indices: ^[dynamic]u32) -> (range: Lineprim_Range) {
@@ -369,9 +365,11 @@ lineprim_generate_capsule :: proc(vertices: ^[dynamic]Lineprim_Vertex, indices: 
 }
 
 lineprim_push :: proc(type: Lineprim_Type) -> ^Lineprim_Instance {
-    append(&lineprim_state.instances[type], Lineprim_Instance{})
+    range := lineprim_state.ranges[type]
 
-    return &lineprim_state.instances[type][len(lineprim_state.instances[type]) - 1]
+    append(&lineprim_state.instances, Lineprim_Instance{range = {range.first, u32(range.count)}})
+
+    return &lineprim_state.instances[len(lineprim_state.instances) - 1]
 }
 
 // API
