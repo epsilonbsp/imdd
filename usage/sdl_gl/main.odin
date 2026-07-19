@@ -5,6 +5,7 @@ import sdl "vendor:sdl3"
 import gl "vendor:OpenGL"
 
 import imdd3 "../../source"
+import imdd3_impl_sdl "../../source/impl/sdl"
 import imdd3_impl_gl "../../source/impl/gl"
 import imdd3_test "../../source/test"
 
@@ -51,7 +52,7 @@ main :: proc() {
         pitch_speed = 0.002,
     }
 
-    imdd3.init(imdd3_impl_gl.interface())
+    imdd3.init(imdd3_impl_sdl.interface(window), imdd3_impl_gl.interface())
     defer imdd3.destroy()
 
     imdd3_test.init_demo()
@@ -65,6 +66,8 @@ main :: proc() {
         event: sdl.Event
 
         for sdl.PollEvent(&event) {
+            imdd3_impl_sdl.process_event(event)
+
             #partial switch event.type {
                 case .QUIT:
                     break loop
