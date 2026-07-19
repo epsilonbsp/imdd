@@ -40,11 +40,13 @@ texture_map_add :: proc(tm: ^Texture_Map, tex: u32) -> u32 {
 
     if len(tm.free_list) > 0 {
         index = pop(&tm.free_list)
+
         tm.textures[index] = tex
         tm.handles[index] = handle
         gl.BufferSubData(gl.SHADER_STORAGE_BUFFER, int(index) * size_of(u64), size_of(u64), &tm.handles[index])
     } else {
         index = u32(len(tm.textures))
+
         append(&tm.textures, tex)
         append(&tm.handles, handle)
         gl.BufferData(gl.SHADER_STORAGE_BUFFER, len(tm.handles) * size_of(u64), raw_data(tm.handles[:]), gl.DYNAMIC_DRAW)

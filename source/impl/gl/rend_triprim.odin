@@ -117,13 +117,6 @@ void main() {
 }
 `
 
-Triprim_Vertex_GL :: struct {
-    anchor: [4]f32,
-    direction: [4]f32,
-    normal: [4]f32,
-    barycentric: [4]f32,
-}
-
 Triprim_State :: struct {
     program: u32,
     uniforms: gl.Uniforms,
@@ -135,12 +128,19 @@ Triprim_State :: struct {
 triprim_state: Triprim_State
 
 triprim_init :: proc(vertices: []imdd3.Triprim_Vertex, ranges: [imdd3.Triprim_Type]imdd3.Triprim_Range) {
+    Triprim_Vertex :: struct {
+        anchor: [4]f32,
+        direction: [4]f32,
+        normal: [4]f32,
+        barycentric: [4]f32,
+    }
+
     ok: bool
     triprim_state.program, ok = load_shaders({{.VERTEX_SHADER, TRIPRIM_VS}, {.FRAGMENT_SHADER, TRIPRIM_FS}})
     assert(ok, "ERROR: Failed to compile triprim program")
     triprim_state.uniforms = gl.get_uniforms_from_program(triprim_state.program)
 
-    vertices_gl := make([]Triprim_Vertex_GL, len(vertices)); defer delete(vertices_gl)
+    vertices_gl := make([]Triprim_Vertex, len(vertices)); defer delete(vertices_gl)
 
     for vertex, i in vertices {
         vertices_gl[i] = {
@@ -153,7 +153,7 @@ triprim_init :: proc(vertices: []imdd3.Triprim_Vertex, ranges: [imdd3.Triprim_Ty
 
     gl.GenBuffers(1, &triprim_state.ssbo)
     gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, triprim_state.ssbo)
-    gl.BufferData(gl.SHADER_STORAGE_BUFFER, size_of(Triprim_Vertex_GL) * len(vertices_gl), raw_data(vertices_gl), gl.STATIC_DRAW)
+    gl.BufferData(gl.SHADER_STORAGE_BUFFER, size_of(Triprim_Vertex) * len(vertices_gl), raw_data(vertices_gl), gl.STATIC_DRAW)
 
     gl.GenVertexArrays(1, &triprim_state.vao)
     gl.BindVertexArray(triprim_state.vao)
@@ -221,6 +221,7 @@ triprim_render :: proc(data: []imdd3.Triprim_Instance, max_vertex_count: u32) {
     gl.Uniform1f(triprim_state.uniforms["u_mat_specular_shine"].location, TRIPRIM_SPECULAR_SHINE)
 
     gl.BindVertexArray(triprim_state.vao)
+
     gl.BindBuffer(gl.ARRAY_BUFFER, triprim_state.ibo)
     gl.BufferData(gl.ARRAY_BUFFER, len(data) * size_of(imdd3.Triprim_Instance), raw_data(data), gl.STREAM_DRAW)
     gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, triprim_state.ssbo)

@@ -150,19 +150,7 @@ LINEPRIM_FS :: GLSL_VERSION + `
 
     out vec4 o_frag_color;
 
-    uniform vec2 u_viewport;
-    uniform sampler2D sa_depth;
-
     void main() {
-        #ifdef USE_DEPTH
-            vec2 rm_uv = vec2(gl_FragCoord.x, u_viewport.y - gl_FragCoord.y) / u_viewport;
-            float rm_depth = texture(sa_depth, rm_uv).x;
-
-            if (rm_depth < v_depth) {
-                discard;
-            }
-        #endif
-
         float dist = abs(v_dist) * v_width;
         float alpha = 1.0 - smoothstep(v_width * 0.5 - AA_WIDTH, v_width * 0.5, dist);
 
@@ -173,11 +161,6 @@ LINEPRIM_FS :: GLSL_VERSION + `
         o_frag_color = vec4(v_color.rgb, alpha);
     }
 `
-
-Lineprim_Vertex_GL :: struct {
-    anchor: [4]f32,
-    direction: [4]f32,
-}
 
 Lineprim_State :: struct {
     program: u32,
@@ -191,6 +174,11 @@ Lineprim_State :: struct {
 lineprim_state: Lineprim_State
 
 lineprim_init :: proc(vertices: []imdd3.Lineprim_Vertex, indices: []u32, ranges: [imdd3.Lineprim_Type]imdd3.Lineprim_Range) {
+    Lineprim_Vertex :: struct {
+        anchor: [4]f32,
+        direction: [4]f32,
+    }
+
     ok: bool
     lineprim_state.program, ok = load_shaders({
         {.VERTEX_SHADER, LINEPRIM_VS},
@@ -200,7 +188,7 @@ lineprim_init :: proc(vertices: []imdd3.Lineprim_Vertex, indices: []u32, ranges:
     assert(ok, "ERROR: Failed to compile lineprim program")
     lineprim_state.uniforms = gl.get_uniforms_from_program(lineprim_state.program)
 
-    vertices_gl := make([]Lineprim_Vertex_GL, len(vertices)); defer delete(vertices_gl)
+    vertices_gl := make([]Lineprim_Vertex, len(vertices)); defer delete(vertices_gl)
 
     for vertex, i in vertices {
         vertices_gl[i] = {
@@ -211,7 +199,7 @@ lineprim_init :: proc(vertices: []imdd3.Lineprim_Vertex, indices: []u32, ranges:
 
     gl.GenBuffers(1, &lineprim_state.vertex_ssbo)
     gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, lineprim_state.vertex_ssbo)
-    gl.BufferData(gl.SHADER_STORAGE_BUFFER, size_of(Lineprim_Vertex_GL) * len(vertices_gl), raw_data(vertices_gl), gl.STATIC_DRAW)
+    gl.BufferData(gl.SHADER_STORAGE_BUFFER, size_of(Lineprim_Vertex) * len(vertices_gl), raw_data(vertices_gl), gl.STATIC_DRAW)
 
     gl.GenBuffers(1, &lineprim_state.index_ssbo)
     gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, lineprim_state.index_ssbo)
@@ -269,6 +257,7 @@ lineprim_render :: proc(data: []imdd3.Lineprim_Instance, max_index_count: u32) {
     gl.UniformMatrix4fv(lineprim_state.uniforms["u_view"].location, 1, false, &renderer.view[0][0])
 
     gl.BindVertexArray(lineprim_state.vao)
+
     gl.BindBuffer(gl.ARRAY_BUFFER, lineprim_state.ibo)
     gl.BufferData(gl.ARRAY_BUFFER, len(data) * size_of(imdd3.Lineprim_Instance), raw_data(data), gl.STREAM_DRAW)
     gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, lineprim_state.vertex_ssbo)

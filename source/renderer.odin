@@ -8,6 +8,7 @@ Renderer_Interface :: struct {
     add_texture: proc(width: i32, height: i32, data: []u8) -> u32,
     remove_texture: proc(handle: u32),
     update_texture: proc(handle: u32, x: i32, y: i32, w: i32, h: i32, data: []u8),
+
     line_render: proc(vertices: []Line_Vertex),
     triangle_render: proc(vertices: []Triangle_Vertex, indices: []u32),
     curve_render: proc(vertices: []Curve_Vertex),

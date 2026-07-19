@@ -8,7 +8,6 @@ Renderer :: struct {
     viewport: [2]i32,
     projection: matrix[4, 4]f32,
     view: matrix[4, 4]f32,
-
     atlas_tex: u32,
     tex_map: Texture_Map,
 }
@@ -57,6 +56,7 @@ update_texture :: proc(handle: u32, x: i32, y: i32, w: i32, h: i32, data: []u8) 
     assert(int(handle) < len(renderer.tex_map.textures), "ERROR: update_texture handle out of bounds")
 
     tex := renderer.tex_map.textures[handle]
+
     gl.BindTexture(gl.TEXTURE_2D, tex)
     gl.TexSubImage2D(gl.TEXTURE_2D, 0, x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE, raw_data(data))
     gl.BindTexture(gl.TEXTURE_2D, 0)
@@ -67,9 +67,11 @@ interface :: proc() -> imdd3.Renderer_Interface {
         init = init,
         destroy = destroy,
         prepare_renderer = prepare_renderer,
+
         add_texture = add_texture,
         remove_texture = remove_texture,
         update_texture = update_texture,
+
         line_render = line_render,
         curve_render = curve_render,
         triangle_render = triangle_render,
