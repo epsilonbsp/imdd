@@ -26,7 +26,7 @@ Renderer :: struct {
 
 renderer: Renderer
 
-init :: proc(interface: Renderer_Interface) {
+init_renderer :: proc(interface: Renderer_Interface) {
     renderer.interface = interface
     renderer.interface.init()
 
@@ -40,7 +40,7 @@ init :: proc(interface: Renderer_Interface) {
     triprim_init()
 }
 
-destroy :: proc() {
+destroy_renderer :: proc() {
     renderer.interface.destroy()
 
     delete(renderer.icons.icons)
