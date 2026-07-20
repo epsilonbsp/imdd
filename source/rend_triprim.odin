@@ -33,6 +33,7 @@ Triprim_Instance :: struct {
     color: u32,
     wire_color: u32,
     range: [2]u32,
+    shading: b32,
 }
 
 Triprim_State :: struct {
@@ -520,34 +521,37 @@ triprim_push :: proc(type: Triprim_Type) -> ^Triprim_Instance {
 }
 
 // API
-draw_aabb :: proc(min: [3]f32, max: [3]f32, color: u32, wire_color: u32 = 0) {
+draw_aabb :: proc(min: [3]f32, max: [3]f32, color: u32, wire_color: u32 = 0, shading := true) {
     instance := triprim_push(.Box)
     instance.translation = (min + max) / 2
     instance.rotation = {}
     instance.scale = glm.abs(max - min) / 2
     instance.color = color
     instance.wire_color = wire_color
+    instance.shading = b32(shading)
 }
 
-draw_box_aa :: proc(position: [3]f32, size: [3]f32, color: u32, wire_color: u32 = 0) {
+draw_box_aa :: proc(position: [3]f32, size: [3]f32, color: u32, wire_color: u32 = 0, shading := true) {
     instance := triprim_push(.Box)
     instance.translation = position
     instance.rotation = {}
     instance.scale = size / 2
     instance.color = color
     instance.wire_color = wire_color
+    instance.shading = b32(shading)
 }
 
-draw_box_o :: proc(position: [3]f32, size: [3]f32, rotation: quaternion128, color: u32, wire_color: u32 = 0) {
+draw_box_o :: proc(position: [3]f32, size: [3]f32, rotation: quaternion128, color: u32, wire_color: u32 = 0, shading := true) {
     instance := triprim_push(.Box)
     instance.translation = position
     instance.rotation = rotation
     instance.scale = size / 2
     instance.color = color
     instance.wire_color = wire_color
+    instance.shading = b32(shading)
 }
 
-draw_box_ab :: proc(start: [3]f32, end: [3]f32, size: [2]f32, color: u32, wire_color: u32 = 0) {
+draw_box_ab :: proc(start: [3]f32, end: [3]f32, size: [2]f32, color: u32, wire_color: u32 = 0, shading := true) {
     height := glm.distance(start, end) / 2
 
     instance := triprim_push(.Box)
@@ -556,27 +560,30 @@ draw_box_ab :: proc(start: [3]f32, end: [3]f32, size: [2]f32, color: u32, wire_c
     instance.scale = {size[0] / 2, height, size[1] / 2}
     instance.color = color
     instance.wire_color = wire_color
+    instance.shading = b32(shading)
 }
 
-draw_cylinder_aa :: proc(position: [3]f32, size: [2]f32, color: u32, wire_color: u32 = 0) {
+draw_cylinder_aa :: proc(position: [3]f32, size: [2]f32, color: u32, wire_color: u32 = 0, shading := true) {
     instance := triprim_push(.Cylinder)
     instance.translation = position
     instance.rotation = {}
     instance.scale = {size.x, size.y / 2, size.x}
     instance.color = color
     instance.wire_color = wire_color
+    instance.shading = b32(shading)
 }
 
-draw_cylinder_o :: proc(position: [3]f32, size: [2]f32, rotation: quaternion128, color: u32, wire_color: u32 = 0) {
+draw_cylinder_o :: proc(position: [3]f32, size: [2]f32, rotation: quaternion128, color: u32, wire_color: u32 = 0, shading := true) {
     instance := triprim_push(.Cylinder)
     instance.translation = position
     instance.rotation = rotation
     instance.scale = {size.x, size.y / 2, size.x}
     instance.color = color
     instance.wire_color = wire_color
+    instance.shading = b32(shading)
 }
 
-draw_cylinder_ab :: proc(start: [3]f32, end: [3]f32, radius: f32, color: u32, wire_color: u32 = 0) {
+draw_cylinder_ab :: proc(start: [3]f32, end: [3]f32, radius: f32, color: u32, wire_color: u32 = 0, shading := true) {
     height := glm.distance(start, end) / 2
 
     instance := triprim_push(.Cylinder)
@@ -585,27 +592,30 @@ draw_cylinder_ab :: proc(start: [3]f32, end: [3]f32, radius: f32, color: u32, wi
     instance.scale = {radius, height, radius}
     instance.color = color
     instance.wire_color = wire_color
+    instance.shading = b32(shading)
 }
 
-draw_cone_aa :: proc(position: [3]f32, size: [2]f32, color: u32, wire_color: u32 = 0) {
+draw_cone_aa :: proc(position: [3]f32, size: [2]f32, color: u32, wire_color: u32 = 0, shading := true) {
     instance := triprim_push(.Cone)
     instance.translation = position
     instance.rotation = {}
     instance.scale = {size.x, size.y / 2, size.x}
     instance.color = color
     instance.wire_color = wire_color
+    instance.shading = b32(shading)
 }
 
-draw_cone_o :: proc(position: [3]f32, size: [2]f32, rotation: quaternion128, color: u32, wire_color: u32 = 0) {
+draw_cone_o :: proc(position: [3]f32, size: [2]f32, rotation: quaternion128, color: u32, wire_color: u32 = 0, shading := true) {
     instance := triprim_push(.Cone)
     instance.translation = position
     instance.rotation = rotation
     instance.scale = {size.x, size.y / 2, size.x}
     instance.color = color
     instance.wire_color = wire_color
+    instance.shading = b32(shading)
 }
 
-draw_cone_ab :: proc(start: [3]f32, end: [3]f32, radius: f32, color: u32, wire_color: u32 = 0) {
+draw_cone_ab :: proc(start: [3]f32, end: [3]f32, radius: f32, color: u32, wire_color: u32 = 0, shading := true) {
     height := glm.distance(start, end) / 2
 
     instance := triprim_push(.Cone)
@@ -614,9 +624,10 @@ draw_cone_ab :: proc(start: [3]f32, end: [3]f32, radius: f32, color: u32, wire_c
     instance.scale = {radius, height, radius}
     instance.color = color
     instance.wire_color = wire_color
+    instance.shading = b32(shading)
 }
 
-draw_cone_frustum_aa :: proc(position: [3]f32, size: [2]f32, top_radius: f32, color: u32, wire_color: u32 = 0) {
+draw_cone_frustum_aa :: proc(position: [3]f32, size: [2]f32, top_radius: f32, color: u32, wire_color: u32 = 0, shading := true) {
     instance := triprim_push(.Cone_Frustum)
     instance.translation = position
     instance.rotation = {}
@@ -624,9 +635,10 @@ draw_cone_frustum_aa :: proc(position: [3]f32, size: [2]f32, top_radius: f32, co
     instance.radius = top_radius
     instance.color = color
     instance.wire_color = wire_color
+    instance.shading = b32(shading)
 }
 
-draw_cone_frustum_o :: proc(position: [3]f32, size: [2]f32, top_radius: f32, rotation: quaternion128, color: u32, wire_color: u32 = 0) {
+draw_cone_frustum_o :: proc(position: [3]f32, size: [2]f32, top_radius: f32, rotation: quaternion128, color: u32, wire_color: u32 = 0, shading := true) {
     instance := triprim_push(.Cone_Frustum)
     instance.translation = position
     instance.rotation = rotation
@@ -634,9 +646,10 @@ draw_cone_frustum_o :: proc(position: [3]f32, size: [2]f32, top_radius: f32, rot
     instance.radius = top_radius
     instance.color = color
     instance.wire_color = wire_color
+    instance.shading = b32(shading)
 }
 
-draw_cone_frustum_ab :: proc(start: [3]f32, end: [3]f32, bottom_radius: f32, top_radius: f32, color: u32, wire_color: u32 = 0) {
+draw_cone_frustum_ab :: proc(start: [3]f32, end: [3]f32, bottom_radius: f32, top_radius: f32, color: u32, wire_color: u32 = 0, shading := true) {
     height := glm.distance(start, end) / 2
 
     instance := triprim_push(.Cone_Frustum)
@@ -646,18 +659,20 @@ draw_cone_frustum_ab :: proc(start: [3]f32, end: [3]f32, bottom_radius: f32, top
     instance.radius = top_radius
     instance.color = color
     instance.wire_color = wire_color
+    instance.shading = b32(shading)
 }
 
-draw_sphere :: proc(position: [3]f32, radius: f32, color: u32, wire_color: u32 = 0) {
+draw_sphere :: proc(position: [3]f32, radius: f32, color: u32, wire_color: u32 = 0, shading := true) {
     instance := triprim_push(.Sphere)
     instance.translation = position
     instance.rotation = {}
     instance.scale = {radius, radius, radius}
     instance.color = color
     instance.wire_color = wire_color
+    instance.shading = b32(shading)
 }
 
-draw_capsule_aa :: proc(position: [3]f32, size: [2]f32, color: u32, wire_color: u32 = 0) {
+draw_capsule_aa :: proc(position: [3]f32, size: [2]f32, color: u32, wire_color: u32 = 0, shading := true) {
     instance := triprim_push(.Capsule)
     instance.translation = position
     instance.rotation = {}
@@ -665,9 +680,10 @@ draw_capsule_aa :: proc(position: [3]f32, size: [2]f32, color: u32, wire_color: 
     instance.radius = size.x
     instance.color = color
     instance.wire_color = wire_color
+    instance.shading = b32(shading)
 }
 
-draw_capsule_o :: proc(position: [3]f32, size: [2]f32, rotation: quaternion128, color: u32, wire_color: u32 = 0) {
+draw_capsule_o :: proc(position: [3]f32, size: [2]f32, rotation: quaternion128, color: u32, wire_color: u32 = 0, shading := true) {
     instance := triprim_push(.Capsule)
     instance.translation = position
     instance.rotation = rotation
@@ -675,9 +691,10 @@ draw_capsule_o :: proc(position: [3]f32, size: [2]f32, rotation: quaternion128, 
     instance.radius = size.x
     instance.color = color
     instance.wire_color = wire_color
+    instance.shading = b32(shading)
 }
 
-draw_capsule_ab :: proc(start: [3]f32, end: [3]f32, radius: f32, color: u32, wire_color: u32 = 0) {
+draw_capsule_ab :: proc(start: [3]f32, end: [3]f32, radius: f32, color: u32, wire_color: u32 = 0, shading := true) {
     half_height := glm.distance(start, end) / 2
 
     instance := triprim_push(.Capsule)
@@ -687,9 +704,10 @@ draw_capsule_ab :: proc(start: [3]f32, end: [3]f32, radius: f32, color: u32, wir
     instance.radius = radius
     instance.color = color
     instance.wire_color = wire_color
+    instance.shading = b32(shading)
 }
 
-draw_arrow :: proc(point0: [3]f32, point1: [3]f32, width: f32, head_size: f32, color: u32, wire_color: u32 = 0) {
+draw_arrow :: proc(point0: [3]f32, point1: [3]f32, width: f32, head_size: f32, color: u32, wire_color: u32 = 0, shading := true) {
     diff := point1 - point0
     length := glm.length(diff)
 
@@ -700,6 +718,6 @@ draw_arrow :: proc(point0: [3]f32, point1: [3]f32, width: f32, head_size: f32, c
     dir := diff / length
     body_end := point1 - dir * head_size
 
-    draw_cylinder_ab(point0, body_end, width * 0.5, color, wire_color)
-    draw_cone_ab(point1, body_end, head_size * 0.5, color, wire_color)
+    draw_cylinder_ab(point0, body_end, width * 0.5, color, wire_color, shading)
+    draw_cone_ab(point1, body_end, head_size * 0.5, color, wire_color, shading)
 }

@@ -7,14 +7,16 @@ GIZMO_AXIS_PICK_THRESHOLD :: f32(1)
 GIZMO_PLANE_HANDLE_OFFSET :: f32(4)
 GIZMO_PLANE_HANDLE_SIZE :: f32(4)
 GIZMO_HEAD_SIZE_RATIO :: f32(2)
-GIZMO_SCALE_HANDLE_RATIO :: f32(0.15)
+GIZMO_AXIS_OFFSET_RATIO :: f32(0.3)
+GIZMO_CENTER_RADIUS_RATIO :: f32(1)
 
-GIZMO_COLOR_X :: u32(0xff4d4dff)
-GIZMO_COLOR_Y :: u32(0x4dff4dff)
-GIZMO_COLOR_Z :: u32(0x4d4dffff)
-GIZMO_COLOR_XY :: u32(0x4d4dffaa)
-GIZMO_COLOR_XZ :: u32(0x4dff4daa)
-GIZMO_COLOR_YZ :: u32(0xff4d4daa)
+GIZMO_COLOR_X :: u32(0xff9494ff)
+GIZMO_COLOR_Y :: u32(0x94ff94ff)
+GIZMO_COLOR_Z :: u32(0x9494ffff)
+GIZMO_COLOR_XY :: u32(0x9494ffaa)
+GIZMO_COLOR_XZ :: u32(0x94ff94aa)
+GIZMO_COLOR_YZ :: u32(0xff9494aa)
+GIZMO_CENTER_COLOR :: u32(0xaaaaaaff)
 GIZMO_HOVER_COLOR :: u32(0xffffffff)
 
 GIZMO_SCREEN_SIZE :: f32(0.1)
@@ -189,16 +191,27 @@ gizmo_handle_color :: proc(handle: Gizmo_Handle, base_color: u32) -> u32 {
     return base_color
 }
 
+gizmo_draw_center :: proc(position: [3]f32, scale: f32) {
+    k := scale / GIZMO_ARROW_LENGTH
+
+    draw_sphere(position, GIZMO_CENTER_RADIUS_RATIO * k, GIZMO_CENTER_COLOR, shading = false)
+}
+
 gizmo_draw_translate :: proc(position: [3]f32, scale: f32) {
     k := scale / GIZMO_ARROW_LENGTH
     offset_amount := GIZMO_PLANE_HANDLE_OFFSET * k
     size_amount := GIZMO_PLANE_HANDLE_SIZE * k
     width := k
     head_size := GIZMO_HEAD_SIZE_RATIO * k
+    axis_offset := GIZMO_AXIS_OFFSET_RATIO * scale
 
-    draw_arrow(position, position + gizmo_axis_direction(.X) * scale, width, head_size, gizmo_handle_color(.X, GIZMO_COLOR_X))
-    draw_arrow(position, position + gizmo_axis_direction(.Y) * scale, width, head_size, gizmo_handle_color(.Y, GIZMO_COLOR_Y))
-    draw_arrow(position, position + gizmo_axis_direction(.Z) * scale, width, head_size, gizmo_handle_color(.Z, GIZMO_COLOR_Z))
+    x_dir := gizmo_axis_direction(.X)
+    y_dir := gizmo_axis_direction(.Y)
+    z_dir := gizmo_axis_direction(.Z)
+
+    draw_arrow(position + x_dir * axis_offset, position + x_dir * scale, width, head_size, gizmo_handle_color(.X, GIZMO_COLOR_X), shading = false)
+    draw_arrow(position + y_dir * axis_offset, position + y_dir * scale, width, head_size, gizmo_handle_color(.Y, GIZMO_COLOR_Y), shading = false)
+    draw_arrow(position + z_dir * axis_offset, position + z_dir * scale, width, head_size, gizmo_handle_color(.Z, GIZMO_COLOR_Z), shading = false)
 
     plane_colors := [Gizmo_Handle]u32{.XY = GIZMO_COLOR_XY, .XZ = GIZMO_COLOR_XZ, .YZ = GIZMO_COLOR_YZ, .None = 0, .X = 0, .Y = 0, .Z = 0}
 
@@ -208,6 +221,8 @@ gizmo_draw_translate :: proc(position: [3]f32, scale: f32) {
 
         draw_rect(square_center, normal, a, {size_amount, size_amount}, gizmo_handle_color(handle, plane_colors[handle]))
     }
+
+    gizmo_draw_center(position, scale)
 }
 
 gizmo_draw_rotate :: proc(position: [3]f32, scale: f32) {
@@ -217,22 +232,27 @@ gizmo_draw_rotate :: proc(position: [3]f32, scale: f32) {
     draw_ring(position, gizmo_axis_direction(.X), gizmo_axis_direction(.Y), scale, width, gizmo_handle_color(.X, GIZMO_COLOR_X))
     draw_ring(position, gizmo_axis_direction(.Y), gizmo_axis_direction(.Z), scale, width, gizmo_handle_color(.Y, GIZMO_COLOR_Y))
     draw_ring(position, gizmo_axis_direction(.Z), gizmo_axis_direction(.X), scale, width, gizmo_handle_color(.Z, GIZMO_COLOR_Z))
+
+    gizmo_draw_center(position, scale)
 }
 
 gizmo_draw_scale :: proc(position: [3]f32, scale: f32) {
     k := scale / GIZMO_ARROW_LENGTH
     width := k
     colors := [Gizmo_Handle]u32{.None = 0, .X = GIZMO_COLOR_X, .Y = GIZMO_COLOR_Y, .Z = GIZMO_COLOR_Z, .XY = 0, .XZ = 0, .YZ = 0}
-    handle_size := scale * GIZMO_SCALE_HANDLE_RATIO
+    handle_size := GIZMO_HEAD_SIZE_RATIO * k
+    axis_offset := GIZMO_AXIS_OFFSET_RATIO * scale
 
     for handle in ([]Gizmo_Handle{.X, .Y, .Z}) {
         direction := gizmo_axis_direction(handle)
         handle_center := position + direction * (scale - handle_size * 0.5)
         color := gizmo_handle_color(handle, colors[handle])
 
-        draw_cylinder_ab(position, handle_center, width, color)
-        draw_box_aa(handle_center, {handle_size, handle_size, handle_size}, color)
+        draw_cylinder_ab(position + direction * axis_offset, handle_center, width * 0.5, color, shading = false)
+        draw_box_aa(handle_center, {handle_size, handle_size, handle_size}, color, shading = false)
     }
+
+    gizmo_draw_center(position, scale)
 }
 
 // API

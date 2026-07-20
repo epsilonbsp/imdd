@@ -20,6 +20,7 @@ TRIPRIM_VS :: GLSL_VERSION + `
     layout(location = 4) in uint i_color;
     layout(location = 5) in uint i_wire_color;
     layout(location = 6) in uvec2 i_range;
+    layout(location = 7) in uint i_shading;
 
     struct Vertex {
         vec4 anchor;
@@ -37,6 +38,7 @@ TRIPRIM_VS :: GLSL_VERSION + `
     out vec3 v_barycentric;
     out vec3 v_normal;
     out vec3 v_world_pos;
+    flat out uint v_shading;
 
     uniform mat4 u_projection;
     uniform mat4 u_view;
@@ -71,6 +73,7 @@ TRIPRIM_VS :: GLSL_VERSION + `
         v_barycentric = v.barycentric.xyz;
         v_normal = rotate(v.normal.xyz, i_rotation);
         v_world_pos = world_position;
+        v_shading = i_shading;
     }
 `
 
@@ -82,6 +85,7 @@ in vec4 v_wire_color;
 in vec3 v_barycentric;
 in vec3 v_normal;
 in vec3 v_world_pos;
+flat in uint v_shading;
 
 out vec4 o_frag_color;
 
@@ -94,16 +98,22 @@ uniform float u_mat_specular_strength;
 uniform float u_mat_specular_shine;
 
 void main() {
-    vec3 normal = normalize(v_normal);
-    vec3 view_dir = normalize(u_view_pos - v_world_pos);
-    vec3 half_dir = normalize(u_light_dir + view_dir);
+    vec4 fill_color;
 
-    vec3 ambient = v_color.rgb * u_light_color * u_mat_ambient_strength;
-    vec3 diffuse = v_color.rgb * u_light_color * max(dot(normal, u_light_dir), 0.0) * u_mat_diffuse_strength;
-    vec3 specular = u_light_color * pow(max(dot(normal, half_dir), 0.0), u_mat_specular_shine) * u_mat_specular_strength;
+    if (v_shading != 0u) {
+        vec3 normal = normalize(v_normal);
+        vec3 view_dir = normalize(u_view_pos - v_world_pos);
+        vec3 half_dir = normalize(u_light_dir + view_dir);
 
-    vec3 shaded = pow(ambient + diffuse + specular, vec3(1.0 / 2.2));
-    vec4 fill_color = vec4(shaded, v_color.a);
+        vec3 ambient = v_color.rgb * u_light_color * u_mat_ambient_strength;
+        vec3 diffuse = v_color.rgb * u_light_color * max(dot(normal, u_light_dir), 0.0) * u_mat_diffuse_strength;
+        vec3 specular = u_light_color * pow(max(dot(normal, half_dir), 0.0), u_mat_specular_shine) * u_mat_specular_strength;
+
+        vec3 shaded = pow(ambient + diffuse + specular, vec3(1.0 / 2.2));
+        fill_color = vec4(shaded, v_color.a);
+    } else {
+        fill_color = v_color;
+    }
 
     if (v_wire_color.a > 0.0) {
         vec3 d = fwidth(v_barycentric) * EDGE_WIDTH;
@@ -188,6 +198,10 @@ triprim_init :: proc(vertices: []imdd3.Triprim_Vertex, ranges: [imdd3.Triprim_Ty
     gl.EnableVertexAttribArray(6)
     gl.VertexAttribIPointer(6, 2, gl.UNSIGNED_INT, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, range))
     gl.VertexAttribDivisor(6, 1)
+
+    gl.EnableVertexAttribArray(7)
+    gl.VertexAttribIPointer(7, 1, gl.UNSIGNED_INT, size_of(imdd3.Triprim_Instance), offset_of(imdd3.Triprim_Instance, shading))
+    gl.VertexAttribDivisor(7, 1)
 }
 
 triprim_destroy :: proc() {
