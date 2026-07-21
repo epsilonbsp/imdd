@@ -108,9 +108,9 @@ load_font :: proc(data: []u8) -> Font {
 }
 
 load_fonts :: proc() {
-    renderer.fonts[Font_Weight.REGULAR] = load_font(resources.fonts_regular)
-    renderer.fonts[Font_Weight.ITALIC] = load_font(resources.fonts_italic)
-    renderer.fonts[Font_Weight.BOLD] = load_font(resources.fonts_bold)
+    renderer.fonts[.REGULAR] = load_font(resources.fonts_regular)
+    renderer.fonts[.ITALIC] = load_font(resources.fonts_italic)
+    renderer.fonts[.BOLD] = load_font(resources.fonts_bold)
 }
 
 font_weight :: proc(font_weight: Font_Weight) {

@@ -51,7 +51,7 @@ show_demo :: proc() {
     // imdd3.draw_grid_xz({}, {2048, 2048}, 16, 1, 0xaaaaaaff)
     // imdd3.draw_grid_yz({}, {128, 128}, 16, 1, 0xff0000ff)
 
-    // imdd3.draw_text({}, {0, 0, 1}, {1, 0, 0}, "Hello, World!", 16, 16, 0xff0000ff)
+    imdd3.draw_text({}, {0, 0, 1}, {1, 0, 0}, "Hello, World!", 16, 16, 0xff0000ff)
 
     // imdd3.draw_icon({}, {0, 0, 1}, {1, 0, 0}, 16, "close", 0xff0000ff)
 

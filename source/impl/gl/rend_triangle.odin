@@ -8,13 +8,13 @@ TRIANGLE_VS :: GLSL_VERSION + `
     layout(location = 0) in uint i_mode;
     layout(location = 1) in vec3 i_position;
     layout(location = 2) in vec2 i_tex_coord;
-    layout(location = 3) in uint i_tex_index;
+    layout(location = 3) in int i_tex_index;
     layout(location = 4) in uvec2 i_colors;
     layout(location = 5) in vec4 i_params;
 
     flat out uint v_mode;
     out vec2 v_tex_coord;
-    flat out uint v_tex_index;
+    flat out int v_tex_index;
     out vec4 v_color0;
     out vec4 v_color1;
     out vec4 v_params;
@@ -60,7 +60,7 @@ TRIANGLE_FS :: GLSL_VERSION + `
 
     flat in uint v_mode;
     in vec2 v_tex_coord;
-    flat in uint v_tex_index;
+    flat in int v_tex_index;
     in vec4 v_color0;
     in vec4 v_color1;
     in vec4 v_params;
@@ -104,8 +104,10 @@ TRIANGLE_FS :: GLSL_VERSION + `
     }
 
     void main() {
+       vec4 tex_color = v_tex_index < 0 ? vec4(1.0) : texture(tex_handle_arr[v_tex_index], v_tex_coord);
+
         if (v_mode == 0) {
-            o_frag_color = texture(tex_handle_arr[v_tex_index], v_tex_coord) * v_color0;
+            o_frag_color = tex_color * v_color0;
         } else if (v_mode >= 1 && v_mode <= 4) {
             vec2 extent = v_params.xy;
             float radius = v_params.z;
@@ -119,7 +121,7 @@ TRIANGLE_FS :: GLSL_VERSION + `
             float stroke_a = smoothstep(-aa, aa, d + outline) * smoothstep(aa, -aa, d);
 
             o_frag_color = mix(
-                texture(tex_handle_arr[v_tex_index], v_tex_coord) * vec4(v_color0.rgb, v_color0.a * fill_a),
+                tex_color * vec4(v_color0.rgb, v_color0.a * fill_a),
                 vec4(v_color1.rgb, v_color1.a * stroke_a),
                 stroke_a
             );
@@ -188,7 +190,7 @@ triangle_init :: proc() {
     gl.VertexAttribPointer(2, 2, gl.FLOAT, gl.FALSE, size_of(imdd3.Triangle_Vertex), offset_of(imdd3.Triangle_Vertex, tex_coord))
 
     gl.EnableVertexAttribArray(3)
-    gl.VertexAttribIPointer(3, 1, gl.UNSIGNED_INT, size_of(imdd3.Triangle_Vertex), offset_of(imdd3.Triangle_Vertex, tex_index))
+    gl.VertexAttribIPointer(3, 1, gl.INT, size_of(imdd3.Triangle_Vertex), offset_of(imdd3.Triangle_Vertex, tex_index))
 
     gl.EnableVertexAttribArray(4)
     gl.VertexAttribIPointer(4, 2, gl.UNSIGNED_INT, size_of(imdd3.Triangle_Vertex), offset_of(imdd3.Triangle_Vertex, colors))

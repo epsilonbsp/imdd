@@ -41,7 +41,7 @@ Triangle_Vertex :: struct {
     mode: Triangle_Mode,
     position: [3]f32,
     tex_coord: [2]f32,
-    tex_index: u32,
+    tex_index: i32,
     colors: [2]u32,
     params: [4]f32,
 }
@@ -76,9 +76,9 @@ draw_triangle :: proc(point0: [3]f32, point1: [3]f32, point2: [3]f32, color: u32
 
     append(
         &triangle_state.vertices,
-        Triangle_Vertex{.Default, point0, {}, 0, {color, 0}, {}},
-        Triangle_Vertex{.Default, point1, {}, 0, {color, 0}, {}},
-        Triangle_Vertex{.Default, point2, {}, 0, {color, 0}, {}}
+        Triangle_Vertex{.Default, point0, {}, -1, {color, 0}, {}},
+        Triangle_Vertex{.Default, point1, {}, -1, {color, 0}, {}},
+        Triangle_Vertex{.Default, point2, {}, -1, {color, 0}, {}}
     )
 
     append(
@@ -100,10 +100,10 @@ draw_rect :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32,
 
     append(
         &triangle_state.vertices,
-        Triangle_Vertex{.Default, point_a, {}, 0, {color, 0}, {}},
-        Triangle_Vertex{.Default, point_b, {}, 0, {color, 0}, {}},
-        Triangle_Vertex{.Default, point_c, {}, 0, {color, 0}, {}},
-        Triangle_Vertex{.Default, point_d, {}, 0, {color, 0}, {}}
+        Triangle_Vertex{.Default, point_a, {}, -1, {color, 0}, {}},
+        Triangle_Vertex{.Default, point_b, {}, -1, {color, 0}, {}},
+        Triangle_Vertex{.Default, point_c, {}, -1, {color, 0}, {}},
+        Triangle_Vertex{.Default, point_d, {}, -1, {color, 0}, {}}
     )
 
     append(
@@ -125,10 +125,10 @@ draw_circle :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, radius: f32
 
     append(
         &triangle_state.vertices,
-        Triangle_Vertex{.SDF_0, point_a, {}, 0, {color, 0}, {radius, radius, radius, 0}},
-        Triangle_Vertex{.SDF_1, point_b, {}, 0, {color, 0}, {radius, radius, radius, 0}},
-        Triangle_Vertex{.SDF_2, point_c, {}, 0, {color, 0}, {radius, radius, radius, 0}},
-        Triangle_Vertex{.SDF_3, point_d, {}, 0, {color, 0}, {radius, radius, radius, 0}}
+        Triangle_Vertex{.SDF_0, point_a, {}, -1, {color, 0}, {radius, radius, radius, 0}},
+        Triangle_Vertex{.SDF_1, point_b, {}, -1, {color, 0}, {radius, radius, radius, 0}},
+        Triangle_Vertex{.SDF_2, point_c, {}, -1, {color, 0}, {radius, radius, radius, 0}},
+        Triangle_Vertex{.SDF_3, point_d, {}, -1, {color, 0}, {radius, radius, radius, 0}}
     )
 
     append(
@@ -151,10 +151,10 @@ draw_rrect :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32
 
     append(
         &triangle_state.vertices,
-        Triangle_Vertex{.SDF_0, point_a, {}, 0, {fill_color, stroke_color}, {extent.x, extent.y, radius, stroke_width}},
-        Triangle_Vertex{.SDF_1, point_b, {}, 0, {fill_color, stroke_color}, {extent.x, extent.y, radius, stroke_width}},
-        Triangle_Vertex{.SDF_2, point_c, {}, 0, {fill_color, stroke_color}, {extent.x, extent.y, radius, stroke_width}},
-        Triangle_Vertex{.SDF_3, point_d, {}, 0, {fill_color, stroke_color}, {extent.x, extent.y, radius, stroke_width}}
+        Triangle_Vertex{.SDF_0, point_a, {}, -1, {fill_color, stroke_color}, {extent.x, extent.y, radius, stroke_width}},
+        Triangle_Vertex{.SDF_1, point_b, {}, -1, {fill_color, stroke_color}, {extent.x, extent.y, radius, stroke_width}},
+        Triangle_Vertex{.SDF_2, point_c, {}, -1, {fill_color, stroke_color}, {extent.x, extent.y, radius, stroke_width}},
+        Triangle_Vertex{.SDF_3, point_d, {}, -1, {fill_color, stroke_color}, {extent.x, extent.y, radius, stroke_width}}
     )
 
     append(
@@ -181,10 +181,10 @@ draw_stroke :: proc(point0: [3]f32, point1: [3]f32, normal: [3]f32, tangent: [3]
 
     append(
         &triangle_state.vertices,
-        Triangle_Vertex{.Stroke, point0 - perp, {}, 0, {color, 0}, {dash[0], dash[1], 0, 0}},
-        Triangle_Vertex{.Stroke, point1 - perp, {}, 0, {color, 0}, {distance, dash[1], 0, 0}},
-        Triangle_Vertex{.Stroke, point1 + perp, {}, 0, {color, 0}, {distance, dash[1], 0, 0}},
-        Triangle_Vertex{.Stroke, point0 + perp, {}, 0, {color, 0}, {dash[0], dash[1], 0, 0}}
+        Triangle_Vertex{.Stroke, point0 - perp, {}, -1, {color, 0}, {dash[0], dash[1], 0, 0}},
+        Triangle_Vertex{.Stroke, point1 - perp, {}, -1, {color, 0}, {distance, dash[1], 0, 0}},
+        Triangle_Vertex{.Stroke, point1 + perp, {}, -1, {color, 0}, {distance, dash[1], 0, 0}},
+        Triangle_Vertex{.Stroke, point0 + perp, {}, -1, {color, 0}, {dash[0], dash[1], 0, 0}}
     )
 
     append(
@@ -307,13 +307,13 @@ draw_stroke_arrow :: proc(point0: [3]f32, point1: [3]f32, normal: [3]f32, tangen
 
     append(
         &triangle_state.vertices,
-        Triangle_Vertex{.Default, point0 - body_perp, {}, 0, {color, 0}, {}},
-        Triangle_Vertex{.Default, body_end - body_perp, {}, 0, {color, 0}, {}},
-        Triangle_Vertex{.Default, body_end + body_perp, {}, 0, {color, 0}, {}},
-        Triangle_Vertex{.Default, point0 + body_perp, {}, 0, {color, 0}, {}},
-        Triangle_Vertex{.Default, point1, {}, 0, {color, 0}, {}},
-        Triangle_Vertex{.Default, body_end + head_perp, {}, 0, {color, 0}, {}},
-        Triangle_Vertex{.Default, body_end - head_perp, {}, 0, {color, 0}, {}}
+        Triangle_Vertex{.Default, point0 - body_perp, {}, -1, {color, 0}, {}},
+        Triangle_Vertex{.Default, body_end - body_perp, {}, -1, {color, 0}, {}},
+        Triangle_Vertex{.Default, body_end + body_perp, {}, -1, {color, 0}, {}},
+        Triangle_Vertex{.Default, point0 + body_perp, {}, -1, {color, 0}, {}},
+        Triangle_Vertex{.Default, point1, {}, -1, {color, 0}, {}},
+        Triangle_Vertex{.Default, body_end + head_perp, {}, -1, {color, 0}, {}},
+        Triangle_Vertex{.Default, body_end - head_perp, {}, -1, {color, 0}, {}}
     )
 
     append(
@@ -368,10 +368,10 @@ draw_grid :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32,
 
     append(
         &triangle_state.vertices,
-        Triangle_Vertex{.Grid, point_a, {-extent.x, -extent.y}, 0, {color, 0}, {cell_size.x, cell_size.y, line_width, 0}},
-        Triangle_Vertex{.Grid, point_b, { extent.x, -extent.y}, 0, {color, 0}, {cell_size.x, cell_size.y, line_width, 0}},
-        Triangle_Vertex{.Grid, point_c, { extent.x, extent.y}, 0, {color, 0}, {cell_size.x, cell_size.y, line_width, 0}},
-        Triangle_Vertex{.Grid, point_d, {-extent.x, extent.y}, 0, {color, 0}, {cell_size.x, cell_size.y, line_width, 0}}
+        Triangle_Vertex{.Grid, point_a, {-extent.x, -extent.y}, -1, {color, 0}, {cell_size.x, cell_size.y, line_width, 0}},
+        Triangle_Vertex{.Grid, point_b, { extent.x, -extent.y}, -1, {color, 0}, {cell_size.x, cell_size.y, line_width, 0}},
+        Triangle_Vertex{.Grid, point_c, { extent.x, extent.y}, -1, {color, 0}, {cell_size.x, cell_size.y, line_width, 0}},
+        Triangle_Vertex{.Grid, point_d, {-extent.x, extent.y}, -1, {color, 0}, {cell_size.x, cell_size.y, line_width, 0}}
     )
 
     append(
@@ -447,10 +447,10 @@ draw_text :: proc(position: [3]f32, normal: [3]f32, tangent: [3]f32, text: strin
 
             append(
                 &triangle_state.vertices,
-                Triangle_Vertex{.Text, point_a, {g.uv_left,  g.uv_bottom}, 0, {color, 0}, {px_range, 0, 0, 0}},
-                Triangle_Vertex{.Text, point_b, {g.uv_right, g.uv_bottom}, 0, {color, 0}, {px_range, 0, 0, 0}},
-                Triangle_Vertex{.Text, point_c, {g.uv_right, g.uv_top}, 0, {color, 0}, {px_range, 0, 0, 0}},
-                Triangle_Vertex{.Text, point_d, {g.uv_left,  g.uv_top}, 0, {color, 0}, {px_range, 0, 0, 0}}
+                Triangle_Vertex{.Text, point_a, {g.uv_left,  g.uv_bottom}, -1, {color, 0}, {px_range, 0, 0, 0}},
+                Triangle_Vertex{.Text, point_b, {g.uv_right, g.uv_bottom}, -1, {color, 0}, {px_range, 0, 0, 0}},
+                Triangle_Vertex{.Text, point_c, {g.uv_right, g.uv_top}, -1, {color, 0}, {px_range, 0, 0, 0}},
+                Triangle_Vertex{.Text, point_d, {g.uv_left,  g.uv_top}, -1, {color, 0}, {px_range, 0, 0, 0}}
             )
 
             append(
@@ -485,10 +485,10 @@ draw_icon :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: f32, ke
 
     append(
         &triangle_state.vertices,
-        Triangle_Vertex{.Text, point_a, {ic.uv_left, ic.uv_bottom}, 0, {color, 0}, {px_range, 0, 0, 0}},
-        Triangle_Vertex{.Text, point_b, {ic.uv_right, ic.uv_bottom}, 0, {color, 0}, {px_range, 0, 0, 0}},
-        Triangle_Vertex{.Text, point_c, {ic.uv_right, ic.uv_top}, 0, {color, 0}, {px_range, 0, 0, 0}},
-        Triangle_Vertex{.Text, point_d, {ic.uv_left, ic.uv_top}, 0, {color, 0}, {px_range, 0, 0, 0}},
+        Triangle_Vertex{.Text, point_a, {ic.uv_left, ic.uv_bottom}, -1, {color, 0}, {px_range, 0, 0, 0}},
+        Triangle_Vertex{.Text, point_b, {ic.uv_right, ic.uv_bottom}, -1, {color, 0}, {px_range, 0, 0, 0}},
+        Triangle_Vertex{.Text, point_c, {ic.uv_right, ic.uv_top}, -1, {color, 0}, {px_range, 0, 0, 0}},
+        Triangle_Vertex{.Text, point_d, {ic.uv_left, ic.uv_top}, -1, {color, 0}, {px_range, 0, 0, 0}},
     )
 
     append(
@@ -511,10 +511,10 @@ draw_image :: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32
 
     append(
         &triangle_state.vertices,
-        Triangle_Vertex{.Default, point_a, {sprite.left, sprite.bottom}, sprite.handle, {0xffffffff, 0}, {}},
-        Triangle_Vertex{.Default, point_b, {sprite.right, sprite.bottom}, sprite.handle, {0xffffffff, 0}, {}},
-        Triangle_Vertex{.Default, point_c, {sprite.right, sprite.top}, sprite.handle, {0xffffffff, 0}, {}},
-        Triangle_Vertex{.Default, point_d, {sprite.left, sprite.top}, sprite.handle, {0xffffffff, 0}, {}}
+        Triangle_Vertex{.Default, point_a, {sprite.left, sprite.bottom}, i32(sprite.handle), {0xffffffff, 0}, {}},
+        Triangle_Vertex{.Default, point_b, {sprite.right, sprite.bottom}, i32(sprite.handle), {0xffffffff, 0}, {}},
+        Triangle_Vertex{.Default, point_c, {sprite.right, sprite.top}, i32(sprite.handle), {0xffffffff, 0}, {}},
+        Triangle_Vertex{.Default, point_d, {sprite.left, sprite.top}, i32(sprite.handle), {0xffffffff, 0}, {}}
     )
 
     append(
@@ -537,10 +537,10 @@ draw_rimage:: proc(center: [3]f32, normal: [3]f32, tangent: [3]f32, size: [2]f32
 
     append(
         &triangle_state.vertices,
-        Triangle_Vertex{.SDF_0, point_a, {sprite.left, sprite.bottom}, sprite.handle, {0xffffffff, 0}, {extent.x, extent.y, radius, 0}},
-        Triangle_Vertex{.SDF_1, point_b, {sprite.right, sprite.bottom}, sprite.handle, {0xffffffff, 0}, {extent.x, extent.y, radius, 0}},
-        Triangle_Vertex{.SDF_2, point_c, {sprite.right, sprite.top}, sprite.handle, {0xffffffff, 0}, {extent.x, extent.y, radius, 0}},
-        Triangle_Vertex{.SDF_3, point_d, {sprite.left, sprite.top}, sprite.handle, {0xffffffff, 0}, {extent.x, extent.y, radius, 0}}
+        Triangle_Vertex{.SDF_0, point_a, {sprite.left, sprite.bottom}, i32(sprite.handle), {0xffffffff, 0}, {extent.x, extent.y, radius, 0}},
+        Triangle_Vertex{.SDF_1, point_b, {sprite.right, sprite.bottom}, i32(sprite.handle), {0xffffffff, 0}, {extent.x, extent.y, radius, 0}},
+        Triangle_Vertex{.SDF_2, point_c, {sprite.right, sprite.top}, i32(sprite.handle), {0xffffffff, 0}, {extent.x, extent.y, radius, 0}},
+        Triangle_Vertex{.SDF_3, point_d, {sprite.left, sprite.top}, i32(sprite.handle), {0xffffffff, 0}, {extent.x, extent.y, radius, 0}}
     )
 
     append(

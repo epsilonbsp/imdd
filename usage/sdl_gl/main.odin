@@ -97,7 +97,11 @@ main :: proc() {
         compute_camera_view(&camera)
 
         imdd3.update({
-
+            position = camera.position,
+            forward = camera.forward,
+            fov = camera.fov,
+            projection = camera.projection,
+            view = camera.view
         })
 
         gl.Viewport(0, 0, viewport_x, viewport_y)
