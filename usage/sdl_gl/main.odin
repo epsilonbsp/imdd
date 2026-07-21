@@ -96,12 +96,16 @@ main :: proc() {
         compute_camera_projection(&camera, f32(viewport_x), f32(viewport_y))
         compute_camera_view(&camera)
 
+        imdd3.update({
+
+        })
+
         gl.Viewport(0, 0, viewport_x, viewport_y)
         gl.ClearColor(0.5, 0.5, 0.5, 1)
         gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
         imdd3_test.show_demo()
-        imdd3.render({viewport_x, viewport_y}, camera.projection, camera.view)
+        imdd3.flush_renderer()
 
         sdl.GL_SwapWindow(window)
     }

@@ -14,8 +14,8 @@ demo_state: Demo_State
 
 init_demo :: proc() {
     demo_state.atlas = imdd3.atlas_create(1024, 1024)
-    demo_state.sprite0, _ = imdd3.atlas_pack_png(&demo_state.atlas, #load("../../assets/test/test0.png"))
-    demo_state.sprite1, _ = imdd3.atlas_pack_png(&demo_state.atlas, #load("../../assets/test/test1.png"))
+    demo_state.sprite0, _ = imdd3.atlas_pack_png(&demo_state.atlas, #load("assets/test0.png"))
+    demo_state.sprite1, _ = imdd3.atlas_pack_png(&demo_state.atlas, #load("assets/test1.png"))
 }
 
 destroy_demo :: proc() {

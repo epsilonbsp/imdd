@@ -6,7 +6,8 @@ State :: struct {
 
 state: State
 
-init :: proc(platform: Platform_Interface, renderer: Renderer_Interface) {
+init :: proc(platform: Platform_Interface, renderer: Renderer_Interface, resources: Resources = {}) {
+    init_resources(resources)
     init_platform(platform)
     init_renderer(renderer)
 }

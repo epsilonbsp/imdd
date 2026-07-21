@@ -20,7 +20,7 @@ Renderer_Interface :: struct {
 
 Renderer :: struct {
     interface: Renderer_Interface,
-    fonts: [3]Font,
+    fonts: [Font_Weight]Font,
     font_weight: Font_Weight,
     icons: Icons,
 }

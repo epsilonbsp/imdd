@@ -35,10 +35,8 @@ Icons_Json :: struct {
 }
 
 load_icons :: proc() {
-    data := #load("../assets/atlas/icons/icons.json")
-
     icons_json: Icons_Json
-    error := json.unmarshal(data, &icons_json)
+    error := json.unmarshal(resources.icons, &icons_json)
     assert(error == nil, "ERROR: Failed to parse icons.json")
     defer delete(icons_json.icons)
 

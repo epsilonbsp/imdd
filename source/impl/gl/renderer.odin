@@ -15,7 +15,7 @@ Renderer :: struct {
 renderer: Renderer
 
 init :: proc() {
-    renderer.atlas_tex = gen_texture_from_png_bytes(#load("../../../assets/atlas/atlas.png"))
+    renderer.atlas_tex = gen_texture_from_png_bytes(imdd3.resources.atlas)
 
     texture_map_init(&renderer.tex_map, 8)
 
