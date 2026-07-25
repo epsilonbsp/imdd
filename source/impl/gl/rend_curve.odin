@@ -195,15 +195,9 @@ CURVE_GS :: GLSL_VERSION + `
     uniform mat4 u_view;
 
     vec3 screen_perp(vec3 view_pos, vec3 view_tangent) {
-        vec4 clip_a = u_projection * vec4(view_pos, 1.0);
-        vec4 clip_b = u_projection * vec4(view_pos + view_tangent * 0.01, 1.0);
+        vec3 to_cam = normalize(-view_pos);
 
-        vec2 screen_a = clip_a.xy / clip_a.w;
-        vec2 screen_b = clip_b.xy / clip_b.w;
-
-        vec2 screen_dir = normalize(screen_b - screen_a);
-
-        return normalize(vec3(-screen_dir.y, screen_dir.x, 0.0));
+        return normalize(cross(view_tangent, to_cam));
     }
 
     vec3 compute_perp(vec3 view_pos, vec3 world_tangent, vec3 view_tangent, vec3 normal) {

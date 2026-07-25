@@ -64,14 +64,9 @@ LINE_GS :: GLSL_VERSION + `
         vec4 view0 = u_view * gl_in[0].gl_Position;
         vec4 view1 = u_view * gl_in[1].gl_Position;
 
-        vec4 clip0 = u_projection * view0;
-        vec4 clip1 = u_projection * view1;
-
-        vec2 screen0 = clip0.xy / clip0.w;
-        vec2 screen1 = clip1.xy / clip1.w;
-
-        vec2 screen_dir = normalize(screen1 - screen0);
-        vec3 view_perp = normalize(vec3(-screen_dir.y, screen_dir.x, 0.0));
+        vec3 line_dir = normalize(view1.xyz - view0.xyz);
+        vec3 to_cam = normalize(-(view0.xyz + view1.xyz) * 0.5);
+        vec3 view_perp = normalize(cross(line_dir, to_cam));
 
         vec4 color0 = unpack_rgba(v_data[0].color);
         vec4 color1 = unpack_rgba(v_data[1].color);
